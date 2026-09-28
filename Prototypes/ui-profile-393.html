@@ -1,0 +1,2369 @@
+<!doctype html>
+<html lang="en" data-visualize-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Cratis Ui Profile</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe id="codex-visualization" sandbox="allow-scripts" referrerpolicy="no-referrer" title="Cratis Ui Profile" data-srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot; data-visualize-standalone&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;Cratis Ui Profile&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 14px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --icon-size: 16px;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --corner-shape: round;
+  --radius: var(--border-radius-lg, 10px);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: var(--visualize-paint-gutter, 0px);
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+.cursor-interaction {
+  cursor: var(--cursor-interaction, pointer);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: var(--cursor-interaction, pointer);
+  font-weight: var(--font-weight-medium, 500);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead th {
+  padding-block: 8px;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 6px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: var(--corner-shape);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+.widget {
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  box-shadow: 0 0 0 0.5px var(--border-strong, var(--border));
+  color: var(--foreground);
+  background: var(--background);
+}
+
+#widget &gt; :not(.card, .widget, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+hr {
+  width: 100%;
+  height: 1px;
+  margin-block: 6px;
+  border: 0;
+  background: var(--border);
+}
+
+.nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress {
+  display: flex;
+  height: 8px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 8px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar:only-child {
+  border-radius: var(--radius-full);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.nav-link,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn,
+.nav-link {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: var(--cursor-interaction, pointer);
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover,
+.nav-link:not(:disabled):not([aria-disabled=&quot;true&quot;]):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.nav-pills .nav-link {
+  min-width: 0;
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.nav-justified .nav-link {
+  flex: 1 1 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.nav-pills .nav-link.active {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+/* Shared preview chrome; product styles stay inside each variant. */
+.viz-dotted-background {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--foreground) 14%, transparent) 0.8px,
+    transparent 0.8px
+  );
+  background-position: center;
+  background-size: 16px 16px;
+}
+
+.viz-carousel {
+  position: relative;
+  min-width: 0;
+}
+
+.viz-carousel:has(&gt; .viz-carousel-controls) {
+  min-height: calc(60px + var(--viz-carousel-picker-height, 0px));
+  padding-bottom: 60px;
+}
+
+.viz-carousel &gt; [data-variant][hidden] {
+  display: none !important;
+}
+
+.viz-carousel &gt; [data-variant] {
+  isolation: isolate;
+}
+
+.viz-carousel-controls {
+  --viz-carousel-hover: light-dark(
+    color-mix(in srgb, var(--foreground) 5.4%, transparent),
+    color-mix(in srgb, var(--foreground) 7.8%, transparent)
+  );
+  position: absolute;
+  z-index: 2;
+  bottom: 8px;
+  left: 50%;
+  display: flex;
+  width: max-content;
+  /* Leave room for the host&#x27;s design-controls launcher at the trailing edge. */
+  max-width: calc(100% - 96px);
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans);
+  /* Match the settings dropdown chrome independently of the content font size. */
+  font-size: 13px;
+  font-weight: var(--font-weight-normal);
+  line-height: 18px;
+  transform: translateX(-50%);
+  user-select: none;
+}
+
+.viz-carousel-controls button,
+.viz-carousel-picker &gt; summary {
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 6px;
+  -webkit-app-region: no-drag;
+  border: 0;
+  border-radius: 14px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.viz-carousel-controls &gt; button,
+.viz-carousel-picker &gt; summary {
+  position: relative;
+  isolation: isolate;
+}
+
+.viz-carousel-controls &gt; button {
+  --icon-size: 16px;
+  width: 30px;
+  padding: 0;
+}
+
+.viz-carousel-picker &gt; summary {
+  padding-inline: 12px;
+}
+
+.viz-carousel-controls .viz-carousel-caret {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  margin: 0;
+  color: inherit;
+  transform: rotate(180deg);
+}
+
+.viz-carousel-controls &gt; button &gt; svg,
+.viz-carousel-controls .viz-carousel-caret,
+.viz-carousel-count {
+  opacity: 0.5;
+}
+
+.viz-carousel-controls &gt; button::before,
+.viz-carousel-picker &gt; summary::before {
+  position: absolute;
+  z-index: -1;
+  inset: 3px;
+  border-radius: 12px;
+  content: &quot;&quot;;
+  pointer-events: none;
+}
+
+.viz-carousel-controls &gt; button:hover::before,
+.viz-carousel-picker &gt; summary:hover::before {
+  background: var(--viz-carousel-hover);
+}
+
+.viz-carousel-controls &gt; button,
+.viz-carousel-controls [data-lucide],
+.viz-carousel-controls .lucide {
+  flex-shrink: 0;
+}
+
+.viz-carousel-picker {
+  min-width: 0;
+}
+
+.viz-carousel-picker &gt; summary {
+  min-width: 0;
+  list-style: none;
+}
+
+.viz-carousel-picker &gt; summary::-webkit-details-marker {
+  display: none;
+}
+
+.viz-carousel-count {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.viz-carousel-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viz-carousel-options {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 4px);
+  left: 0;
+  display: flex;
+  max-height: 240px;
+  flex-direction: column;
+  gap: 2px;
+  overflow: auto;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--background);
+  box-shadow: 0 4px 12px light-dark(rgb(0 0 0 / 6%), rgb(0 0 0 / 25%));
+}
+
+.viz-carousel-options &gt; button {
+  width: 100%;
+  min-height: 28px;
+  justify-content: flex-start;
+  padding: 4px 8px;
+  font-size: var(--font-size-small);
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.viz-carousel-options &gt; [aria-current=&quot;true&quot;],
+.viz-carousel-options &gt; button:hover {
+  background: var(--viz-carousel-hover);
+}
+
+.btn:disabled,
+.nav-link:disabled,
+.nav-link[aria-disabled=&quot;true&quot;] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: var(--corner-shape);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed=&quot;true&quot;],
+  [aria-selected=&quot;true&quot;],
+  .is-selected
+) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible,
+.viz-carousel-controls :is(button, summary):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  .viz-carousel:has(&gt; .viz-carousel-controls) {
+    min-height: calc(76px + var(--viz-carousel-picker-height, 0px));
+    padding-bottom: 76px;
+  }
+
+  .btn,
+  .nav-link,
+  .viz-carousel-controls button,
+  .viz-carousel-picker &gt; summary,
+  .form-control,
+  .form-select {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Keep small-screen WebKit from zooming when a text field receives focus. */
+  .form-control,
+  .form-select {
+    font-size: max(16px, var(--font-size-normal));
+  }
+
+  .form-control[type=&quot;file&quot;]::file-selector-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control-color[type=&quot;color&quot;] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control:is(
+    [type=&quot;date&quot;],
+    [type=&quot;datetime-local&quot;],
+    [type=&quot;month&quot;],
+    [type=&quot;time&quot;],
+    [type=&quot;week&quot;]
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 8px;
+  }
+
+  .form-check {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .form-check-input {
+    position: relative;
+  }
+
+  .form-check-input::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: &quot;&quot;;
+    transform: translate(-50%, -50%);
+  }
+
+  .form-check-label {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .form-range {
+    height: 44px;
+    touch-action: pan-y;
+  }
+
+  .form-range::-webkit-slider-runnable-track {
+    height: 44px;
+  }
+
+  .form-range::-moz-range-track {
+    height: 44px;
+  }
+
+  .form-range::-webkit-slider-thumb {
+    margin-top: 12px;
+  }
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: var(--icon-size) !important;
+  height: var(--icon-size) !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script type=&quot;application/json&quot; id=&quot;codex-visualization-widget-state&quot;&gt;__CODEX_VISUALIZATION_WIDGET_STATE__&lt;/script&gt;
+&lt;script&gt;(() =&gt; {
+  const root = document.documentElement;
+  const mediaQuery = globalThis.matchMedia(&quot;(prefers-color-scheme: dark)&quot;);
+  const apply = Reflect.apply;
+  const isArray = Array.isArray;
+  const hasOwn = Object.hasOwn;
+  const parentWindow = globalThis.parent;
+  const stringify = JSON.stringify;
+  const parse = JSON.parse;
+  const encode = TextEncoder.prototype.encode.bind(new TextEncoder());
+  const initialStateElement = document.getElementById(
+    &quot;codex-visualization-widget-state&quot;,
+  );
+  const initialGlobals = parse(initialStateElement?.textContent ?? &quot;{}&quot;);
+  initialStateElement?.remove();
+  /** @type {Record&lt;string, unknown&gt; | null} */
+  let state = initialGlobals.widgetState ?? null;
+  const statePersistence = initialGlobals.statePersistence ?? &quot;none&quot;;
+  let nextStateRequestId = 0;
+  /** @type {Map&lt;number, { resolve: () =&gt; void; reject: (error: Error) =&gt; void; timeout: ReturnType&lt;typeof globalThis.setTimeout&gt;; serializedState: string }&gt;} */
+  const pendingStateWrites = new Map();
+  const persistenceError = () =&gt;
+    Object.assign(
+      new Error(&quot;The host could not persist the widget state update&quot;),
+      {
+        code: -32000,
+        data: { code: &quot;widget_state_persistence_failed&quot;, retryable: false },
+      },
+    );
+  /**
+   * @param {object} prototype
+   * @param {string} property
+   */
+  const getPrototypeGetter = (prototype, property) =&gt; {
+    // oxlint-disable-next-line typescript/unbound-method -- invoked through captured Reflect.apply
+    const getter = Object.getOwnPropertyDescriptor(prototype, property)?.get;
+    if (getter == null) {
+      throw new Error(`Missing ${property} getter`);
+    }
+    return getter;
+  };
+  const getMessageData = getPrototypeGetter(MessageEvent.prototype, &quot;data&quot;);
+  const getMessagePorts = getPrototypeGetter(MessageEvent.prototype, &quot;ports&quot;);
+  const getMessageSource = getPrototypeGetter(MessageEvent.prototype, &quot;source&quot;);
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const addHostMessageListener = MessagePort.prototype.addEventListener;
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const postHostMessage = MessagePort.prototype.postMessage;
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const startHostPort = MessagePort.prototype.start;
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const stopMessagePropagation = Event.prototype.stopImmediatePropagation;
+  /** @type {MessagePort | null} */
+  let hostPort = null;
+  const postToHost = (type, payload) =&gt; {
+    if (hostPort != null) {
+      apply(postHostMessage, hostPort, [{ type, ...payload }]);
+    }
+  };
+  const openExternal = ({ href }) =&gt; {
+    if (globalThis.navigator.userActivation?.isActive === true) {
+      postToHost(&quot;open-external&quot;, { href });
+    }
+  };
+  const sendFollowUpMessage = ({ context, prompt, title }) =&gt; {
+    if (globalThis.navigator.userActivation?.isActive === true) {
+      postToHost(&quot;follow-up&quot;, { context, prompt, title });
+    }
+    return Promise.resolve();
+  };
+  /**
+   * @param {Record&lt;string, unknown&gt; | ((previous: Record&lt;string, unknown&gt; | null) =&gt; Record&lt;string, unknown&gt;)} next
+   * @returns {Promise&lt;void&gt;}
+   */
+  const setWidgetState = async (next) =&gt; {
+    const nextState = typeof next === &quot;function&quot; ? next(state) : next;
+    if (
+      nextState == null ||
+      typeof nextState !== &quot;object&quot; ||
+      isArray(nextState)
+    ) {
+      throw new TypeError(&quot;Widget state must be a JSON object&quot;);
+    }
+    const inputState = stringify(
+      nextState,
+      (_key, /** @type {unknown} */ value) =&gt; {
+        if (
+          typeof value === &quot;undefined&quot; ||
+          typeof value === &quot;function&quot; ||
+          typeof value === &quot;symbol&quot; ||
+          (typeof value === &quot;number&quot; &amp;&amp; !Number.isFinite(value))
+        ) {
+          throw new TypeError(&quot;Widget state must be a JSON object&quot;);
+        }
+        return value;
+      },
+    );
+    const parsedState = parse(inputState);
+    if (
+      parsedState == null ||
+      typeof parsedState !== &quot;object&quot; ||
+      isArray(parsedState)
+    ) {
+      throw new TypeError(&quot;Widget state must be a JSON object&quot;);
+    }
+    const storedState = {
+      modelContent: null,
+      privateContent: null,
+      ...parsedState,
+    };
+    const serializedState = stringify(storedState);
+    if (encode(serializedState).length &gt; 16 * 1024) {
+      throw new TypeError(
+        &quot;Widget state must be a JSON object of at most 16 KiB&quot;,
+      );
+    }
+    if (
+      hasOwn(storedState, &quot;imageIds&quot;) &amp;&amp;
+      (!isArray(storedState.imageIds) ||
+        storedState.imageIds.some(
+          (/** @type {unknown} */ id) =&gt; typeof id !== &quot;string&quot;,
+        ))
+    ) {
+      throw new TypeError(&quot;Widget state imageIds must be an array of strings&quot;);
+    }
+    if (storedState.imageIds?.length &gt; 0) {
+      throw Object.assign(
+        new TypeError(&quot;Visualization state does not support image attachments&quot;),
+        { code: -32602, data: { code: &quot;images_unsupported&quot; } },
+      );
+    }
+    state = storedState;
+    globalThis.openai.widgetState = state;
+    globalThis.dispatchEvent(
+      new CustomEvent(&quot;openai:set_globals&quot;, {
+        detail: { globals: { widgetState: state } },
+      }),
+    );
+    if (statePersistence === &quot;none&quot;) {
+      throw persistenceError();
+    }
+    const id = ++nextStateRequestId;
+    return new Promise((resolve, reject) =&gt; {
+      const timeout = globalThis.setTimeout(() =&gt; {
+        pendingStateWrites.delete(id);
+        reject(persistenceError());
+      }, 30_000);
+      pendingStateWrites.set(id, { resolve, reject, timeout, serializedState });
+      postToHost(&quot;widget-state-write&quot;, { id, state: serializedState });
+    });
+  };
+  const syncTheme = () =&gt; {
+    const theme = mediaQuery.matches ? &quot;dark&quot; : &quot;light&quot;;
+    root.dataset.theme = theme;
+    globalThis.openai = {
+      ...globalThis.openai,
+      openExternal,
+      sendFollowUpMessage,
+      setWidgetState,
+      theme,
+      visualizationStyleVariables: {},
+      visualizationTheme: theme,
+      widgetState: state,
+      statePersistence,
+      stateModelContext: &quot;none&quot;,
+    };
+    globalThis.dispatchEvent(
+      new CustomEvent(&quot;openai:set_globals&quot;, {
+        detail: { globals: globalThis.openai },
+      }),
+    );
+  };
+  const sendHeight = () =&gt; {
+    postToHost(&quot;height&quot;, {
+      height: Math.ceil(
+        Math.max(
+          document.body.scrollHeight,
+          document.body.getBoundingClientRect().height,
+        ),
+      ),
+    });
+  };
+
+  globalThis.addEventListener(
+    &quot;message&quot;,
+    (event) =&gt; {
+      const data = apply(getMessageData, event, []);
+      const ports = apply(getMessagePorts, event, []);
+      const source = apply(getMessageSource, event, []);
+      if (
+        hostPort != null ||
+        source !== parentWindow ||
+        typeof data !== &quot;object&quot; ||
+        data?.type !== &quot;codex-visualization-initialize&quot; ||
+        !isArray(ports) ||
+        ports.length !== 1
+      ) {
+        return;
+      }
+      apply(stopMessagePropagation, event, []);
+      const nextHostPort = ports[0];
+      try {
+        apply(addHostMessageListener, nextHostPort, [
+          &quot;message&quot;,
+          (event) =&gt; {
+            const data = apply(getMessageData, event, []);
+            if (typeof data === &quot;object&quot; &amp;&amp; data?.type === &quot;measure&quot;) {
+              sendHeight();
+            } else if (
+              typeof data === &quot;object&quot; &amp;&amp;
+              data?.type === &quot;widget-state-result&quot;
+            ) {
+              /** @type {unknown} */
+              const id = data.id;
+              if (typeof id !== &quot;number&quot;) {
+                return;
+              }
+              const pending = pendingStateWrites.get(id);
+              if (pending != null) {
+                pendingStateWrites.delete(id);
+                globalThis.clearTimeout(pending.timeout);
+                if (data.ok === true) {
+                  pending.resolve();
+                } else {
+                  pending.reject(persistenceError());
+                }
+              }
+            }
+          },
+        ]);
+        apply(startHostPort, nextHostPort, []);
+      } catch {
+        return;
+      }
+      hostPort = nextHostPort;
+      for (const [id, { serializedState }] of pendingStateWrites) {
+        postToHost(&quot;widget-state-write&quot;, { id, state: serializedState });
+      }
+      sendHeight();
+    },
+    { capture: true },
+  );
+  document.currentScript?.remove();
+  mediaQuery.addEventListener(&quot;change&quot;, syncTheme);
+  globalThis.addEventListener(&quot;click&quot;, (event) =&gt; {
+    if (event.defaultPrevented) {
+      return;
+    }
+    let element = null;
+    if (event.target instanceof globalThis.Element) {
+      element = event.target;
+    } else if (event.target instanceof globalThis.Node) {
+      element = event.target.parentElement;
+    }
+    const link = element?.closest(&quot;a[href]&quot;);
+    const href = link?.getAttribute(&quot;href&quot;);
+    if (href == null) {
+      return;
+    }
+    if (href.startsWith(&quot;#&quot;)) {
+      let id;
+      try {
+        id = decodeURIComponent(href.slice(1));
+      } catch {
+        return;
+      }
+      const target = id.length === 0 ? root : document.getElementById(id);
+      if (
+        target == null ||
+        globalThis.navigator.userActivation?.isActive !== true
+      ) {
+        return;
+      }
+      event.preventDefault();
+      postToHost(&quot;scroll-to&quot;, {
+        top: target.getBoundingClientRect().top + globalThis.scrollY,
+      });
+      return;
+    }
+    event.preventDefault();
+    openExternal({ href });
+  });
+  new ResizeObserver(sendHeight).observe(document.body);
+  syncTheme();
+})();
+&lt;/script&gt;
+&lt;style&gt;
+#ui-profile{--up-bg:light-dark(#edf1f7,#0e1625);--up-panel:light-dark(#fff,#172235);--up-alt:light-dark(#f5f7fb,#202c40);--up-text:light-dark(#25324a,#e1e9f6);--up-muted:light-dark(#63728b,#9babc3);--up-line:light-dark(#d7e0ec,#334157);--up-blue:light-dark(#2266c5,#68a7fc);--up-soft:light-dark(#e8f1ff,#233b5d);--up-green:light-dark(#286847,#92ceb0);--up-purple:light-dark(#7954b4,#bba4ec);font:13px/1.5 -apple-system,BlinkMacSystemFont,&#x27;Segoe UI&#x27;,sans-serif;background:var(--up-bg);color:var(--up-text);border:1px solid var(--up-line);border-radius:12px;overflow:hidden;position:relative;color-scheme:light dark}
+#ui-profile *{box-sizing:border-box}#ui-profile button,#ui-profile input,#ui-profile select{font:inherit;color:inherit}#ui-profile button{padding:7px 11px;border:1px solid var(--up-line);border-radius:6px;background:var(--up-panel)}#ui-profile button:hover{border-color:var(--up-blue)}#ui-profile button:disabled{opacity:.45}#ui-profile button:focus-visible,#ui-profile select:focus-visible{outline:2px solid var(--up-blue);outline-offset:2px}#ui-profile button.active{color:var(--up-blue);background:var(--up-soft);border-color:var(--up-blue)}#ui-profile button.primary{background:var(--up-blue);color:light-dark(#fff,#101c2c);border-color:var(--up-blue);font-weight:600}#ui-profile .muted{color:var(--up-muted)}#ui-profile .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}#ui-profile .between{justify-content:space-between}#ui-profile h1,#ui-profile h2,#ui-profile h3,#ui-profile p{margin:0}#ui-profile h1{font-size:24px;font-weight:600;letter-spacing:-.6px}#ui-profile h2{font-size:17px;font-weight:600;letter-spacing:-.3px}#ui-profile h3{font-size:13px;font-weight:600}#ui-profile small{font-size:11px}#ui-profile .icon{display:inline-flex;align-items:center;justify-content:center;gap:6px}#ui-profile .icon svg{width:15px;height:15px}#ui-profile .icon-only{width:29px;height:29px;padding:5px;background:transparent;border-color:transparent}#ui-profile .eyebrow{font-size:10px;letter-spacing:1px;font-weight:600;text-transform:uppercase;color:var(--up-muted)}#ui-profile .studio-top{padding:13px 17px;background:var(--up-panel);border-bottom:1px solid var(--up-line)}#ui-profile .brand{font-size:15px;font-weight:600;letter-spacing:-.3px}#ui-profile .brand b{color:var(--up-blue)}#ui-profile .app-picker{font-size:12px;color:var(--up-muted)}#ui-profile .body{display:grid;grid-template-columns:minmax(0,1fr)}#ui-profile .nav{padding:23px 12px;background:var(--up-panel);border-right:1px solid var(--up-line)}#ui-profile .nav-heading{font-size:12px;font-weight:600;margin:0 6px 17px}#ui-profile .nav-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--up-muted);padding:10px 8px;margin:2px 0;border-radius:5px}#ui-profile .nav-item svg{width:14px;height:14px}#ui-profile .nav-item.selected{color:var(--up-blue);background:var(--up-soft)}#ui-profile .nav hr{margin:19px 7px;border:0;border-top:1px solid var(--up-line)}#ui-profile main{min-width:0;position:relative}#ui-profile .page-head{padding:24px 24px 19px;border-bottom:1px solid var(--up-line)}#ui-profile .subtitle{font-size:12px;color:var(--up-muted);margin-top:5px}#ui-profile .savebar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:17px}#ui-profile .savebar .right{margin-left:auto}#ui-profile .badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;border:1px solid var(--up-line);border-radius:4px;padding:2px 5px;color:var(--up-muted);white-space:nowrap}#ui-profile .badge.good{color:var(--up-green);border-color:transparent;background:color-mix(in srgb,var(--up-green) 10%,var(--up-panel))}#ui-profile .badge.auto{color:var(--up-purple);border-color:transparent;background:color-mix(in srgb,var(--up-purple) 10%,var(--up-panel))}#ui-profile .configuration{display:grid;grid-template-columns:minmax(0,1fr);min-height:620px}#ui-profile .profile-stack{padding:20px 17px;border-right:1px solid var(--up-line);background:var(--up-panel)}#ui-profile .profile-section{padding:0 0 21px;margin-bottom:20px;border-bottom:1px solid var(--up-line)}#ui-profile .profile-section:last-child{border-bottom:0;padding-bottom:0;margin-bottom:0}#ui-profile .section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}#ui-profile .section-title h3{display:flex;align-items:center;gap:7px}#ui-profile .section-title svg{width:15px;height:15px;color:var(--up-blue)}#ui-profile .section-desc{font-size:11px;color:var(--up-muted);margin-bottom:13px}#ui-profile .package-row{padding:10px 0;display:flex;align-items:center;gap:8px;border-top:1px solid var(--up-line);font-size:12px}#ui-profile .package-icon{width:29px;height:29px;border-radius:7px;display:flex;justify-content:center;align-items:center;background:var(--up-alt);color:var(--up-muted);flex-shrink:0}#ui-profile .package-icon svg{width:16px;height:16px}#ui-profile .package-row .name{flex:1;min-width:0;overflow-wrap:anywhere}#ui-profile .package-row small{display:block;color:var(--up-muted);font-size:10px;margin-top:3px}#ui-profile .profile-section .actionlink{padding:5px 0;background:transparent;border:0;color:var(--up-blue);font-size:11px;margin-top:5px}#ui-profile .blueprint-tile{border:1px solid var(--up-line);border-radius:7px;background:var(--up-bg);padding:12px;margin-top:10px}#ui-profile .blueprint-tile h3{font-size:12px;margin-top:9px}#ui-profile .blueprint-tile p{font-size:11px;color:var(--up-muted);margin-top:4px}#ui-profile .mini-shell{border:1px solid var(--up-line);background:var(--up-panel);height:64px;border-radius:4px;display:grid;grid-template-columns:25px 1fr;overflow:hidden}#ui-profile .mini-shell&gt;span{background:var(--up-alt);border-right:1px solid var(--up-line)}#ui-profile .mini-shell .mini-content{padding:9px;display:grid;gap:5px}#ui-profile .mini-content i{height:4px;display:block;border-radius:2px;background:var(--up-line)}#ui-profile .mini-content i:first-child{background:var(--up-blue);width:37%}#ui-profile .mini-shell.top{grid-template-columns:1fr;grid-template-rows:12px 1fr}#ui-profile .mini-shell.top&gt;span{border-right:0;border-bottom:1px solid var(--up-line)}#ui-profile .preview-area{padding:20px;min-width:0}#ui-profile .preview-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:15px}#ui-profile .preview-bar select{border:1px solid var(--up-line);border-radius:5px;background:var(--up-panel);padding:5px 7px;font-size:11px;max-width:180px}#ui-profile .preview-tools{display:flex;gap:2px;align-items:center}#ui-profile .preview-tools .separator{height:16px;width:1px;background:var(--up-line);margin:0 5px}#ui-profile .app-preview{--app-bg:light-dark(#f4f6fa,#111c2c);--app-panel:light-dark(#fff,#1b293d);--app-text:light-dark(#28344a,#e3ebf8);--app-muted:light-dark(#718099,#a6b5cb);--app-line:light-dark(#e2e7f0,#344258);--app-accent:#5c68dd;--app-radius:var(--preview-radius,7px);background:var(--app-bg);color:var(--app-text);border:1px solid var(--up-line);border-radius:8px;overflow:hidden;min-height:357px;container:app / inline-size;position:relative;margin:0 auto;max-width:100%;transition:max-width .2s}#ui-profile .app-preview.light{--app-bg:#f4f6fa;--app-panel:#fff;--app-text:#28344a;--app-muted:#718099;--app-line:#e2e7f0}#ui-profile .app-preview.dark{--app-bg:#111c2c;--app-panel:#1b293d;--app-text:#e3ebf8;--app-muted:#a6b5cb;--app-line:#344258}#ui-profile .app-preview.primereact{--app-radius:var(--preview-radius,11px)}#ui-profile .app-top{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:13px 14px;background:var(--app-panel);border-bottom:1px solid var(--app-line);font-size:11px}#ui-profile .app-logo{width:23px;height:23px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;background:var(--app-accent);color:#fff;font-weight:600}#ui-profile .app-layout{display:grid;grid-template-columns:93px minmax(0,1fr);min-height:312px}#ui-profile .app-nav{padding:17px 7px;background:var(--app-panel);border-right:1px solid var(--app-line);font-size:10px;display:flex;flex-direction:column;gap:6px}#ui-profile .app-nav button{font-size:10px;border:0;text-align:left;padding:7px 6px;background:transparent;color:var(--app-muted);border-radius:var(--app-radius)}#ui-profile .app-nav button.current{background:color-mix(in srgb,var(--app-accent) 11%,var(--app-panel));color:var(--app-accent)}#ui-profile .app-nav .nav-label{font-size:9px;letter-spacing:.6px;padding:0 6px 5px;color:var(--app-muted)}#ui-profile .app-main{padding:20px 15px;min-width:0}#ui-profile .app-main h2{font-size:16px;letter-spacing:-.3px}#ui-profile .app-main p{font-size:10px;color:var(--app-muted);margin-top:4px}#ui-profile .app-preview button.app-button{background:var(--app-accent);border:1px solid var(--app-accent);color:#fff;border-radius:var(--app-radius);font-size:10px;padding:6px 9px}#ui-profile .app-preview.primereact button.app-button{background:var(--app-panel);color:var(--app-accent)}#ui-profile .app-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:17px}#ui-profile .app-table{width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed;background:var(--app-panel);border-radius:var(--app-radius);overflow:hidden}#ui-profile .app-table th{font-size:9px;text-align:left;font-weight:500;padding:9px 7px;color:var(--app-muted);border-bottom:1px solid var(--app-line)}#ui-profile .app-table td{padding:12px 7px;border-bottom:1px solid var(--app-line);overflow-wrap:anywhere}#ui-profile .app-table th:first-child{width:61%}#ui-profile .status-pill{display:inline-block;font-size:9px;color:var(--app-accent);border-radius:4px;padding:2px 4px;background:color-mix(in srgb,var(--app-accent) 9%,var(--app-panel))}#ui-profile .app-topnav .app-layout{grid-template-columns:1fr}#ui-profile .app-topnav .app-nav{flex-direction:row;border-right:0;border-bottom:1px solid var(--app-line);padding:8px 13px;flex-wrap:wrap}#ui-profile .app-topnav .nav-label{display:none}#ui-profile .app-compact .app-layout{grid-template-columns:38px minmax(0,1fr)}#ui-profile .app-compact .app-nav{padding:14px 5px}#ui-profile .app-compact .app-nav button{font-size:0;height:28px;text-align:center}#ui-profile .app-compact .app-nav button:before{content:&#x27;•&#x27;;font-size:16px}#ui-profile .app-compact .nav-label{display:none}#ui-profile .app-main label{display:block;font-size:10px;color:var(--app-muted);margin:13px 0}#ui-profile .app-main input,#ui-profile .demo-dialog input{display:block;margin-top:4px;width:100%;min-width:0;padding:7px;border:1px solid var(--app-line);background:var(--app-panel);color:var(--app-text);border-radius:var(--app-radius);font-size:11px}#ui-profile .sample-note{font-size:10px;color:var(--up-muted);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:10px 0 18px}#ui-profile .sample-note button{padding:2px 0;background:transparent;border:0;color:var(--up-blue);font-size:10px}#ui-profile .template-heading{display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:10px}#ui-profile .template-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}#ui-profile .template-choice{padding:8px 7px;text-align:left;min-width:0;font-size:10px;background:var(--up-panel);border-radius:6px}#ui-profile .template-choice svg{width:19px;height:19px;display:block;margin-bottom:6px;color:var(--up-muted)}#ui-profile .template-choice.active svg{color:var(--up-blue)}#ui-profile .preview-settings{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:17px;border-top:1px solid var(--up-line);margin-top:20px}#ui-profile .preview-settings label{display:grid;gap:5px;font-size:10px;color:var(--up-muted);flex:1;min-width:95px}#ui-profile .preview-settings select{padding:6px;border:1px solid var(--up-line);border-radius:5px;background:var(--up-panel);color:var(--up-text);font-size:11px;min-width:0}#ui-profile .swatches{display:flex;gap:7px;align-items:center}#ui-profile .swatch{border-radius:50%;width:21px;height:21px;padding:0;border:3px solid var(--up-panel);outline:1px solid transparent}#ui-profile .swatch.chosen{outline:1px solid var(--up-blue)}#ui-profile .footer{padding:11px 23px;border-top:1px solid var(--up-line);font-size:11px;color:var(--up-muted);background:var(--up-panel)}#ui-profile .notice{font-size:11px;padding:10px 13px;color:var(--up-green);background:color-mix(in srgb,var(--up-green) 8%,var(--up-panel));border-bottom:1px solid var(--up-line)}#ui-profile .drawer-backdrop{position:absolute;inset:0;background:light-dark(#14294335,#02091170);z-index:9;display:flex;justify-content:flex-end;align-items:stretch}#ui-profile .drawer{width:410px;max-width:100%;background:var(--up-panel);border-left:1px solid var(--up-line);padding:23px;box-shadow:-15px 0 50px #0002;animation:up-slide .2s ease-out}#ui-profile .drawer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}#ui-profile .drawer p{font-size:12px;color:var(--up-muted);margin:5px 0 18px}#ui-profile .catalog-item{padding:15px 12px;border:1px solid var(--up-line);border-radius:8px;margin-top:11px;background:var(--up-bg)}#ui-profile .catalog-item h3{font-size:13px}#ui-profile .catalog-item p{font-size:11px;margin:5px 0 12px}#ui-profile .catalog-item .mini-shell{height:60px;margin-bottom:13px}#ui-profile .catalog-item button{font-size:11px}#ui-profile .catalog-item.selected{border-color:var(--up-blue)}#ui-profile .drawer-note{font-size:10px;color:var(--up-muted);padding-top:18px;margin-top:18px;border-top:1px solid var(--up-line)}#ui-profile .resolution-row{padding:12px 0;border-bottom:1px solid var(--up-line);font-size:12px;display:flex;align-items:center;gap:9px}#ui-profile .resolution-number{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--up-alt);color:var(--up-muted);font-size:10px;flex-shrink:0}#ui-profile .resolution-row .name{flex:1}#ui-profile .resolution-row small{font-size:10px;display:block;color:var(--up-muted)}#ui-profile .binding-detail{border:1px solid var(--up-line);border-radius:6px;background:var(--up-bg);padding:11px;margin-top:10px;font-size:11px}#ui-profile .binding-detail strong{font-weight:500}#ui-profile .binding-detail small{display:block;font-size:10px;color:var(--up-muted);margin-top:3px}#ui-profile .review-list{padding-left:18px;margin:16px 0;font-size:12px}#ui-profile .review-list li{margin:9px 0}#ui-profile .drawer-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:24px}#ui-profile .demo-overlay{position:absolute;inset:0;background:#121e354d;display:flex;justify-content:center;align-items:center;padding:20px;z-index:4}#ui-profile .demo-dialog{width:100%;max-width:280px;background:var(--app-panel);border:1px solid var(--app-line);border-radius:var(--app-radius);padding:18px;box-shadow:0 15px 40px #0003}#ui-profile .demo-dialog h3{font-size:13px}#ui-profile .demo-dialog p{font-size:10px;color:var(--app-muted);margin:7px 0 12px}#ui-profile .demo-dialog label{font-size:10px;display:block}#ui-profile .detail-pairs{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px;background:var(--app-panel);border:1px solid var(--app-line);border-radius:var(--app-radius);font-size:11px}#ui-profile .detail-pairs small{color:var(--app-muted);font-size:9px;display:block;margin-bottom:3px}
+@container app (max-width:360px){#ui-profile .app-layout{grid-template-columns:1fr}#ui-profile .app-nav{flex-direction:row;padding:7px;border-right:0;border-bottom:1px solid var(--app-line);flex-wrap:wrap}#ui-profile .app-nav .nav-label{display:none}#ui-profile .app-main{padding:16px 12px}#ui-profile .app-compact .app-layout{grid-template-columns:1fr}#ui-profile .app-compact .app-nav button{font-size:10px}#ui-profile .app-compact .app-nav button:before{content:none}}
+@keyframes up-slide{from{transform:translateX(25px);opacity:.4}to{transform:translateX(0);opacity:1}}
+@media(max-width:950px){#ui-profile .body{grid-template-columns:1fr}#ui-profile .nav{display:none}#ui-profile .configuration{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:620px){#ui-profile .configuration{grid-template-columns:1fr}#ui-profile .profile-stack{border-right:0;border-bottom:1px solid var(--up-line);padding:17px}#ui-profile .profile-section{margin-bottom:14px;padding-bottom:14px}#ui-profile .page-head{padding:20px 17px}#ui-profile .preview-area{padding:17px}#ui-profile .drawer-backdrop{position:relative;background:transparent;border-top:1px solid var(--up-line)}#ui-profile .drawer{width:100%;border-left:0;box-shadow:none;padding:20px 17px}#ui-profile .app-picker{display:none}#ui-profile .savebar .right{margin-left:0}#ui-profile .template-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){#ui-profile .drawer{animation:none}#ui-profile .app-preview{transition:none}}
+@media(pointer:coarse){#ui-profile button{min-height:40px}#ui-profile .icon-only{width:40px;height:40px}#ui-profile select,#ui-profile input{font-size:16px!important}#ui-profile .swatch{width:34px;height:34px;min-height:34px}}
+
+#ui-profile .profile-summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 24px;border-bottom:1px solid var(--up-line);background:var(--up-panel)}
+#ui-profile .profile-summary .summary-chip{padding:4px 7px;font-size:11px;background:transparent;border-color:transparent;color:var(--up-muted);max-width:100%;text-align:left}
+#ui-profile .profile-summary .eyebrow{margin-right:4px}
+#ui-profile .preview-area{padding:24px 28px}
+#ui-profile .app-preview{min-height:405px}
+#ui-profile .app-layout{grid-template-columns:138px minmax(0,1fr);min-height:355px}
+#ui-profile .app-top{padding:15px 20px;font-size:12px}
+#ui-profile .app-nav{padding:21px 10px}
+#ui-profile .app-nav button{font-size:12px;padding:9px 8px}
+#ui-profile .app-main{padding:28px 25px}
+#ui-profile .app-main h2{font-size:22px}
+#ui-profile .app-main p,#ui-profile .app-main label,#ui-profile .app-table{font-size:12px}
+#ui-profile .app-table th,#ui-profile .status-pill{font-size:11px}
+#ui-profile .app-table td{padding:16px 11px}
+#ui-profile .app-table th{padding:11px}
+#ui-profile .app-preview button.app-button{font-size:12px;padding:8px 12px}
+#ui-profile .template-choice{padding:12px;font-size:12px;display:flex;align-items:center;gap:9px}
+#ui-profile .template-choice svg{margin:0}
+#ui-profile .preview-settings{gap:20px}
+#ui-profile .preview-settings label{flex:0 1 190px;font-size:11px}
+#ui-profile .drawer{width:410px}
+#ui-profile .drawer .profile-stack{padding:0;border:0;background:transparent}
+#ui-profile .drawer .profile-section{margin-bottom:18px;padding-bottom:18px}
+#ui-profile .drawer .section-desc{font-size:11px;margin:0 0 10px}
+#ui-profile .drawer .blueprint-tile p{font-size:11px;margin:5px 0 0}
+#ui-profile .drawer .package-row small{font-size:11px}
+#ui-profile .package-tabs{display:flex;gap:18px;margin:17px 0 22px;border-bottom:1px solid var(--up-line)}
+#ui-profile .package-tabs button{background:transparent;border:0;border-bottom:2px solid transparent;border-radius:0;padding:8px 2px;color:var(--up-muted);font-size:12px}
+#ui-profile .package-tabs button.active{color:var(--up-blue);border-bottom-color:var(--up-blue)}
+#ui-profile .drawer .drawer-back{background:transparent;border:0;color:var(--up-blue);padding:4px 0;margin:3px 0 11px;font-size:11px}
+#ui-profile .drawer-feedback{font-size:11px;color:var(--up-green);padding:10px;background:var(--up-alt);border-radius:5px;margin:8px 0 15px}
+@container app (max-width:450px){#ui-profile .app-layout{grid-template-columns:1fr}#ui-profile .app-nav{flex-direction:row;padding:8px;border-right:0;border-bottom:1px solid var(--app-line);flex-wrap:wrap}#ui-profile .app-nav .nav-label{display:none}#ui-profile .app-main{padding:20px 14px}#ui-profile .app-topnav .app-layout,#ui-profile .app-compact .app-layout{grid-template-columns:1fr}#ui-profile .app-compact .app-nav button{font-size:11px}#ui-profile .app-compact .app-nav button:before{content:none}}
+@media(max-width:620px){#ui-profile .preview-area{padding:17px}#ui-profile .profile-summary{padding:10px 14px;gap:3px}#ui-profile .drawer{width:100%}#ui-profile .template-choice{font-size:11px;padding:9px;gap:7px}}
+
+&lt;/style&gt;
+&lt;div id=&quot;ui-profile&quot; aria-label=&quot;Cratis Studio UI Profile configuration prototype&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+(()=&gt;{
+const root=document.getElementById(&#x27;ui-profile&#x27;);
+const names={core:&#x27;Core&#x27;,cratis:&#x27;Cratis Components&#x27;,prime:&#x27;PrimeReact&#x27;,tailwind:&#x27;Tailwind CSS&#x27;,primeTheme:&#x27;PrimeUI Themes&#x27;,default:&#x27;Cratis Default Blueprint&#x27;,business:&#x27;Cratis Components Blueprint&#x27;,minimal:&#x27;Minimal Blueprint&#x27;};
+const descriptions={cratis:&#x27;Query tables, command forms, dialogs, and application components.&#x27;,prime:&#x27;Additional controls and widgets for your application.&#x27;,tailwind:&#x27;Utility styling for layouts and template composition.&#x27;,primeTheme:&#x27;Theme presets for PrimeReact controls.&#x27;,default:&#x27;Application shell, navigation, and a complete set of page templates.&#x27;,business:&#x27;Ready-made list, detail, and command pages with binding points.&#x27;,minimal:&#x27;A lightweight full-page shell to build on.&#x27;};
+const blueprints={default:{requires:[&#x27;cratis&#x27;,&#x27;tailwind&#x27;],templates:[&#x27;list&#x27;,&#x27;detail&#x27;,&#x27;form&#x27;,&#x27;dialog&#x27;],shell:&#x27;side&#x27;},business:{requires:[&#x27;cratis&#x27;],templates:[&#x27;list&#x27;,&#x27;detail&#x27;,&#x27;command&#x27;,&#x27;dialog&#x27;],shell:&#x27;side&#x27;},minimal:{requires:[],templates:[&#x27;list&#x27;,&#x27;form&#x27;],shell:&#x27;top&#x27;}};
+const templateNames={list:&#x27;List page&#x27;,detail:&#x27;Detail page&#x27;,form:&#x27;Form page&#x27;,dialog:&#x27;Form dialog&#x27;,command:&#x27;Command page&#x27;};
+const templateIcons={list:&#x27;table-2&#x27;,detail:&#x27;panel-top&#x27;,form:&#x27;text-cursor-input&#x27;,dialog:&#x27;app-window&#x27;,command:&#x27;square-terminal&#x27;};
+const defaults={libraries:[&#x27;cratis&#x27;],styles:[&#x27;tailwind&#x27;],blueprint:&#x27;default&#x27;,packs:[],nav:&#x27;side&#x27;,appearance:&#x27;system&#x27;,accent:&#x27;indigo&#x27;};
+let draft=structuredClone(defaults),applied=structuredClone(defaults),screen=&#x27;list&#x27;,device=&#x27;desktop&#x27;,drawer=null,notice=&#x27;&#x27;,demoOpen=false,lastSaved=&#x27;&#x27;,drawerTrigger=&#x27;drawer:profile&#x27;;
+const palettes={indigo:&#x27;#5c68dd&#x27;,blue:&#x27;#2677c9&#x27;,green:&#x27;#278269&#x27;};
+function restore(snapshot){const x=snapshot?.privateContent;if(x?.version!==1)return;for(const key of [&#x27;draft&#x27;,&#x27;applied&#x27;])if(x[key]&amp;&amp;Array.isArray(x[key].libraries)&amp;&amp;blueprints[x[key].blueprint]){if(key===&#x27;draft&#x27;)draft={...defaults,...x[key],packs:x[key].packs||[]};else applied={...defaults,...x[key],packs:x[key].packs||[]};}if(templateNames[x.screen])screen=x.screen;if([&#x27;desktop&#x27;,&#x27;mobile&#x27;].includes(x.device))device=x.device;}
+restore(window.openai?.widgetState);
+function save(){const privateContent={version:1,draft,applied,screen,device};lastSaved=JSON.stringify(privateContent);window.openai?.setWidgetState?.({modelContent:{prototype:&#x27;UI Profile&#x27;,blueprint:names[draft.blueprint],libraries:resolve().libraries.map(id=&gt;names[id]),styling:resolve().styles.map(id=&gt;names[id]),navigation:draft.nav,template:templateNames[screen],hasDraftChanges:dirty()},privateContent})?.catch(()=&gt;{});}
+const icon=name=&gt;`&lt;i data-lucide=&quot;${name}&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;`;
+const button=(label,action,cls=&#x27;&#x27;,attrs=&#x27;&#x27;)=&gt;`&lt;button type=&quot;button&quot; class=&quot;cursor-interaction ${cls}&quot; data-action=&quot;${action}&quot; ${attrs}&gt;${label}&lt;/button&gt;`;
+const ib=(name,label,action,active=false)=&gt;button(icon(name),action,&#x27;icon icon-only&#x27;+(active?&#x27; active&#x27;:&#x27;&#x27;),`aria-label=&quot;${label}&quot; data-tooltip=&quot;${label}&quot; aria-pressed=&quot;${active}&quot;`);
+function resolve(){const req=[...new Set([draft.blueprint,...draft.packs].flatMap(id=&gt;blueprints[id].requires))];const libraries=[...new Set([...req.filter(x=&gt;x===&#x27;cratis&#x27;&amp;&amp;!draft.libraries.includes(x)),...draft.libraries])];const styles=[...new Set([...req.filter(x=&gt;x===&#x27;tailwind&#x27;),...draft.styles,...(libraries.includes(&#x27;prime&#x27;)?[&#x27;primeTheme&#x27;]:[])])];return {libraries,styles,req};}
+function templates(){return [...new Set([draft.blueprint,...draft.packs].flatMap(id=&gt;blueprints[id].templates))];}
+function templateSource(){return [draft.blueprint,...draft.packs].filter(id=&gt;blueprints[id].templates.includes(screen)).at(-1)||draft.blueprint;}
+function dirty(){return JSON.stringify(draft)!==JSON.stringify(applied);}
+function winner(){return resolve().libraries.at(-1)||&#x27;core&#x27;;}
+function select(label,key,value,options){return `&lt;label&gt;${label}&lt;select data-field=&quot;${key}&quot;&gt;${options.map(([v,l])=&gt;`&lt;option value=&quot;${v}&quot; ${v===value?&#x27;selected&#x27;:&#x27;&#x27;}&gt;${l}&lt;/option&gt;`).join(&#x27;&#x27;)}&lt;/select&gt;&lt;/label&gt;`;}
+function autoReason(id){if(id===&#x27;primeTheme&#x27;&amp;&amp;resolve().libraries.includes(&#x27;prime&#x27;))return &#x27;Required by PrimeReact&#x27;;if(resolve().req.includes(id))return &#x27;Required by blueprint&#x27;;return &#x27;&#x27;;}
+function packageRow(id,kind){const explicit=(kind===&#x27;libraries&#x27;?draft.libraries:draft.styles).includes(id),reason=autoReason(id);return `&lt;div class=&quot;package-row&quot;&gt;&lt;div class=&quot;package-icon&quot;&gt;${icon(kind===&#x27;libraries&#x27;?&#x27;blocks&#x27;:&#x27;paintbrush&#x27;)}&lt;/div&gt;&lt;div class=&quot;name&quot;&gt;${names[id]}&lt;small&gt;${!explicit&amp;&amp;reason?reason:reason?&#x27;Included · &#x27;+reason:&#x27;Included in profile&#x27;}&lt;/small&gt;&lt;/div&gt;${!explicit?&#x27;&lt;span class=&quot;badge auto&quot;&gt;Auto&lt;/span&gt;&#x27;:ib(&#x27;x&#x27;,&#x27;Remove &#x27;+names[id],&#x27;remove:&#x27;+kind+&#x27;:&#x27;+id)}&lt;/div&gt;`;}
+function profile(){const r=resolve();return `&lt;aside class=&quot;profile-stack&quot;&gt;&lt;div class=&quot;profile-section&quot;&gt;&lt;div class=&quot;section-title&quot;&gt;&lt;h3&gt;${icon(&#x27;blocks&#x27;)} Component libraries&lt;/h3&gt;${ib(&#x27;plus&#x27;,&#x27;Add component library&#x27;,&#x27;drawer:libraries&#x27;)}&lt;/div&gt;&lt;p class=&quot;section-desc&quot;&gt;The components you can build with.&lt;/p&gt;${r.libraries.map(id=&gt;packageRow(id,&#x27;libraries&#x27;)).join(&#x27;&#x27;)}&lt;div class=&quot;row&quot; style=&quot;margin-top:10px&quot;&gt;&lt;span class=&quot;badge&quot;&gt;Core · built-in fallback&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;profile-section&quot;&gt;&lt;div class=&quot;section-title&quot;&gt;&lt;h3&gt;${icon(&#x27;paintbrush&#x27;)} Styling&lt;/h3&gt;${ib(&#x27;plus&#x27;,&#x27;Add styling library&#x27;,&#x27;drawer:styles&#x27;)}&lt;/div&gt;&lt;p class=&quot;section-desc&quot;&gt;The styling your packages use.&lt;/p&gt;${r.styles.length?r.styles.map(id=&gt;packageRow(id,&#x27;styles&#x27;)).join(&#x27;&#x27;):&#x27;&lt;small class=&quot;muted&quot;&gt;Using built-in styling.&lt;/small&gt;&#x27;}&lt;/div&gt;&lt;div class=&quot;profile-section&quot;&gt;&lt;div class=&quot;section-title&quot;&gt;&lt;h3&gt;${icon(&#x27;panels-top-left&#x27;)} Blueprints&lt;/h3&gt;${button(&#x27;Change&#x27;,&#x27;drawer:blueprints&#x27;,&#x27;actionlink&#x27;)}&lt;/div&gt;&lt;p class=&quot;section-desc&quot;&gt;One shell, plus reusable template packs.&lt;/p&gt;&lt;div class=&quot;blueprint-tile&quot;&gt;&lt;span class=&quot;badge&quot;&gt;Application shell&lt;/span&gt;&lt;h3&gt;${names[draft.blueprint]}&lt;/h3&gt;&lt;p&gt;Application shell · ${blueprints[draft.blueprint].templates.length} templates&lt;/p&gt;&lt;/div&gt;${draft.packs.map(id=&gt;`&lt;div class=&quot;package-row&quot;&gt;&lt;div class=&quot;name&quot;&gt;${names[id]}&lt;small&gt;Additional template pack&lt;/small&gt;&lt;/div&gt;${ib(&#x27;x&#x27;,&#x27;Remove &#x27;+names[id]+&#x27; template pack&#x27;,&#x27;pack-remove:&#x27;+id)}&lt;/div&gt;`).join(&#x27;&#x27;)}${button(&#x27;+ Add template pack&#x27;,&#x27;drawer:blueprints&#x27;,&#x27;actionlink&#x27;)}&lt;/div&gt;&lt;/aside&gt;`;}
+function mini(top=false){return `&lt;div class=&quot;mini-shell ${top?&#x27;top&#x27;:&#x27;&#x27;}&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;div class=&quot;mini-content&quot;&gt;&lt;i&gt;&lt;/i&gt;&lt;i&gt;&lt;/i&gt;&lt;i&gt;&lt;/i&gt;&lt;/div&gt;&lt;/div&gt;`;}
+function formBody(dialog=false){return `${!dialog?&#x27;&lt;h2&gt;Register tool&lt;/h2&gt;&lt;p&gt;Add a tool to your equipment inventory.&lt;/p&gt;&#x27;:&#x27;&#x27;}&lt;label&gt;Tool name&lt;input value=&quot;Orbital sander&quot; readonly&gt;&lt;/label&gt;&lt;label&gt;Category&lt;input value=&quot;Power tools&quot; readonly&gt;&lt;/label&gt;&lt;div class=&quot;row&quot; style=&quot;justify-content:flex-end;margin-top:16px&quot;&gt;${button(&#x27;Register tool&#x27;,&#x27;sample-submit&#x27;,&#x27;app-button&#x27;)}&lt;/div&gt;`;}
+function sampleTable(){return `&lt;div class=&quot;app-heading&quot;&gt;&lt;div&gt;&lt;h2&gt;Equipment&lt;/h2&gt;&lt;p&gt;Tools ready for the next job.&lt;/p&gt;&lt;/div&gt;${button(&#x27;+ Add tool&#x27;,&#x27;sample-open&#x27;,&#x27;app-button&#x27;)}&lt;/div&gt;&lt;table class=&quot;app-table&quot;&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Tool&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${[&#x27;Cordless drill&#x27;,&#x27;Mitre saw&#x27;,&#x27;Laser level&#x27;].map(name=&gt;`&lt;tr&gt;&lt;td&gt;${name}&lt;/td&gt;&lt;td&gt;&lt;span class=&quot;status-pill&quot;&gt;Available&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;`).join(&#x27;&#x27;)}&lt;/tbody&gt;&lt;/table&gt;`;}
+function preview(){const actualScreen=templates().includes(screen)?screen:&#x27;list&#x27;;return `&lt;div class=&quot;app-preview ${draft.appearance} ${winner()===&#x27;prime&#x27;?&#x27;primereact&#x27;:&#x27;&#x27;} ${draft.nav===&#x27;top&#x27;?&#x27;app-topnav&#x27;:draft.nav===&#x27;compact&#x27;?&#x27;app-compact&#x27;:&#x27;&#x27;}&quot; style=&quot;--app-accent:${palettes[draft.accent]};max-width:${device===&#x27;mobile&#x27;?&#x27;320px&#x27;:&#x27;100%&#x27;}&quot;&gt;&lt;div class=&quot;app-top&quot;&gt;&lt;div class=&quot;row&quot;&gt;&lt;span class=&quot;app-logo&quot;&gt;T&lt;/span&gt;&lt;b&gt;Toolroom&lt;/b&gt;&lt;/div&gt;&lt;span style=&quot;color:var(--app-muted)&quot;&gt;Ada Berg&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;app-layout&quot;&gt;&lt;nav class=&quot;app-nav&quot; aria-label=&quot;Sample application&quot;&gt;&lt;span class=&quot;nav-label&quot;&gt;WORKSPACE&lt;/span&gt;${button(&#x27;Equipment&#x27;,&#x27;template:list&#x27;,screen===&#x27;list&#x27;||screen===&#x27;dialog&#x27;?&#x27;current&#x27;:&#x27;&#x27;)}${button(&#x27;Tool detail&#x27;,&#x27;template:detail&#x27;,screen===&#x27;detail&#x27;?&#x27;current&#x27;:&#x27;&#x27;,!templates().includes(&#x27;detail&#x27;)?&#x27;disabled&#x27;:&#x27;&#x27;)}${button(&#x27;New tool&#x27;,&#x27;template:form&#x27;,screen===&#x27;form&#x27;?&#x27;current&#x27;:&#x27;&#x27;)}&lt;/nav&gt;&lt;section class=&quot;app-main&quot;&gt;${[&#x27;form&#x27;,&#x27;command&#x27;].includes(actualScreen)?formBody():actualScreen===&#x27;detail&#x27;?`&lt;div class=&quot;app-heading&quot;&gt;&lt;div&gt;&lt;h2&gt;Cordless drill&lt;/h2&gt;&lt;p&gt;Equipment / Power tools&lt;/p&gt;&lt;/div&gt;${button(&#x27;Edit&#x27;,&#x27;template:form&#x27;,&#x27;app-button&#x27;)}&lt;/div&gt;&lt;div class=&quot;detail-pairs&quot;&gt;&lt;div&gt;&lt;small&gt;Asset ID&lt;/small&gt;TL-0101&lt;/div&gt;&lt;div&gt;&lt;small&gt;Status&lt;/small&gt;Available&lt;/div&gt;&lt;div&gt;&lt;small&gt;Location&lt;/small&gt;Workshop A&lt;/div&gt;&lt;div&gt;&lt;small&gt;Category&lt;/small&gt;Power tools&lt;/div&gt;&lt;/div&gt;`:sampleTable()}&lt;/section&gt;&lt;/div&gt;${actualScreen===&#x27;dialog&#x27;||demoOpen?`&lt;div class=&quot;demo-overlay&quot;&gt;&lt;div class=&quot;demo-dialog&quot; role=&quot;region&quot; aria-label=&quot;Sample form dialog&quot;&gt;&lt;div class=&quot;row between&quot;&gt;&lt;h3&gt;Register tool&lt;/h3&gt;${ib(&#x27;x&#x27;,&#x27;Close sample dialog&#x27;,&#x27;sample-close&#x27;)}&lt;/div&gt;&lt;p&gt;A dialog template from this blueprint.&lt;/p&gt;${formBody(true)}&lt;/div&gt;&lt;/div&gt;`:&#x27;&#x27;}&lt;/div&gt;`;}
+function previewArea(){return `&lt;section class=&quot;preview-area&quot;&gt;&lt;div class=&quot;preview-bar&quot;&gt;&lt;div&gt;&lt;span class=&quot;eyebrow&quot;&gt;Live preview&lt;/span&gt;&lt;h3 style=&quot;margin-top:4px&quot;&gt;${templateNames[screen]}&lt;/h3&gt;&lt;/div&gt;&lt;div class=&quot;preview-tools&quot;&gt;${ib(&#x27;monitor&#x27;,&#x27;Desktop preview&#x27;,&#x27;device:desktop&#x27;,device===&#x27;desktop&#x27;)}${ib(&#x27;smartphone&#x27;,&#x27;Mobile preview&#x27;,&#x27;device:mobile&#x27;,device===&#x27;mobile&#x27;)}&lt;span class=&quot;separator&quot;&gt;&lt;/span&gt;${ib(&#x27;info&#x27;,&#x27;Template details and binding points&#x27;,&#x27;drawer:template&#x27;)}&lt;/div&gt;&lt;/div&gt;${preview()}&lt;div class=&quot;sample-note&quot;&gt;&lt;span&gt;Sample data · no queries executed&lt;/span&gt;${button(&#x27;Binding points&#x27;,&#x27;drawer:template&#x27;)}&lt;/div&gt;&lt;div class=&quot;template-heading&quot;&gt;&lt;b&gt;Included templates&lt;/b&gt;&lt;span class=&quot;muted&quot;&gt;${templates().length} examples&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;template-strip&quot;&gt;${templates().map(id=&gt;button(`${icon(templateIcons[id])}${templateNames[id]}`,&#x27;template:&#x27;+id,&#x27;template-choice&#x27;+(screen===id?&#x27; active&#x27;:&#x27;&#x27;),`aria-pressed=&quot;${screen===id}&quot;`)).join(&#x27;&#x27;)}&lt;/div&gt;&lt;div class=&quot;preview-settings&quot;&gt;${select(&#x27;Navigation&#x27;,&#x27;nav&#x27;,draft.nav,[[&#x27;side&#x27;,&#x27;Sidebar&#x27;],[&#x27;top&#x27;,&#x27;Top navigation&#x27;],[&#x27;compact&#x27;,&#x27;Compact rail&#x27;]])}${select(&#x27;Appearance&#x27;,&#x27;appearance&#x27;,draft.appearance,[[&#x27;system&#x27;,&#x27;Match Studio&#x27;],[&#x27;light&#x27;,&#x27;Light&#x27;],[&#x27;dark&#x27;,&#x27;Dark&#x27;]])}&lt;label&gt;Accent&lt;span class=&quot;swatches&quot;&gt;${Object.entries(palettes).map(([id,color])=&gt;button(&#x27;&#x27;,&#x27;accent:&#x27;+id,&#x27;swatch&#x27;+(draft.accent===id?&#x27; chosen&#x27;:&#x27;&#x27;),`style=&quot;background:${color}&quot; aria-label=&quot;${id} accent&quot; aria-pressed=&quot;${draft.accent===id}&quot;`)).join(&#x27;&#x27;)}&lt;/span&gt;&lt;/label&gt;&lt;/div&gt;&lt;/section&gt;`;}
+function changes(){const out=[];if(draft.blueprint!==applied.blueprint)out.push(&#x27;Blueprint: &#x27;+names[applied.blueprint]+&#x27; → &#x27;+names[draft.blueprint]);for(const kind of [&#x27;libraries&#x27;,&#x27;styles&#x27;]){for(const id of draft[kind].filter(x=&gt;!applied[kind].includes(x)))out.push(&#x27;Include &#x27;+names[id]);for(const id of applied[kind].filter(x=&gt;!draft[kind].includes(x)))out.push(&#x27;Remove explicit selection of &#x27;+names[id]);}for(const id of draft.packs.filter(x=&gt;!applied.packs.includes(x)))out.push(&#x27;Include template pack: &#x27;+names[id]);for(const id of applied.packs.filter(x=&gt;!draft.packs.includes(x)))out.push(&#x27;Remove template pack: &#x27;+names[id]);for(const key of [&#x27;nav&#x27;,&#x27;appearance&#x27;,&#x27;accent&#x27;])if(draft[key]!==applied[key])out.push(({nav:&#x27;Navigation&#x27;,appearance:&#x27;Appearance&#x27;,accent:&#x27;Accent&#x27;})[key]+&#x27;: &#x27;+applied[key]+&#x27; → &#x27;+draft[key]);if(draft.libraries.length===applied.libraries.length&amp;&amp;draft.libraries.every(x=&gt;applied.libraries.includes(x))&amp;&amp;JSON.stringify(draft.libraries)!==JSON.stringify(applied.libraries))out.push(&#x27;Change component-library override order&#x27;);return out;}
+function catalog(kind){const ids=kind===&#x27;libraries&#x27;?[&#x27;cratis&#x27;,&#x27;prime&#x27;]:[&#x27;tailwind&#x27;,&#x27;primeTheme&#x27;];const r=resolve();return ids.map(id=&gt;{const present=r[kind].includes(id);return `&lt;div class=&quot;catalog-item ${present?&#x27;selected&#x27;:&#x27;&#x27;}&quot;&gt;&lt;div class=&quot;row between&quot;&gt;&lt;h3&gt;${names[id]}&lt;/h3&gt;${present?&#x27;&lt;span class=&quot;badge good&quot;&gt;Included&lt;/span&gt;&#x27;:&#x27;&#x27;}&lt;/div&gt;&lt;p&gt;${descriptions[id]}&lt;/p&gt;&lt;div class=&quot;row between&quot;&gt;&lt;small class=&quot;muted&quot;&gt;${id===&#x27;prime&#x27;?&#x27;Includes required PrimeUI Themes&#x27;:autoReason(id)||&#x27;Available to this application&#x27;}&lt;/small&gt;${button(present?&#x27;Included&#x27;:&#x27;Add to profile&#x27;,&#x27;add:&#x27;+kind+&#x27;:&#x27;+id,present?&#x27;&#x27;:&#x27;primary&#x27;,present?&#x27;disabled&#x27;:&#x27;&#x27;)}&lt;/div&gt;&lt;/div&gt;`;}).join(&#x27;&#x27;);}
+function profileSummary(){const r=resolve();return `&lt;div class=&quot;profile-summary&quot; aria-label=&quot;Current UI profile&quot;&gt;&lt;span class=&quot;eyebrow&quot;&gt;Using&lt;/span&gt;${button(icon(&#x27;blocks&#x27;)+&#x27; &#x27;+(r.libraries.length===1?names[r.libraries[0]]:r.libraries.length+&#x27; component libraries&#x27;),&#x27;drawer:profile&#x27;,&#x27;summary-chip icon&#x27;)}${button(icon(&#x27;paintbrush&#x27;)+&#x27; &#x27;+(r.styles.length===1?names[r.styles[0]]:r.styles.length+&#x27; styling libraries&#x27;),&#x27;drawer:profile&#x27;,&#x27;summary-chip icon&#x27;)}${button(icon(&#x27;panels-top-left&#x27;)+&#x27; &#x27;+names[draft.blueprint]+(draft.packs.length?&#x27; + &#x27;+draft.packs.length+&#x27; template pack&#x27;+(draft.packs.length&gt;1?&#x27;s&#x27;:&#x27;&#x27;):&#x27;&#x27;),&#x27;drawer:profile&#x27;,&#x27;summary-chip icon&#x27;)}&lt;/div&gt;`;}
+function drawerTabs(){return `&lt;div class=&quot;package-tabs&quot; aria-label=&quot;Package sidebar sections&quot;&gt;${button(&#x27;Packages&#x27;,&#x27;drawer:profile&#x27;,drawer===&#x27;profile&#x27;?&#x27;active&#x27;:&#x27;&#x27;,`aria-pressed=&quot;${drawer===&#x27;profile&#x27;}&quot;`)}${button(&#x27;Resolution&#x27;,&#x27;drawer:resolution&#x27;,drawer===&#x27;resolution&#x27;?&#x27;active&#x27;:&#x27;&#x27;,`aria-pressed=&quot;${drawer===&#x27;resolution&#x27;}&quot;`)}&lt;/div&gt;`;}
+function drawerContent(){const r=resolve();let title=&#x27;&#x27;,description=&#x27;&#x27;,body=&#x27;&#x27;;
+if(drawer===&#x27;profile&#x27;){title=&#x27;Packages &amp; resolution&#x27;;description=&#x27;Manage what this application’s UI is built from.&#x27;;body=profile();}
+if(drawer===&#x27;libraries&#x27;||drawer===&#x27;styles&#x27;){title=drawer===&#x27;libraries&#x27;?&#x27;Component libraries&#x27;:&#x27;Styling libraries&#x27;;description=&#x27;Include packages in this application’s UI profile.&#x27;;body=catalog(drawer);}
+if(drawer===&#x27;blueprints&#x27;){title=&#x27;Choose a blueprint&#x27;;description=&#x27;Choose one application shell. Include additional blueprint packages for their templates.&#x27;;body=Object.keys(blueprints).map(id=&gt;`&lt;div class=&quot;catalog-item ${draft.blueprint===id||draft.packs.includes(id)?&#x27;selected&#x27;:&#x27;&#x27;}&quot;&gt;${mini(blueprints[id].shell===&#x27;top&#x27;)}&lt;div class=&quot;row between&quot;&gt;&lt;h3&gt;${names[id]}&lt;/h3&gt;${draft.blueprint===id?&#x27;&lt;span class=&quot;badge good&quot;&gt;Application shell&lt;/span&gt;&#x27;:draft.packs.includes(id)?&#x27;&lt;span class=&quot;badge auto&quot;&gt;Template pack&lt;/span&gt;&#x27;:&#x27;&#x27;}&lt;/div&gt;&lt;p&gt;${descriptions[id]}&lt;/p&gt;&lt;small class=&quot;muted&quot;&gt;${blueprints[id].requires.length?&#x27;Requires &#x27;+blueprints[id].requires.map(x=&gt;names[x]).join(&#x27; + &#x27;):&#x27;Uses built-in Core components&#x27;}&lt;/small&gt;&lt;div class=&quot;row&quot; style=&quot;justify-content:flex-end;margin-top:11px&quot;&gt;${draft.blueprint!==id?button(draft.packs.includes(id)?&#x27;Templates included&#x27;:&#x27;Add templates&#x27;,&#x27;pack:&#x27;+id,&#x27;&#x27;,draft.packs.includes(id)?&#x27;disabled&#x27;:&#x27;&#x27;):&#x27;&#x27;}${button(draft.blueprint===id?&#x27;Shell selected&#x27;:&#x27;Use shell&#x27;,&#x27;blueprint:&#x27;+id,draft.blueprint===id?&#x27;&#x27;:&#x27;primary&#x27;,draft.blueprint===id?&#x27;disabled&#x27;:&#x27;&#x27;)}&lt;/div&gt;&lt;/div&gt;`).join(&#x27;&#x27;);}
+if(drawer===&#x27;resolution&#x27;){title=&#x27;Packages &amp; resolution&#x27;;description=&#x27;Explicit choices and required packages, in override order. Later component libraries win shared names.&#x27;;const list=[&#x27;core&#x27;,...r.styles,...r.libraries,draft.blueprint,...draft.packs];body=list.map((id,i)=&gt;`&lt;div class=&quot;resolution-row&quot;&gt;&lt;span class=&quot;resolution-number&quot;&gt;${i+1}&lt;/span&gt;&lt;span class=&quot;name&quot;&gt;${names[id]}&lt;small&gt;${id===&#x27;core&#x27;?&#x27;Built-in fallback&#x27;:autoReason(id)||&#x27;Selected in profile&#x27;}&lt;/small&gt;&lt;/span&gt;${r.libraries.includes(id)&amp;&amp;draft.libraries.includes(id)?ib(&#x27;arrow-down&#x27;,&#x27;Increase &#x27;+names[id]+&#x27; override priority&#x27;,&#x27;priority:&#x27;+id):&#x27;&#x27;}&lt;/div&gt;`).join(&#x27;&#x27;)+`&lt;div class=&quot;binding-detail&quot;&gt;&lt;strong&gt;Example resolution · Button&lt;/strong&gt;&lt;small&gt;${names[winner()]} supplies this component${r.libraries.length&gt;1?&#x27; · shared name resolved by priority&#x27;:&#x27;&#x27;}.&lt;/small&gt;&lt;/div&gt;&lt;p style=&quot;margin-top:16px&quot;&gt;Package requirements and resolution here are illustrative. The actual resolver remains the source of truth.&lt;/p&gt;`;}
+if(drawer===&#x27;template&#x27;){title=templateNames[screen];description=&#x27;Template contract · &#x27;+names[templateSource()];body=`${mini(draft.nav===&#x27;top&#x27;)}&lt;div class=&quot;binding-detail&quot;&gt;&lt;strong&gt;${screen===&#x27;dialog&#x27;?&#x27;Presentation: modal dialog&#x27;:&#x27;Placement: application shell / content&#x27;}&lt;/strong&gt;&lt;small&gt;${screen===&#x27;dialog&#x27;?&#x27;Hosted above the page; no parent content slot.&#x27;:&#x27;The shell supplies navigation; the screen supplies content.&#x27;}&lt;/small&gt;&lt;/div&gt;&lt;div class=&quot;binding-detail&quot;&gt;&lt;strong&gt;${screen===&#x27;list&#x27;?&#x27;Query → collection of ToolSummary&#x27;:screen===&#x27;detail&#x27;?&#x27;Query → one ToolSummary&#x27;:&#x27;Command → RegisterTool&#x27;}&lt;/strong&gt;&lt;small&gt;${screen===&#x27;list&#x27;?&#x27;Columns: name, status. Row identity: id.&#x27;:screen===&#x27;detail&#x27;?&#x27;Required input: toolId. Includes loading and not-found states.&#x27;:&#x27;Inputs: name and category. Validation and submission states.&#x27;}&lt;/small&gt;&lt;/div&gt;&lt;div class=&quot;binding-detail&quot;&gt;&lt;strong&gt;Preview uses fixtures&lt;/strong&gt;&lt;small&gt;Bind the actual query or State Change slice when using this template in a screen. No missing-query error is needed for the gallery.&lt;/small&gt;&lt;/div&gt;`;}
+if(drawer===&#x27;review&#x27;){title=&#x27;Review profile changes&#x27;;description=&#x27;Application: Tool rental&#x27;;body=`&lt;ul class=&quot;review-list&quot;&gt;${changes().map(x=&gt;&#x27;&lt;li&gt;&#x27;+x+&#x27;&lt;/li&gt;&#x27;).join(&#x27;&#x27;)}&lt;/ul&gt;&lt;div class=&quot;binding-detail&quot;&gt;&lt;strong&gt;Required packages included&lt;/strong&gt;&lt;small&gt;${r.libraries.concat(r.styles).map(x=&gt;names[x]).join(&#x27;, &#x27;)||&#x27;Core only&#x27;}&lt;/small&gt;&lt;/div&gt;&lt;div class=&quot;binding-detail&quot;&gt;&lt;strong&gt;Existing screens remain intact&lt;/strong&gt;&lt;small&gt;Changing the profile changes shared rendering and available templates. It does not replace authored screen content. A production apply step should validate affected screens and bindings.&lt;/small&gt;&lt;/div&gt;&lt;div class=&quot;drawer-actions&quot;&gt;${button(&#x27;Keep editing&#x27;,&#x27;drawer:close&#x27;)}${button(&#x27;Apply profile&#x27;,&#x27;apply&#x27;,&#x27;primary&#x27;)}&lt;/div&gt;`;}
+return `&lt;div class=&quot;drawer-backdrop&quot;&gt;&lt;section class=&quot;drawer&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-label=&quot;${title}&quot;&gt;&lt;div class=&quot;drawer-head&quot;&gt;&lt;h2&gt;${title}&lt;/h2&gt;${ib(&#x27;x&#x27;,&#x27;Close panel&#x27;,&#x27;drawer:close&#x27;)}&lt;/div&gt;${[&#x27;libraries&#x27;,&#x27;styles&#x27;,&#x27;blueprints&#x27;].includes(drawer)?button(icon(&#x27;arrow-left&#x27;)+&#x27; All packages&#x27;,&#x27;drawer:profile&#x27;,&#x27;drawer-back icon&#x27;):&#x27;&#x27;}&lt;p&gt;${description}&lt;/p&gt;${[&#x27;profile&#x27;,&#x27;resolution&#x27;].includes(drawer)?drawerTabs():&#x27;&#x27;}${notice?`&lt;div class=&quot;drawer-feedback&quot; role=&quot;status&quot;&gt;${notice}&lt;/div&gt;`:&#x27;&#x27;}${body}&lt;div class=&quot;drawer-note&quot;&gt;Prototype · example packages and compatibility rules&lt;/div&gt;&lt;/section&gt;&lt;/div&gt;`;}
+function render(){const r=resolve();root.innerHTML=`&lt;header class=&quot;studio-top row between&quot;&gt;&lt;div class=&quot;brand&quot;&gt;&lt;b&gt;◈&lt;/b&gt; Cratis Studio&lt;/div&gt;&lt;span class=&quot;app-picker&quot;&gt;Projects / Tool rental / UI Profile&lt;/span&gt;&lt;span class=&quot;badge&quot;&gt;Interactive concept&lt;/span&gt;&lt;/header&gt;&lt;div class=&quot;body&quot;&gt;&lt;main&gt;&lt;div class=&quot;profile-content&quot; ${drawer?&#x27;inert&#x27;:&#x27;&#x27;}&gt;&lt;header class=&quot;page-head&quot;&gt;&lt;div class=&quot;row between&quot;&gt;&lt;div&gt;&lt;div class=&quot;eyebrow&quot;&gt;Application settings&lt;/div&gt;&lt;h1&gt;UI Profile&lt;/h1&gt;&lt;/div&gt;&lt;span class=&quot;badge good&quot;&gt;${icon(&#x27;check&#x27;)} Resolved · demo&lt;/span&gt;&lt;/div&gt;&lt;p class=&quot;subtitle&quot;&gt;Choose what your screens are built from — and see it together.&lt;/p&gt;&lt;div class=&quot;savebar&quot;&gt;&lt;small class=&quot;muted&quot;&gt;${dirty()?&#x27;Unapplied changes&#x27;:&#x27;Application profile&#x27;}&lt;/small&gt;${button(icon(&#x27;panel-right&#x27;)+&#x27; Packages &amp; resolution&#x27;,&#x27;drawer:profile&#x27;,&#x27;icon right&#x27;)}${dirty()?button(&#x27;Discard&#x27;,&#x27;discard&#x27;):&#x27;&#x27;}${button(dirty()?&#x27;Review changes&#x27;:&#x27;Up to date&#x27;,&#x27;drawer:review&#x27;,dirty()?&#x27;primary&#x27;:&#x27;&#x27;,dirty()?&#x27;&#x27;:&#x27;disabled&#x27;)}&lt;/div&gt;&lt;/header&gt;${notice?`&lt;div class=&quot;notice&quot; role=&quot;status&quot;&gt;${notice}&lt;/div&gt;`:&#x27;&#x27;}${profileSummary()}&lt;div class=&quot;configuration&quot;&gt;${previewArea()}&lt;/div&gt;&lt;footer class=&quot;footer row between&quot;&gt;&lt;span&gt;${r.libraries.length+ r.styles.length+2+draft.packs.length} resolved packages · dependencies included&lt;/span&gt;&lt;span&gt;Local prototype · no application changes&lt;/span&gt;&lt;/footer&gt;&lt;/div&gt;${drawer?drawerContent():&#x27;&#x27;}&lt;/main&gt;&lt;/div&gt;`;if(globalThis.lucide)lucide.createIcons({attrs:{width:15,height:15}});}
+function handle(action){const [key,a,b]=action.split(&#x27;:&#x27;);notice=&#x27;&#x27;;
+if(key===&#x27;drawer&#x27;){if(a!==&#x27;close&#x27;&amp;&amp;!drawer)drawerTrigger=action;drawer=a===&#x27;close&#x27;?null:a;}
+if(key===&#x27;add&#x27;){drawer=&#x27;profile&#x27;;if(!draft[a].includes(b))draft[a].push(b);notice=names[b]+&#x27; included in draft.&#x27;;if(b===&#x27;prime&#x27;)notice+=&#x27; PrimeUI Themes added as a dependency.&#x27;;}
+if(key===&#x27;remove&#x27;){draft[a]=draft[a].filter(x=&gt;x!==b);notice=autoReason(b)?names[b]+&#x27; is still included: &#x27;+autoReason(b).toLowerCase()+&#x27;.&#x27;:names[b]+&#x27; removed from draft.&#x27;;}
+if(key===&#x27;blueprint&#x27;){draft.blueprint=a;draft.packs=draft.packs.filter(id=&gt;id!==a);draft.nav=blueprints[a].shell;drawer=null;if(!blueprints[a].templates.includes(screen))screen=&#x27;list&#x27;;notice=names[a]+&#x27; selected. Required packages are included automatically.&#x27;;drawer=&#x27;profile&#x27;;}
+if(key===&#x27;pack&#x27;){if(a!==draft.blueprint&amp;&amp;!draft.packs.includes(a))draft.packs.push(a);notice=names[a]+&#x27; templates added; the application shell is unchanged.&#x27;;drawer=&#x27;profile&#x27;;}
+if(key===&#x27;pack-remove&#x27;){draft.packs=draft.packs.filter(id=&gt;id!==a);if(!templates().includes(screen))screen=&#x27;list&#x27;;notice=&#x27;Template pack removed from draft.&#x27;;}
+if(key===&#x27;priority&#x27;){const i=draft.libraries.indexOf(a);if(i&gt;=0&amp;&amp;i&lt;draft.libraries.length-1){[draft.libraries[i],draft.libraries[i+1]]=[draft.libraries[i+1],draft.libraries[i]];}else notice=names[a]+&#x27; already has the highest explicit priority.&#x27;;}
+if(key===&#x27;template&#x27;){if(templates().includes(a))screen=a;demoOpen=false;}
+if(key===&#x27;device&#x27;)device=a;
+if(key===&#x27;accent&#x27;)draft.accent=a;
+if(key===&#x27;discard&#x27;){draft=structuredClone(applied);if(!templates().includes(screen))screen=&#x27;list&#x27;;}
+if(key===&#x27;apply&#x27;){applied=structuredClone(draft);drawer=null;notice=&#x27;UI Profile applied in this prototype. No real application was changed.&#x27;;}
+if(key===&#x27;sample-open&#x27;)demoOpen=true;
+if(key===&#x27;sample-close&#x27;){demoOpen=false;if(screen===&#x27;dialog&#x27;)screen=&#x27;list&#x27;;}
+if(key===&#x27;sample-submit&#x27;){notice=&#x27;Sample interaction only. Commands are connected when authoring the screen.&#x27;;demoOpen=false;if(screen===&#x27;dialog&#x27;)screen=&#x27;list&#x27;;}
+render();save();if(drawer)root.querySelector(&#x27;.drawer button&#x27;)?.focus();else if(key===&#x27;drawer&#x27;)root.querySelector(`[data-action=&quot;${drawerTrigger}&quot;]`)?.focus();}
+root.addEventListener(&#x27;click&#x27;,e=&gt;{const el=e.target.closest(&#x27;[data-action]&#x27;);if(el)handle(el.dataset.action);});
+root.addEventListener(&#x27;change&#x27;,e=&gt;{if(e.target.dataset.field){draft[e.target.dataset.field]=e.target.value;notice=&#x27;&#x27;;render();save();}});
+root.addEventListener(&#x27;keydown&#x27;,e=&gt;{if(e.key===&#x27;Escape&#x27;&amp;&amp;drawer){drawer=null;render();root.querySelector(`[data-action=&quot;${drawerTrigger}&quot;]`)?.focus();return;}if(e.key===&#x27;Tab&#x27;&amp;&amp;drawer){const items=[...root.querySelectorAll(&#x27;.drawer button:not(:disabled),.drawer select&#x27;)];const first=items[0],last=items.at(-1);if(e.shiftKey&amp;&amp;document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&amp;&amp;document.activeElement===last){e.preventDefault();first?.focus();}}});
+window.addEventListener(&#x27;openai:set_globals&#x27;,e=&gt;{const snapshot=e.detail?.globals?.widgetState;if(snapshot&amp;&amp;JSON.stringify(snapshot.privateContent)!==lastSaved){restore(snapshot);render();}});
+render();
+if(globalThis.Tweak){const option={dense:false};const tweak=new Tweak({container:root,onChange:()=&gt;{root.style.setProperty(&#x27;--preview-radius&#x27;,option.dense?&#x27;3px&#x27;:&#x27;7px&#x27;);}});tweak.addToggle(option,&#x27;dense&#x27;,{label:&#x27;Compact preview corners&#x27;});}
+})();
+&lt;/script&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+  let lastPointerWasTouch = false;
+  let pinnedByTouch = false;
+
+  const getTrigger = (event) =&gt; {
+    for (const target of event.composedPath()) {
+      if (target?.nodeType === Node.ELEMENT_NODE) {
+        const trigger = target.closest(&quot;[data-tooltip]&quot;);
+        if (trigger) return trigger;
+      }
+    }
+    return null;
+  };
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    pinnedByTouch = false;
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handlePointer = (event) =&gt; {
+    lastPointerWasTouch =
+      event.type === &quot;pointerdown&quot; &amp;&amp; event.pointerType === &quot;touch&quot;;
+  };
+  const handleTouchClick = (event) =&gt; {
+    const isTouch = event.pointerType === &quot;touch&quot; || lastPointerWasTouch;
+    lastPointerWasTouch = false;
+    if (!isTouch || event.detail === 0) {
+      return;
+    }
+    const trigger = getTrigger(event);
+    if (
+      trigger == null ||
+      !trigger.isConnected ||
+      getContent(trigger).length === 0 ||
+      (pinnedByTouch &amp;&amp; activeTrigger === trigger)
+    ) {
+      if (pinnedByTouch) {
+        closeTooltip();
+      }
+      return;
+    }
+    openTooltip(trigger);
+    pinnedByTouch = activeTrigger === trigger;
+    window.setTimeout(() =&gt; {
+      if (activeTrigger === trigger &amp;&amp; !trigger.isConnected) {
+        closeTooltip(false);
+      }
+    }, 0);
+  };
+  const handleLeave = (event) =&gt; {
+    if (pinnedByTouch) {
+      return;
+    }
+    const trigger = getTrigger(event);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    lastPointerWasTouch = false;
+    const trigger = getTrigger(event);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handlers = {
+    pointerover: handlePointerOpen,
+    pointerdown: handlePointer,
+    pointercancel: handlePointer,
+    click: handleTouchClick,
+    pointerout: handleLeave,
+    focusin: handleFocusIn,
+    focusout: handleLeave,
+    keydown: handleKeyDown,
+    contextmenu: handleContextMenu,
+  };
+  const roots = new Map();
+  const handledEvents = new WeakSet();
+  const handleEvent = (event) =&gt; {
+    if (handledEvents.has(event)) return;
+    handledEvents.add(event);
+    handlers[event.type](event);
+  };
+  const discoverRoots = (node) =&gt; {
+    if (node.shadowRoot) listen(node.shadowRoot);
+    for (const element of node.querySelectorAll(&quot;*&quot;)) {
+      if (element.shadowRoot) listen(element.shadowRoot);
+    }
+  };
+  const listen = (root) =&gt; {
+    if (roots.has(root)) return;
+    for (const type of Object.keys(handlers)) root.addEventListener(type, handleEvent);
+    const observer = new window.MutationObserver((records) =&gt; {
+      for (const { addedNodes } of records) {
+        for (const node of addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) discoverRoots(node);
+        }
+      }
+      for (const [root, cleanup] of roots) {
+        if (root.host &amp;&amp; !root.host.isConnected) {
+          cleanup();
+          roots.delete(root);
+        }
+      }
+      if (activeTrigger &amp;&amp; !activeTrigger.isConnected) closeTooltip(false);
+    });
+    observer.observe(root, { childList: true, subtree: true });
+    roots.set(root, () =&gt; {
+      observer.disconnect();
+      for (const type of Object.keys(handlers)) root.removeEventListener(type, handleEvent);
+    });
+    discoverRoots(root);
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    lastPointerWasTouch = false;
+    for (const cleanup of roots.values()) cleanup();
+    roots.clear();
+    tooltip = null;
+  };
+
+  // Events between children of one shadow root never reach the document.
+  listen(document);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-tabs&quot;&gt;
+(() =&gt; {
+  const selector = &#x27;.nav[role=&quot;tablist&quot;] [role=&quot;tab&quot;]&#x27;;
+  const disabled = &#x27;:disabled,[aria-disabled=&quot;true&quot;]&#x27;;
+  const selectTab = (selected) =&gt; {
+    const panelId = selected.getAttribute(&quot;aria-controls&quot;);
+    for (const tab of selected.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;)) {
+      const active = tab === selected;
+      tab.classList.toggle(&quot;active&quot;, active);
+      tab.setAttribute(&quot;aria-selected&quot;, String(active));
+      const id = tab.getAttribute(&quot;aria-controls&quot;);
+      const panel = id &amp;&amp; document.getElementById(id);
+      if (panel != null) {
+        panel.hidden = id !== panelId;
+        if (!panel.hidden &amp;&amp; selected.id) {
+          panel.setAttribute(&quot;aria-labelledby&quot;, selected.id);
+        }
+      }
+    }
+  };
+  const interact = (event) =&gt; {
+    const tab = event.target?.closest?.(selector);
+    if (event.defaultPrevented || tab == null || tab.matches(disabled)) {
+      return;
+    }
+    if (event.type === &quot;click&quot;) {
+      selectTab(tab);
+      return;
+    }
+    const tabs = Array.from(
+      tab.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;),
+    ).filter((candidate) =&gt; !candidate.matches(disabled));
+    const current = tabs.indexOf(tab);
+    let next;
+    if (event.key === &quot;ArrowRight&quot; || event.key === &quot;ArrowDown&quot;) {
+      next = (current + 1) % tabs.length;
+    } else if (event.key === &quot;ArrowLeft&quot; || event.key === &quot;ArrowUp&quot;) {
+      next = (current + tabs.length - 1) % tabs.length;
+    } else if (event.key === &quot;Home&quot;) {
+      next = 0;
+    } else if (event.key === &quot;End&quot;) {
+      next = tabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    tabs[next].focus();
+    selectTab(tabs[next]);
+  };
+
+  for (const list of document.querySelectorAll(&#x27;.nav[role=&quot;tablist&quot;]&#x27;)) {
+    const selected =
+      list.querySelector(&#x27;[role=&quot;tab&quot;][aria-selected=&quot;true&quot;]&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;].active&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;]&#x27;);
+    if (selected != null) {
+      selectTab(selected);
+    }
+  }
+  document.addEventListener(&quot;click&quot;, interact);
+  document.addEventListener(&quot;keydown&quot;, interact);
+  window.addEventListener(&quot;pagehide&quot;, () =&gt; {
+    document.removeEventListener(&quot;click&quot;, interact);
+    document.removeEventListener(&quot;keydown&quot;, interact);
+  }, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-carousel&quot;&gt;
+  (() =&gt; {
+    for (const root of document.querySelectorAll(&quot;.viz-carousel&quot;)) {
+      const panels = Array.from(
+        root.querySelectorAll(&quot;:scope &gt; [data-variant]&quot;),
+      );
+      if (panels.length === 0) {
+        continue;
+      }
+      root.setAttribute(&quot;role&quot;, &quot;group&quot;);
+      panels.forEach((panel, index) =&gt; {
+        panel.hidden = index !== 0;
+        panel.setAttribute(&quot;role&quot;, &quot;group&quot;);
+        if (!panel.hasAttribute(&quot;aria-label&quot;)) {
+          panel.setAttribute(&quot;aria-label&quot;, panel.dataset.variant);
+        }
+      });
+      root.dataset.activeVariant = panels[0].dataset.variant;
+      if (panels.length === 1) {
+        continue;
+      }
+
+      const controls = document.createElement(&quot;div&quot;);
+      controls.className = &quot;viz-carousel-controls&quot;;
+      // Portable copy of the settings dropdown&#x27;s legacy glyph; no 14px icon-package preset matches it.
+      // https://github.com/openai/openai/blob/master/codex/codex-apps/webview/src/icons/chevron.svg
+      controls.innerHTML = `
+      &lt;button type=&quot;button&quot; class=&quot;viz-carousel-previous cursor-interaction&quot;&gt;&lt;i data-lucide=&quot;chevron-left&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+      &lt;details class=&quot;viz-carousel-picker&quot;&gt;
+        &lt;summary class=&quot;cursor-interaction&quot;&gt;
+          &lt;span class=&quot;viz-carousel-count tabular-nums&quot;&gt;&lt;/span&gt;
+          &lt;span class=&quot;viz-carousel-name&quot;&gt;&lt;/span&gt;
+          &lt;svg class=&quot;viz-carousel-caret&quot; width=&quot;14&quot; height=&quot;14&quot; viewBox=&quot;0 0 20 21&quot; fill=&quot;none&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;&gt;
+            &lt;path d=&quot;M15.2793 7.71101C15.539 7.45131 15.961 7.45131 16.2207 7.71101C16.4804 7.97071 16.4804 8.39272 16.2207 8.65242L10.4707 14.4024C10.211 14.6621 9.78902 14.6621 9.52932 14.4024L3.77932 8.65242L3.69436 8.54792C3.52385 8.28979 3.55205 7.93828 3.77932 7.71101C4.00659 7.48374 4.3581 7.45554 4.61623 7.62605L4.72073 7.71101L10 12.9903L15.2793 7.71101Z&quot; fill=&quot;currentColor&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;0.6&quot; /&gt;
+          &lt;/svg&gt;
+        &lt;/summary&gt;
+        &lt;div class=&quot;viz-carousel-options&quot;&gt;&lt;/div&gt;
+      &lt;/details&gt;
+      &lt;button type=&quot;button&quot; class=&quot;viz-carousel-next cursor-interaction&quot;&gt;&lt;i data-lucide=&quot;chevron-right&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;`;
+      const previous = controls.querySelector(&quot;.viz-carousel-previous&quot;);
+      const next = controls.querySelector(&quot;.viz-carousel-next&quot;);
+      const picker = controls.querySelector(&quot;.viz-carousel-picker&quot;);
+      const summary = picker.querySelector(&quot;summary&quot;);
+      const count = controls.querySelector(&quot;.viz-carousel-count&quot;);
+      const name = controls.querySelector(&quot;.viz-carousel-name&quot;);
+      const options = controls.querySelector(&quot;.viz-carousel-options&quot;);
+      const status = document.createElement(&quot;span&quot;);
+      status.className = &quot;sr-only&quot;;
+      status.setAttribute(&quot;role&quot;, &quot;status&quot;);
+      status.setAttribute(&quot;aria-live&quot;, &quot;polite&quot;);
+      status.setAttribute(&quot;aria-atomic&quot;, &quot;true&quot;);
+      previous.setAttribute(
+        &quot;aria-label&quot;,
+        root.dataset.previousLabel ?? &quot;Previous variant&quot;,
+      );
+      next.setAttribute(&quot;aria-label&quot;, root.dataset.nextLabel ?? &quot;Next variant&quot;);
+
+      let active = 0;
+      const choices = panels.map((panel, index) =&gt; {
+        const choice = document.createElement(&quot;button&quot;);
+        choice.type = &quot;button&quot;;
+        choice.className = &quot;cursor-interaction&quot;;
+        choice.textContent = panel.dataset.variant;
+        choice.addEventListener(&quot;click&quot;, () =&gt; {
+          select(index);
+          summary.focus();
+        });
+        options.appendChild(choice);
+        return choice;
+      });
+      const select = (index) =&gt; {
+        const changed = active !== index;
+        active = index;
+        panels.forEach((panel, position) =&gt; {
+          panel.hidden = position !== active;
+          choices[position].setAttribute(
+            &quot;aria-current&quot;,
+            String(position === active),
+          );
+        });
+        root.dataset.activeVariant = panels[active].dataset.variant;
+        count.textContent = `${active + 1} / ${panels.length}`;
+        name.textContent = panels[active].dataset.variant;
+        picker.open = false;
+        if (changed) {
+          status.textContent = `${count.textContent}: ${name.textContent}`;
+        }
+      };
+      previous.addEventListener(&quot;click&quot;, () =&gt;
+        select((active + panels.length - 1) % panels.length),
+      );
+      next.addEventListener(&quot;click&quot;, () =&gt;
+        select((active + 1) % panels.length),
+      );
+      picker.addEventListener(&quot;keydown&quot;, (event) =&gt; {
+        if (event.key === &quot;Escape&quot; &amp;&amp; picker.open) {
+          event.preventDefault();
+          picker.open = false;
+          summary.focus();
+        }
+      });
+      const dismiss = (event) =&gt; {
+        if (!picker.contains(event.target)) {
+          picker.open = false;
+        }
+      };
+      const sizePicker = () =&gt; {
+        root.style.setProperty(
+          &quot;--viz-carousel-picker-height&quot;,
+          `${picker.open ? options.offsetHeight : 0}px`,
+        );
+      };
+      picker.addEventListener(&quot;toggle&quot;, sizePicker);
+      window.addEventListener(&quot;resize&quot;, sizePicker);
+      document.addEventListener(&quot;pointerdown&quot;, dismiss);
+      window.addEventListener(
+        &quot;pagehide&quot;,
+        () =&gt; {
+          document.removeEventListener(&quot;pointerdown&quot;, dismiss);
+          window.removeEventListener(&quot;resize&quot;, sizePicker);
+        },
+        { once: true },
+      );
+      root.append(controls, status);
+      select(0);
+    }
+  })();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+<script>(() => {
+  const frame = document.getElementById("codex-visualization");
+  if (!(frame instanceof HTMLIFrameElement)) {
+    return;
+  }
+  let viewportHeight = globalThis.innerHeight;
+  const storageKey = `codex:visualization-widget-state-v2:${JSON.stringify([
+    globalThis.location.pathname,
+    globalThis.location.search,
+  ])}`;
+  const parseState = (serializedState) => {
+    if (
+      typeof serializedState !== "string" ||
+      new TextEncoder().encode(serializedState).length > 16 * 1024
+    ) {
+      throw new TypeError(
+        "Widget state must be a JSON object of at most 16 KiB",
+      );
+    }
+    /** @type {unknown} */
+    const state = JSON.parse(serializedState);
+    if (
+      state == null ||
+      typeof state !== "object" ||
+      Array.isArray(state) ||
+      ("imageIds" in state &&
+        (!Array.isArray(state.imageIds) || state.imageIds.length > 0))
+    ) {
+      throw new TypeError("Widget state must be a JSON object");
+    }
+    const storedState = { modelContent: null, privateContent: null, ...state };
+    const canonicalState = JSON.stringify(
+      storedState,
+      (_key, /** @type {unknown} */ value) => {
+        if (typeof value === "number" && !Number.isFinite(value)) {
+          throw new TypeError("Widget state must contain finite numbers");
+        }
+        return value;
+      },
+    );
+    if (new TextEncoder().encode(canonicalState).length > 16 * 1024) {
+      throw new TypeError(
+        "Widget state must be a JSON object of at most 16 KiB",
+      );
+    }
+    return storedState;
+  };
+  let storage = null;
+  let state = null;
+  try {
+    const localStorage = globalThis.localStorage;
+    const probeKey = `${storageKey}:probe`;
+    localStorage.setItem(probeKey, "1");
+    localStorage.removeItem(probeKey);
+    storage = localStorage;
+    const savedState = storage.getItem(storageKey);
+    if (savedState != null) {
+      try {
+        state = parseState(savedState);
+      } catch {
+        // Invalid saved state does not disable future writes.
+      }
+    }
+  } catch {
+    storage = null;
+  }
+  const initialGlobals = {
+    widgetState: state,
+    statePersistence: storage == null ? "none" : "local",
+  };
+
+  const channel = new MessageChannel();
+  channel.port1.addEventListener("message", (event) => {
+    const data = event.data;
+    if (typeof data !== "object" || data == null) {
+      return;
+    }
+    if (data.type === "widget-state-write") {
+      if (!Number.isSafeInteger(data.id) || data.id <= 0) {
+        return;
+      }
+      let ok = false;
+      try {
+        if (storage != null) {
+          const state = parseState(data.state);
+          storage.setItem(storageKey, JSON.stringify(state));
+          ok = true;
+        }
+      } catch {
+        // Storage denial, quota limits, and invalid state return a failed receipt.
+      }
+      channel.port1.postMessage({
+        type: "widget-state-result",
+        id: data.id,
+        ok,
+      });
+      return;
+    }
+    if (data.type === "height") {
+      const height = data.height;
+      if (
+        typeof height === "number" &&
+        Number.isFinite(height) &&
+        height >= 0 &&
+        height <= 10_000
+      ) {
+        frame.style.height = Math.ceil(height) + "px";
+      }
+      return;
+    }
+    if (data.type === "scroll-to") {
+      const top = data.top;
+      if (
+        typeof top === "number" &&
+        Number.isFinite(top) &&
+        top >= 0 &&
+        globalThis.navigator.userActivation?.isActive === true
+      ) {
+        globalThis.scrollTo({
+          top: Math.ceil(
+            globalThis.scrollY + frame.getBoundingClientRect().top + top,
+          ),
+        });
+      }
+      return;
+    }
+    if (data.type === "open-external") {
+      const rawHref = data.href;
+      if (typeof rawHref !== "string") {
+        return;
+      }
+      let href;
+      try {
+        const url = new URL(rawHref, document.baseURI);
+        if (url.protocol !== "https:") {
+          return;
+        }
+        href = url.href;
+      } catch {
+        return;
+      }
+      if (globalThis.navigator.userActivation?.isActive === true) {
+        const anchor = document.createElement("a");
+        anchor.href = href;
+        anchor.rel = "noopener noreferrer";
+        anchor.target = "_blank";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+      }
+      return;
+    }
+    if (data.type === "follow-up") {
+      const prompt = data.prompt;
+      if (
+        typeof prompt !== "string" ||
+        globalThis.navigator.userActivation?.isActive !== true
+      ) {
+        return;
+      }
+      const title = data.title;
+      globalThis.prompt(typeof title === "string" ? title : prompt, prompt);
+    }
+  });
+  channel.port1.start();
+  const srcdoc = frame.dataset.srcdoc;
+  if (srcdoc == null) {
+    return;
+  }
+  globalThis.addEventListener("resize", () => {
+    const height = Number.parseFloat(frame.style.height);
+    if (!Number.isFinite(height) || height <= viewportHeight) {
+      frame.style.removeProperty("height");
+    }
+    viewportHeight = globalThis.innerHeight;
+    channel.port1.postMessage({ type: "measure" });
+  });
+  frame.addEventListener(
+    "load",
+    () => {
+      frame.contentWindow?.postMessage(
+        { type: "codex-visualization-initialize" },
+        "*",
+        [channel.port2],
+      );
+    },
+    { once: true },
+  );
+  // Match the trusted bootstrap element, not the same text in an authored title.
+  frame.srcdoc = srcdoc.replace(
+    '<script type="application/json" id="codex-visualization-widget-state">__CODEX_VISUALIZATION_WIDGET_STATE__<\/script>',
+    () =>
+      '<script type="application/json" id="codex-visualization-widget-state">' +
+      JSON.stringify(initialGlobals).replaceAll("<", "\\u003c") +
+      "<\/script>",
+  );
+  delete frame.dataset.srcdoc;
+})();
+</script>
+</body>
+</html>
