@@ -1,0 +1,1620 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio Translation Editor</title>
+<!-- Prototype: the Command dialog in Cratis Studio, designed visually like the Query editor.
+     Standalone: open this file in a browser. Everything is local state; nothing is saved. -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b131b}
+a{color:#5aa0f0}a:hover{color:#8cc0ff}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.kick{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8b9aa7}
+.help{font-size:12px;color:#8b9aa7;line-height:1.45;margin:4px 0 0}
+.f{background:#0f1a24;border:1px solid #2b3d4b;color:#e6edf3;border-radius:6px;padding:0 8px;height:32px;font:13px 'Nunito Sans',system-ui,sans-serif;min-width:0}
+.f:focus{outline:none;border-color:#4fc3b8}
+.f.sm{height:28px;font-size:12px;padding:0 6px}
+.x{background:transparent;border:0;color:#8b9aa7;width:24px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex:none}
+.x:hover{background:#1f2e3a;color:#ffb4b4}
+.add{background:transparent;border:0;color:#5aa0f0;font-weight:700;font-size:13px;padding:8px 0;text-align:left}
+.add:hover{color:#8cc0ff}
+.card{border:1px solid #2b3d4b;border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px;background:#15212b}
+.tab{background:transparent;border:0;padding:14px 14px 12px;font-size:14px;font-weight:600;border-bottom:2px solid transparent}
+.seg{display:flex;border:1px solid #2b3d4b;border-radius:8px;padding:3px;gap:2px;background:#0f1a24}
+.seg button{border:0;border-radius:6px;padding:7px 12px;font-size:13px;font-weight:600}
+.step{display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:1px solid transparent;border-radius:8px;padding:7px 10px;font-size:14px;color:#dbe4ea;text-align:left}
+.step:hover{background:#17242f}
+.dot{width:7px;height:7px;border-radius:50%;flex:none}
+.badge{margin-left:auto;font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;white-space:nowrap}
+.glyph{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:17px;padding:0 4px;border-radius:4px;color:#fff;font:700 9px system-ui,sans-serif;flex:none}
+.ln{display:flex;white-space:pre;font-size:12.5px;line-height:1.75}
+.lnno{width:40px;color:#4b5e6c;text-align:right;padding-right:14px;flex:none;user-select:none}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;color:#dbe4ea}
+.chk input{accent-color:#4aa3f0;width:15px;height:15px;margin:0}
+.scroll::-webkit-scrollbar{width:10px;height:10px}.scroll::-webkit-scrollbar-thumb{background:#2b3d4b;border-radius:10px}
+.colhead{position:absolute;top:0;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.rawhead{background:#5b6577;color:#fff;border-radius:6px 6px 0 0;padding:6px 10px;height:40px;display:flex;flex-direction:column;justify-content:center}
+.recrow{position:absolute;height:28px;display:flex;align-items:center;gap:6px;border:1px solid #2f3b4c;border-radius:5px;padding:0 6px 0 12px;background:#1d2a33;font-size:12.5px}
+.tbadge{font:800 9px 'JetBrains Mono',monospace;border-radius:3px;padding:1px 5px;white-space:nowrap}
+.evrow{position:absolute;height:24px;display:flex;align-items:center;gap:6px;padding:0 6px 0 12px;font-size:12px;border-left:2px solid #8a5a2a;background:#1e1912}
+.wchip{position:absolute;height:26px;display:flex;align-items:center;gap:7px;border:1px solid;border-radius:7px;padding:0 9px;font-size:11.5px;white-space:nowrap}
+.diamond{width:9px;height:9px;transform:rotate(45deg);flex:none}
+.pdot{position:absolute;width:10px;height:10px;border-radius:50%}
+</style>
+
+<style>body{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px}</style>
+</head>
+<body>
+<div id="app"></div>
+<template id="tpl">
+
+
+<div style="width: 1480px; height: 960px; display: flex; flex-direction: column; background: #15212b; color: #e6edf3; font-family: 'Nunito Sans', system-ui, sans-serif; border: 1px solid #2d3e4c; border-radius: 14px; overflow: hidden">
+
+  <!-- Header -->
+  <div style="height: 54px; flex: none; display: flex; align-items: center; gap: 14px; padding: 0 18px; background: #0f1a24; border-bottom: 1px solid #22323f">
+    <span style="background: #8b8fd9; color: #12143a; font-size: 11px; font-weight: 800; letter-spacing: .06em; padding: 6px 9px; border-radius: 5px">TRANSLATION</span>
+    <span style="font-size: 17px; font-weight: 800">{{sliceName}}</span>
+    <span style="font-size: 13px; color: #8b9aa7">Invoicing › Payments</span>
+    <span style="flex: 1"></span>
+    <button aria-label="Close" style="background: transparent; border: 0; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9d4dd" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+  </div>
+
+  <div style="flex: 1; display: flex; min-height: 0">
+
+    <!-- Sidebar -->
+    <div class="scroll" style="width: 226px; flex: none; background: #111c26; border-right: 1px solid #22323f; display: flex; flex-direction: column; padding: 16px 12px 12px; overflow-y: auto">
+      <div class="kick" style="margin: 0 6px 8px">{{flowTitle}}</div>
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+          <button class="step" onClick="{{s.pick}}" style="background: {{s.bg}}; border-color: {{s.bd}}">
+            <span class="dot" style="background: {{s.dot}}"></span>
+            <span>{{s.label}}</span>
+            <sc-if value="{{s.hasBadge}}" hint-placeholder-val="{{ true }}"><span class="badge" style="background: {{s.badgeBg}}; color: {{s.badgeFg}}">{{s.badge}}</span></sc-if>
+          </button>
+        </sc-for>
+      </div>
+      <sc-if value="{{isIn}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 22px 6px 6px">
+          <span class="kick">Specifications</span>
+          <span style="font-size: 11.5px; font-weight: 700; color: {{specSummary.fg}}">{{specSummary.text}}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <sc-for list="{{specRows}}" as="s" hint-placeholder-count="3">
+            <div style="display: flex; align-items: flex-start; gap: 4px">
+              <button class="step" onClick="{{s.load}}" style="align-items: flex-start; font-size: 12.5px; line-height: 1.35; padding: 7px 8px; background: {{s.bg}}; border-color: {{s.bd}}">
+                <span style="width: 16px; height: 16px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; margin-top: 1px; background: {{s.markBg}}; color: {{s.markFg}}">{{s.mark}}</span>
+                <span style="display: flex; flex-direction: column; gap: 2px"><span>{{s.title}}</span><span style="font-size: 11px; color: {{s.subFg}}">{{s.sub}}</span></span>
+              </button>
+              <button class="x" onClick="{{s.remove}}" aria-label="Delete specification" style="margin-top: 4px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <span style="flex: 1"></span>
+      <div style="border-top: 1px solid #22323f; padding: 12px 6px 0; margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 11.5px; color: #8b9aa7">
+        <span style="display: flex; align-items: center; gap: 5px"><span class="dot" style="background: #8d97a8"></span>Outside</span>
+        <span style="display: flex; align-items: center; gap: 5px"><span class="dot" style="background: #4dc0b5"></span>Captured</span>
+        <span style="display: flex; align-items: center; gap: 5px"><span class="dot" style="background: #f0913a"></span>Event</span>
+        <span style="display: flex; align-items: center; gap: 5px"><span class="dot" style="background: #6ea8ff"></span>Public</span>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+
+      <div style="padding: 14px 22px 12px; flex: none; display: flex; gap: 22px; align-items: flex-end">
+        <div style="flex: 1; min-width: 0">
+          <input value="{{sliceName}}" onChange="{{setSliceName}}" aria-label="Slice name" style="margin: 0 0 8px; background: transparent; border: 0; color: #e6edf3; font: 800 24px 'Nunito Sans', system-ui, sans-serif; padding: 0; width: 100%; outline: none">
+          <textarea value="{{desc}}" onChange="{{setDesc}}" aria-label="Description" rows="2" placeholder="What does this translation do, in domain words?" style="width: 100%; resize: none; background: #0f1a24; border: 1px solid #2b3d4b; border-radius: 6px; color: #e6edf3; font: 14px 'Nunito Sans', system-ui, sans-serif; padding: 9px 12px; outline: none"></textarea>
+        </div>
+        <div style="flex: none">
+          <div class="kick" style="margin-bottom: 6px">Direction</div>
+          <div class="seg">
+            <button onClick="{{goIn}}" style="background: {{segIn.bg}}; color: {{segIn.fg}}">Inbound · outside → our facts</button>
+            <button onClick="{{goOut}}" style="background: {{segOut.bg}}; color: {{segOut.fg}}">Outbound · our facts → public</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="flex: none; display: flex; align-items: center; gap: 4px; padding: 0 14px; background: #131f29; border-top: 1px solid #22323f; border-bottom: 1px solid #22323f">
+        <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+          <button class="tab" onClick="{{t.pick}}" style="color: {{t.fg}}; border-bottom-color: {{t.bd}}">{{t.label}}</button>
+        </sc-for>
+        <span style="flex: 1"></span>
+        <sc-if value="{{isDesign}}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{toggleTry}}" style="display: flex; align-items: center; gap: 7px; background: {{tryBtn.bg}}; color: {{tryBtn.fg}}; border: 1px solid {{tryBtn.bd}}; border-radius: 7px; padding: 6px 12px; font-size: 13px; font-weight: 700">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8z"></path></svg>{{tryBtn.label}}
+          </button>
+        </sc-if>
+      </div>
+
+      <div style="flex: 1; min-height: 0; display: flex; position: relative">
+
+        <!-- ===== DESIGN · INBOUND ===== -->
+        <sc-if value="{{showInDesign}}" hint-placeholder-val="{{ true }}">
+          <div class="scroll" style="flex: 1; min-width: 0; overflow: auto; background: #131e28; background-image: radial-gradient(#1f2e3a 1px, transparent 1px); background-size: 18px 18px; padding: 14px 18px 24px">
+            <div style="position: relative; width: 870px; height: {{cv.h}}px">
+              <span class="colhead" style="left: 0; color: #a9b3c4">{{cv.aTitle}}</span>
+              <span class="colhead" style="left: 312px; color: #4dc0b5">Captured record</span>
+              <span class="colhead" style="left: 646px; color: #f0a060">Our events</span>
+
+              <sc-for list="{{cv.lines}}" as="l" hint-placeholder-count="10">
+                <svg width="870" height="{{cv.h}}" style="position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none" aria-hidden="true">
+                  <path d="{{l.d}}" fill="none" stroke="{{l.c}}" stroke-width="{{l.w}}" stroke-dasharray="{{l.dash}}" opacity="{{l.o}}" stroke-linecap="round"></path>
+                  <path d="{{l.d}}" fill="none" stroke="transparent" stroke-width="12" style="pointer-events: stroke; cursor: pointer" onClick="{{l.pick}}"></path>
+                </svg>
+              </sc-for>
+              <sc-for list="{{cv.labels}}" as="t" hint-placeholder-count="3">
+                <button onClick="{{t.pick}}" style="position: absolute; left: {{t.x}}px; top: {{t.y}}px; transform: translate(-50%, -50%); background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}; border-radius: 4px; padding: 1px 5px; font: 800 9px 'JetBrains Mono', monospace; white-space: nowrap; z-index: 3">{{t.text}}</button>
+              </sc-for>
+
+              <!-- A: outside -->
+              <sc-for list="{{cv.aCards}}" as="c" hint-placeholder-count="1">
+                <div style="position: absolute; left: 0; top: {{c.y}}px; width: 226px; border: 1px solid {{c.bd}}; border-radius: 7px; background: #1a222d">
+                  <button onClick="{{selSource}}" class="rawhead" style="border: 0; width: 100%; text-align: left; background: {{c.hbg}}">
+                    <span style="font-size: 12.5px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{c.title}}</span>
+                    <span class="mono" style="font-size: 10.5px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; gap: 6px; align-items: center"><sc-if value="{{c.hasOrigin}}" hint-placeholder-val="{{ false }}"><span style="font: 800 9.5px 'Nunito Sans', sans-serif; background: #6ea8ff; color: #0b2540; border-radius: 3px; padding: 0 5px">PUBLIC · from {{c.origin}}</span></sc-if>{{c.sub}}</span>
+                  </button>
+                  <div style="padding: 4px 0 6px">
+                    <sc-for list="{{c.fields}}" as="x" hint-placeholder-count="5">
+                      <div draggable="true" onDragStart="{{x.drag}}" onDragEnd="{{dragEnd}}" title="Drag onto the captured record" style="height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 12px 0 10px; font-size: 12px; cursor: grab; position: relative">
+                        <span class="mono" style="color: #dfe5ee; flex: none">{{x.name}}</span>
+                        <span class="mono" style="flex: 1; min-width: 0; text-align: right; font-size: 10.5px; color: {{x.vc}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{x.val}}</span>
+                        <span class="glyph" style="background: {{x.gc}}">{{x.glyph}}</span>
+                        <span class="pdot" style="right: -5px; top: 8px; background: {{x.dot}}; border: 2px solid #8d97a8"></span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+
+              <!-- B: captured record -->
+              <div onDragOver="{{cv.recHeadOver}}" onDrop="{{cv.recHeadDrop}}" draggable="true" onDragStart="{{cv.recHeadDrag}}" onDragEnd="{{dragEnd}}" onClick="{{selRecord}}" title="Drop an outside field here to capture it · drag onto “New event” to create one" style="position: absolute; left: 312px; top: 22px; width: 248px; height: 40px; background: #4dc0b5; color: #062421; border-radius: 6px 6px 0 0; padding: 4px 10px; cursor: grab; outline: {{cv.recHeadOutline}}; outline-offset: 2px; display: flex; flex-direction: column; justify-content: center">
+                <span style="font-size: 12.5px; font-weight: 800">capture {{capName}}</span>
+                <span class="mono" style="font-size: 10.5px; opacity: .8">key {{keyText}}</span>
+              </div>
+              <div style="position: absolute; left: 312px; top: 62px; width: 248px; height: {{cv.recBodyH}}px; border: 1px solid #2f7d76; border-top: 0; border-radius: 0 0 6px 6px; background: #17232b"></div>
+              <sc-for list="{{cv.recRows}}" as="r" hint-placeholder-count="8">
+                <div class="recrow" draggable="true" onDragStart="{{r.drag}}" onDragEnd="{{dragEnd}}" onDragOver="{{r.over}}" onDrop="{{r.drop}}" onClick="{{r.pick}}" style="left: 318px; top: {{r.y}}px; width: 236px; border-color: {{r.bd}}; background: {{r.bg}}; opacity: {{r.op}}; cursor: grab">
+                  <span class="pdot" style="left: -12px; top: 8px; background: {{r.inDot}}; border: 2px solid #4dc0b5"></span>
+                  <sc-if value="{{r.isKey}}" hint-placeholder-val="{{ false }}"><span class="tbadge" style="background: #c6e03a; color: #1c2408">KEY</span></sc-if>
+                  <span class="mono" style="flex: 1 0 auto; max-width: 132px; color: {{r.fg}}; font-style: {{r.fs}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.name}}</span>
+                  <sc-if value="{{r.hasVal}}" hint-placeholder-val="{{ false }}"><span class="mono" style="flex: 1 1 auto; min-width: 0; text-align: right; font-size: 10.5px; color: {{r.vc}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.val}}</span></sc-if>
+                  <span class="tbadge" style="background: {{r.tbg}}; color: {{r.tfg}}">{{r.tag}}</span>
+                  <span class="pdot" style="right: -12px; top: 8px; background: {{r.outDot}}; border: 2px solid #4dc0b5"></span>
+                </div>
+              </sc-for>
+              <div style="position: absolute; left: 318px; top: {{cv.addMapY}}px; display: flex; gap: 6px">
+                <button onClick="{{addTemplate}}" style="background: #172633; border: 1px dashed #2f7d76; color: #8fe3d9; border-radius: 6px; padding: 4px 8px; font-size: 11.5px; font-weight: 700">+ Template</button>
+                <button onClick="{{addTranslate}}" style="background: #172633; border: 1px dashed #2f7d76; color: #8fe3d9; border-radius: 6px; padding: 4px 8px; font-size: 11.5px; font-weight: 700">+ Translate</button>
+                <button onClick="{{addSplit}}" style="background: #172633; border: 1px dashed #2f7d76; color: #8fe3d9; border-radius: 6px; padding: 4px 8px; font-size: 11.5px; font-weight: 700">+ Split</button>
+              </div>
+
+              <!-- C: our events -->
+              <sc-for list="{{cv.evCards}}" as="e" hint-placeholder-count="3">
+                <div>
+                  <button class="wchip" onClick="{{e.pick}}" onDragOver="{{e.chipOver}}" onDrop="{{e.chipDrop}}" title="Drop a captured field here to watch it" style="left: 646px; top: {{e.chipY}}px; width: 224px; border-color: {{e.chipBd}}; background: {{e.chipBg}}; outline: {{e.chipOutline}}; outline-offset: 2px">
+                    <span class="diamond" style="background: {{e.dia}}"></span>
+                    <span style="font-weight: 800; font-size: 10px; letter-spacing: .07em; color: {{e.dia}}">{{e.kw}}</span>
+                    <span class="mono" style="color: #dbe4ea; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; text-align: left">{{e.cond}}</span>
+                    <span class="pdot" style="left: -6px; top: 7px; background: {{e.chipDot}}; border: 2px solid #e2a84a"></span>
+                  </button>
+                  <div onDragOver="{{e.headOver}}" onDrop="{{e.headDrop}}" onClick="{{e.pick}}" style="position: absolute; left: 646px; top: {{e.headY}}px; width: 224px; height: 30px; display: flex; align-items: center; gap: 6px; background: {{e.hbg}}; color: #2a1405; border-radius: 6px 6px 0 0; padding: 0 8px 0 10px; font-size: 12.5px; font-weight: 800; cursor: pointer; outline: {{e.headOutline}}; outline-offset: 2px; box-shadow: {{e.sh}}; opacity: {{e.op}}">
+                    <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{e.name}}</span>
+                    <sc-if value="{{e.hasStatus}}" hint-placeholder-val="{{ false }}"><span style="font-size: 9.5px; background: {{e.stBg}}; color: {{e.stFg}}; border-radius: 3px; padding: 1px 5px">{{e.status}}</span></sc-if>
+                  </div>
+                  <sc-for list="{{e.rows}}" as="p" hint-placeholder-count="3">
+                    <div class="evrow" onDragOver="{{p.over}}" onDrop="{{p.drop}}" onClick="{{e.pick}}" style="left: 646px; top: {{p.y}}px; width: 224px; background: {{p.bg}}; opacity: {{e.op}}">
+                      <span class="pdot" style="left: -7px; top: 6px; background: {{p.dot}}; border: 2px solid #f0913a"></span>
+                      <span class="mono" style="flex: 1; color: #f3dfca; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{p.name}}</span>
+                      <sc-if value="{{p.hasSrc}}" hint-placeholder-val="{{ false }}"><span class="mono" style="font-size: 10px; color: #c9a27a; max-width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{p.src}}</span></sc-if>
+                      <span class="glyph" style="background: {{p.gc}}">{{p.glyph}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+              <div onDragOver="{{cv.newOver}}" onDrop="{{cv.newDrop}}" onClick="{{addEvent}}" style="position: absolute; left: 646px; top: {{cv.newY}}px; width: 224px; height: 44px; border: 1.5px dashed {{cv.newBd}}; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #f0a060; font-size: 12px; font-weight: 700; cursor: pointer; background: {{cv.newBg}}">
+                <span>+ New event</span>
+                <span style="font-size: 10.5px; color: #8b9aa7; font-weight: 600">or drop the captured record here</span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ===== DESIGN · OUTBOUND ===== -->
+        <sc-if value="{{showOutDesign}}" hint-placeholder-val="{{ false }}">
+          <div class="scroll" style="flex: 1; min-width: 0; overflow: auto; background: #16202b; padding: 14px 18px 24px">
+            <div style="display: flex; width: 870px; margin-bottom: 10px">
+              <span class="kick" style="width: 520px; color: #f0a060">Our private events</span>
+              <span class="kick" style="color: #6ea8ff">Public contract</span>
+            </div>
+            <div style="position: relative; width: 870px; height: {{ob.h}}px">
+              <sc-for list="{{ob.lines}}" as="l" hint-placeholder-count="6">
+                <svg width="870" height="{{ob.h}}" style="position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none" aria-hidden="true">
+                  <path d="{{l.d}}" fill="none" stroke="{{l.c}}" stroke-width="{{l.w}}" stroke-dasharray="{{l.dash}}" opacity="{{l.o}}" stroke-linecap="round"></path>
+                  <path d="{{l.d}}" fill="none" stroke="transparent" stroke-width="12" style="pointer-events: stroke; cursor: pointer" onClick="{{l.pick}}"></path>
+                </svg>
+              </sc-for>
+              <sc-for list="{{ob.labels}}" as="t" hint-placeholder-count="3">
+                <button onClick="{{t.pick}}" style="position: absolute; left: {{t.x}}px; top: {{t.y}}px; transform: translate(-50%, -50%); background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}; border-radius: 4px; padding: 1px 6px; font: 800 9.5px 'JetBrains Mono', monospace; white-space: nowrap; z-index: 3">{{t.text}}</button>
+              </sc-for>
+              <sc-for list="{{ob.sources}}" as="f" hint-placeholder-count="3">
+                <div style="position: absolute; left: 0; top: {{f.y}}px; width: 360px">
+                  <div draggable="true" onDragStart="{{f.drag}}" onDragEnd="{{dragEnd}}" style="height: 30px; display: flex; align-items: center; gap: 6px; background: #f99a32; color: #2a1405; border-radius: 5px; padding: 0 6px 0 10px; font-size: 12px; font-weight: 800; cursor: grab; position: relative; opacity: {{f.op}}">
+                    <span style="flex: 1">{{f.event}}</span>
+                    <sc-if value="{{f.noAuto}}" hint-placeholder-val="{{ false }}"><span style="font-size: 9.5px; background: rgba(0,0,0,.18); padding: 1px 5px; border-radius: 3px">NO AUTOMAP</span></sc-if>
+                    <button onClick="{{f.remove}}" aria-label="Remove source" style="background: transparent; border: 0; color: #2a1405; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; margin-right: 6px"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+                    <span class="pdot" style="right: -5px; top: 10px; background: #f99a32; border: 2px solid #2a1405"></span>
+                  </div>
+                  <sc-for list="{{f.fields}}" as="x" hint-placeholder-count="2">
+                    <div draggable="true" onDragStart="{{x.drag}}" onDragEnd="{{dragEnd}}" style="height: 24px; display: flex; align-items: center; gap: 7px; margin-left: 14px; padding: 0 12px 0 8px; border-left: 2px solid #8a5a2a; font-size: 11.5px; color: #e9d6c3; cursor: grab; position: relative">
+                      <span class="mono" style="flex: 1">{{x.name}}</span>
+                      <span class="glyph" style="background: {{x.gc}}">{{x.glyph}}</span>
+                      <span class="pdot" style="right: -5px; top: 7px; background: {{x.dot}}; border: 2px solid #f99a32"></span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+              <div style="position: absolute; left: 0; top: {{ob.palY}}px; width: 360px">
+                <div class="kick" style="margin-bottom: 6px">Other private events</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px">
+                  <sc-for list="{{ob.palette}}" as="e" hint-placeholder-count="1">
+                    <span draggable="true" onDragStart="{{e.drag}}" onDragEnd="{{dragEnd}}" style="border: 1px dashed #f99a32; color: #f8b878; border-radius: 5px; padding: 4px 9px; font-size: 11.5px; font-weight: 700; cursor: grab">{{e.name}}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="position: absolute; left: 520px; top: 0; width: 350px">
+                <div onDragOver="{{ob.headOver}}" onDrop="{{ob.headDrop}}" onClick="{{selPublic}}" style="height: 36px; display: flex; align-items: center; gap: 8px; background: #f99a32; color: #2a1405; border-radius: 6px 6px 0 0; padding: 0 10px; outline: {{ob.headOutline}}; outline-offset: 2px; cursor: pointer">
+                  <span style="font: 800 9.5px 'JetBrains Mono', monospace; background: #6ea8ff; color: #0b2540; border-radius: 3px; padding: 2px 5px">PUBLIC</span>
+                  <span style="font-size: 13px; font-weight: 800; flex: 1">{{pub.name}}</span>
+                  <span style="font-size: 10.5px; font-weight: 700; opacity: .7">{{ob.headHint}}</span>
+                </div>
+                <div style="border: 1px solid #6ea8ff; border-top: 0; border-radius: 0 0 6px 6px; padding: 8px 6px; display: flex; flex-direction: column; gap: 4px; background: #1b2431">
+                  <sc-for list="{{ob.rows}}" as="p" hint-placeholder-count="5">
+                    <div onDragOver="{{p.over}}" onDrop="{{p.drop}}" onClick="{{selPublic}}" style="height: 30px; display: flex; align-items: center; gap: 7px; border: 1px solid {{p.bd}}; background: {{p.bg}}; border-radius: 5px; padding: 0 8px 0 14px; position: relative">
+                      <span class="pdot" style="left: -12px; top: 9px; background: {{p.dot}}; border: 2px solid #6ea8ff"></span>
+                      <span class="mono" style="flex: 1; font-size: 12.5px">{{p.name}}</span>
+                      <sc-if value="{{p.unset}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10px; color: #f0c46a">never set</span></sc-if>
+                      <span class="glyph" style="background: {{p.gc}}">{{p.glyph}}</span>
+                      <span style="font-size: 11px; color: #a9b7c2; width: 58px">{{p.type}}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="margin-top: 12px; font-size: 12px; color: #8b9aa7; line-height: 1.45">Built by the projection <span class="mono" style="color: #c6e03a">{{projName}}</span>. Each time one of its source events happens, the current shape is published to other applications as <span class="mono">{{pub.name}}</span>.</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- ===== INSPECTOR ===== -->
+        <sc-if value="{{isDesign}}" hint-placeholder-val="{{ true }}">
+          <div class="scroll" style="width: 344px; flex: none; border-left: 1px solid #22323f; background: #111c26; overflow-y: auto; padding: 16px 18px 24px">
+
+            <sc-if value="{{msg.has}}" hint-placeholder-val="{{ false }}"><div style="font-size: 12.5px; color: #8fe3d9; background: #12302d; border: 1px solid #2f6e68; border-radius: 7px; padding: 7px 10px; margin-bottom: 12px">{{msg.text}}</div></sc-if>
+
+            <!-- TRY · inbound -->
+            <sc-if value="{{tryIn}}" hint-placeholder-val="{{ false }}">
+              <div class="kick" style="color: #4fc3b8">Try it · given, when, then</div>
+              <h3 style="margin: 4px 0 0; font-size: 17px">What does it record if…</h3>
+              <div style="border: 1px solid {{ti.bd}}; background: {{ti.bg}}; border-radius: 10px; padding: 12px; margin: 12px 0 10px">
+                <div style="display: flex; gap: 8px; align-items: center"><span class="kick" style="color: {{ti.fg}}">Then</span><span style="font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: {{ti.fg}}">{{ti.title}}</span></div>
+                <sc-for list="{{ti.events}}" as="e" hint-placeholder-count="1">
+                  <div style="margin-top: 9px; border-left: 3px solid #f0913a; padding-left: 9px">
+                    <div style="font-size: 13px; font-weight: 800; color: #f6e7d8">{{e.name}} <span style="font-size: 11px; font-weight: 600; color: #c9a27a">· {{e.why}}</span></div>
+                    <div class="mono" style="font-size: 11px; color: #8b9aa7">for "{{e.for}}"</div>
+                    <sc-for list="{{e.payload}}" as="kv" hint-placeholder-count="2"><div class="mono" style="font-size: 11px; color: #c9d4dd">{{kv}}</div></sc-for>
+                  </div>
+                </sc-for>
+                <sc-for list="{{ti.notes}}" as="n" hint-placeholder-count="1"><div style="font-size: 12px; color: #f0c46a; margin-top: 8px">⚠ {{n}}</div></sc-for>
+                <div style="display: flex; gap: 6px; margin-top: 12px">
+                  <input class="f sm" value="{{specDraft}}" onChange="{{setSpecDraft}}" aria-label="Specification name" style="flex: 1">
+                  <button onClick="{{saveSpec}}" style="opacity: {{saveOp}}; background: #4dc0b5; color: #0d1a20; border: 0; border-radius: 6px; padding: 0 12px; font-size: 12.5px; font-weight: 800; white-space: nowrap">Save as specification</button>
+                </div>
+              </div>
+
+              <div class="kick" style="margin: 12px 0 6px">The record, before → now</div>
+              <div style="border: 1px solid #2b3d4b; border-radius: 8px; overflow: hidden">
+                <sc-for list="{{ti.diff}}" as="d" hint-placeholder-count="6">
+                  <div class="mono" style="display: grid; grid-template-columns: 108px 1fr 1fr; gap: 6px; font-size: 11px; padding: 4px 8px; background: {{d.bg}}; border-bottom: 1px solid #1d2a36">
+                    <span style="color: #8fe3d9; overflow: hidden; text-overflow: ellipsis">{{d.k}}</span><span style="color: #8b9aa7; overflow: hidden; text-overflow: ellipsis">{{d.before}}</span><span style="color: {{d.c}}; overflow: hidden; text-overflow: ellipsis">{{d.after}}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <sc-if value="{{tiRecord}}" hint-placeholder-val="{{ true }}">
+                <div class="kick" style="margin: 16px 0 6px; color: #a9b3c4">Given — last seen for this key</div>
+                <div class="seg" style="width: max-content; margin-bottom: 8px">
+                  <button onClick="{{baseNone}}" style="background: {{segBase.none.bg}}; color: {{segBase.none.fg}}">First time seen</button>
+                  <button onClick="{{baseSome}}" style="background: {{segBase.some.bg}}; color: {{segBase.some.fg}}">Seen before</button>
+                </div>
+                <sc-if value="{{hasBase}}" hint-placeholder-val="{{ true }}">
+                  <div style="display: grid; grid-template-columns: 96px 1fr; gap: 5px 8px; align-items: center">
+                    <sc-for list="{{baseRows}}" as="r" hint-placeholder-count="6"><label class="mono" style="font-size: 11px; color: #a9b3c4" for="{{r.id}}">{{r.name}}</label><input id="{{r.id}}" class="f sm mono" value="{{r.val}}" onChange="{{r.set}}"></sc-for>
+                  </div>
+                </sc-if>
+                <div class="kick" style="margin: 16px 0 6px; color: #a9b3c4">When — the {{sourceWord}} delivers</div>
+                <div style="display: grid; grid-template-columns: 96px 1fr; gap: 5px 8px; align-items: center">
+                  <sc-for list="{{curRows}}" as="r" hint-placeholder-count="6"><label class="mono" style="font-size: 11px; color: #a9b3c4" for="{{r.id}}">{{r.name}}</label><input id="{{r.id}}" class="f sm mono" value="{{r.val}}" onChange="{{r.set}}" style="border-color: {{r.bd}}"></sc-for>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{tiEvents}}" hint-placeholder-val="{{ false }}">
+                <div class="kick" style="margin: 16px 0 6px; color: #6ea8ff">Given — what the other application already sent</div>
+                <div style="display: flex; flex-direction: column; gap: 8px">
+                  <sc-for list="{{givenRows}}" as="g" hint-placeholder-count="1">
+                    <div style="border: 1px solid #3a4d6e; border-radius: 8px; background: #161f2c">
+                      <div style="display: flex; align-items: center; gap: 6px; background: #f99a32; color: #2a1405; border-radius: 7px 7px 0 0; padding: 4px 6px 4px 10px; font-size: 12px; font-weight: 800"><span style="font: 800 9px 'JetBrains Mono', monospace; background: #6ea8ff; color: #0b2540; border-radius: 3px; padding: 1px 4px">from {{g.origin}}</span><span style="flex: 1">{{g.event}}</span><button onClick="{{g.remove}}" aria-label="Remove event" style="background: transparent; border: 0; color: #2a1405; width: 20px; height: 20px">×</button></div>
+                      <div style="display: grid; grid-template-columns: 96px 1fr; gap: 5px 8px; align-items: center; padding: 8px 10px">
+                        <sc-for list="{{g.fields}}" as="r" hint-placeholder-count="2"><label class="mono" style="font-size: 11px; color: #c9a27a" for="{{r.id}}">{{r.name}}</label><input id="{{r.id}}" class="f sm mono" value="{{r.val}}" onChange="{{r.set}}"></sc-for>
+                      </div>
+                    </div>
+                  </sc-for>
+                  <select class="f" value="" onChange="{{addGiven}}" aria-label="Add an event it already sent" style="color: #f0a060"><option value="">+ Add an event it already sent…</option><option data-for="fromNames" data-as="o" value="{{o}}">{{o}}</option></select>
+                </div>
+                <div class="kick" style="margin: 16px 0 6px; color: #6ea8ff">When — this arrives</div>
+                <select class="f" value="{{whenEv.event}}" onChange="{{setWhenEvent}}" aria-label="Arriving event" style="width: 100%; margin-bottom: 8px"><option data-for="fromNames" data-as="o" value="{{o}}">{{o}}</option></select>
+                <div style="display: grid; grid-template-columns: 96px 1fr; gap: 5px 8px; align-items: center">
+                  <sc-for list="{{whenRows}}" as="r" hint-placeholder-count="3"><label class="mono" style="font-size: 11px; color: #c9a27a" for="{{r.id}}">{{r.name}}</label><input id="{{r.id}}" class="f sm mono" value="{{r.val}}" onChange="{{r.set}}"></sc-for>
+                </div>
+              </sc-if>
+            </sc-if>
+
+            <!-- TRY · outbound -->
+            <sc-if value="{{tryOut}}" hint-placeholder-val="{{ false }}">
+              <div class="kick" style="color: #4fc3b8">Try it</div>
+              <h3 style="margin: 4px 0 0; font-size: 17px">What do other applications see?</h3>
+              <p class="help">Each source event updates the shape for its invoice and publishes it. Screenplay records the publication as a fact; it doesn't deliver it.</p>
+              <div style="display: flex; flex-direction: column; margin-top: 12px">
+                <sc-for list="{{pubTimeline}}" as="t" hint-placeholder-count="3">
+                  <div style="display: flex; gap: 10px">
+                    <div style="display: flex; flex-direction: column; align-items: center; width: 14px"><span style="width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; background: {{t.dot}}"></span><span style="flex: 1; width: 2px; background: #2b3d4b"></span></div>
+                    <div style="padding-bottom: 12px; flex: 1; min-width: 0">
+                      <div style="font-size: 12.5px; font-weight: 700; color: #f6e7d8">{{t.event}} <span class="mono" style="font-weight: 400; color: #8b9aa7; font-size: 11px">for {{t.for}}</span></div>
+                      <sc-if value="{{t.published}}" hint-placeholder-val="{{ true }}">
+                        <div style="margin-top: 4px; border: 1px solid #2f5f88; background: #13243f; border-radius: 6px; padding: 6px 8px">
+                          <div style="font-size: 11.5px; font-weight: 800; color: #8cc0ff">↗ publishes {{pub.name}}</div>
+                          <sc-for list="{{t.rows}}" as="r" hint-placeholder-count="3"><div class="mono" style="font-size: 11px; color: {{r.c}}">{{r.t}}</div></sc-for>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{t.skipped}}" hint-placeholder-val="{{ false }}"><div style="font-size: 11.5px; color: #6b7d8b">not a source — nothing published</div></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div class="kick" style="margin: 8px 0 6px; color: #f0a060">Given — our events</div>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <sc-for list="{{oGivenRows}}" as="g" hint-placeholder-count="2">
+                  <div style="border: 1px solid #5a4128; border-radius: 8px; background: #1e1912">
+                    <div style="display: flex; align-items: center; gap: 6px; background: #f99a32; color: #2a1405; border-radius: 7px 7px 0 0; padding: 4px 6px 4px 10px; font-size: 12px; font-weight: 800"><span style="flex: 1">{{g.event}}</span><span style="font-size: 10.5px">for</span><input class="mono" value="{{g.for}}" onChange="{{g.setFor}}" aria-label="Event source" style="width: 86px; height: 22px; border: 0; border-radius: 4px; background: rgba(255,255,255,.55); color: #2a1405; font-size: 11px; padding: 0 5px"><button onClick="{{g.remove}}" aria-label="Remove event" style="background: transparent; border: 0; color: #2a1405; width: 20px; height: 20px">×</button></div>
+                    <sc-if value="{{g.hasFields}}" hint-placeholder-val="{{ true }}"><div style="display: grid; grid-template-columns: 96px 1fr; gap: 5px 8px; align-items: center; padding: 8px 10px">
+                      <sc-for list="{{g.fields}}" as="r" hint-placeholder-count="2"><label class="mono" style="font-size: 11px; color: #c9a27a" for="{{r.id}}">{{r.name}}</label><input id="{{r.id}}" class="f sm mono" value="{{r.val}}" onChange="{{r.set}}"></sc-for>
+                    </div></sc-if>
+                  </div>
+                </sc-for>
+                <select class="f" value="" onChange="{{addOGiven}}" aria-label="Add a private event" style="color: #f0a060"><option value="">+ Add something that happened…</option><option data-for="privNames" data-as="o" value="{{o}}">{{o}}</option></select>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{editing}}" hint-placeholder-val="{{ true }}">
+
+              <!-- Source -->
+              <sc-if value="{{ins.source}}" hint-placeholder-val="{{ true }}">
+                <div class="kick" style="color: #a9b3c4">Source · where the outside data comes from</div>
+                <input value="{{capName}}" onChange="{{setCapName}}" aria-label="Capture name" class="mono" style="margin-top: 4px; background: transparent; border: 0; border-bottom: 1px dashed #3b4658; color: #e6edf3; font-size: 16px; font-weight: 700; padding: 2px 0; width: 100%; outline: none">
+                <div class="seg" style="width: max-content; margin: 12px 0 10px">
+                  <sc-for list="{{kindSeg}}" as="k" hint-placeholder-count="4"><button onClick="{{k.pick}}" style="background: {{k.bg}}; color: {{k.fg}}">{{k.label}}</button></sc-for>
+                </div>
+                <p class="help" style="margin: 0 0 10px">{{kindHelp}}</p>
+                <sc-if value="{{isRecordKind}}" hint-placeholder-val="{{ true }}">
+                  <div style="display: grid; grid-template-columns: 64px 1fr; gap: 6px 8px; align-items: center; font-size: 12.5px; color: #a9b7c2">
+                    <sc-for list="{{settingRows}}" as="s" hint-placeholder-count="3"><span class="mono">{{s.name}}</span><input class="f sm mono" value="{{s.val}}" onChange="{{s.set}}" aria-label="{{s.name}}"></sc-for>
+                  </div>
+                  <div class="kick" style="margin: 16px 0 6px">Fields in each record</div>
+                  <div style="display: flex; flex-direction: column; gap: 5px">
+                    <sc-for list="{{rawEdit}}" as="r" hint-placeholder-count="5">
+                      <div style="display: flex; gap: 5px; align-items: center">
+                        <input class="f sm mono" value="{{r.name}}" onChange="{{r.setName}}" aria-label="Field name" style="flex: 1">
+                        <select class="f sm" value="{{r.type}}" onChange="{{r.setType}}" aria-label="Type" style="width: 92px"><option data-for="rawTypes" data-as="o" value="{{o}}">{{o}}</option></select>
+                        <button class="x" onClick="{{r.remove}}" aria-label="Remove field"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <button class="add" onClick="{{addRaw}}">+ Field</button>
+                  <div class="kick" style="margin: 10px 0 6px">Or paste a sample record</div>
+                  <textarea class="mono" value="{{sampleJson}}" onChange="{{setSampleJson}}" aria-label="Sample JSON" rows="7" style="width: 100%; background: #0f1a24; border: 1px solid #2b3d4b; border-radius: 6px; color: #dbe4ea; font-size: 11px; padding: 8px; resize: vertical"></textarea>
+                  <button onClick="{{inferFields}}" style="margin-top: 6px; background: #172633; border: 1px solid #2b3d4b; border-radius: 6px; padding: 6px 10px; font-size: 12.5px; color: #8cc0ff; font-weight: 700">Infer fields from the sample</button>
+                </sc-if>
+                <sc-if value="{{isEventsKind}}" hint-placeholder-val="{{ false }}">
+                  <div class="kick" style="margin: 4px 0 6px">From these public events</div>
+                  <div style="display: flex; flex-direction: column; gap: 6px">
+                    <sc-for list="{{foreignRows}}" as="f" hint-placeholder-count="2">
+                      <label class="chk" style="align-items: flex-start"><input type="checkbox" checked="{{f.on}}" onChange="{{f.toggle}}" style="margin-top: 3px"><span style="display: flex; flex-direction: column"><span><b>{{f.name}}</b> <span style="font-size: 11px; color: #8cc0ff">from "{{f.origin}}"</span></span><span class="mono" style="font-size: 10.5px; color: #8b9aa7">{{f.fields}}</span></span></label>
+                    </sc-for>
+                  </div>
+                  <p class="help" style="margin-top: 10px">Each event's fields overlay what was remembered for its key, so a later event only needs the fields it changes. Only an inbound translation may consume events from another application.</p>
+                </sc-if>
+              </sc-if>
+
+              <!-- Record / key -->
+              <sc-if value="{{ins.record}}" hint-placeholder-val="{{ false }}">
+                <div class="kick" style="color: #4dc0b5">Captured record</div>
+                <h3 style="margin: 4px 0 0; font-size: 17px">Our shape of {{capName}}</h3>
+                <p class="help">Map steps run in order. Anything no step touches passes through unchanged — shown dashed.</p>
+                <div style="display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; margin-top: 12px; font-size: 12.5px; color: #a9b7c2">
+                  <span>Key</span>
+                  <select class="f mono" value="{{keyVal}}" onChange="{{setKey}}" aria-label="Key"><option data-for="keyOptions" data-as="o" value="{{o}}">{{o}}</option></select>
+                </div>
+                <p class="help">{{keyHelp}}</p>
+                <div class="kick" style="margin: 16px 0 6px">Map steps</div>
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <sc-for list="{{mapList}}" as="m" hint-placeholder-count="5">
+                    <button onClick="{{m.pick}}" class="mono" style="text-align: left; background: #15212b; border: 1px solid #2b3d4b; border-radius: 6px; padding: 6px 8px; font-size: 11.5px; color: #dbe4ea; display: flex; gap: 8px"><span style="color: #4b5e6c; width: 14px">{{m.n}}</span><span style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{m.text}}</span></button>
+                  </sc-for>
+                </div>
+              </sc-if>
+
+              <!-- Map step -->
+              <sc-if value="{{ins.map}}" hint-placeholder-val="{{ false }}">
+                <div class="kick" style="color: #4dc0b5">Map step {{mi.n}}</div>
+                <div class="seg" style="width: max-content; margin: 8px 0 12px">
+                  <sc-for list="{{mi.kinds}}" as="k" hint-placeholder-count="4"><button onClick="{{k.pick}}" style="background: {{k.bg}}; color: {{k.fg}}">{{k.label}}</button></sc-for>
+                </div>
+                <sc-if value="{{mi.hasTarget}}" hint-placeholder-val="{{ true }}">
+                  <div style="display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; font-size: 12.5px; color: #a9b7c2">
+                    <span>Field</span><input class="f mono" value="{{mi.target}}" onChange="{{mi.setTarget}}" aria-label="Record field">
+                  </div>
+                </sc-if>
+                <sc-if value="{{mi.hasSrc}}" hint-placeholder-val="{{ true }}">
+                  <div style="display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; font-size: 12.5px; color: #a9b7c2; margin-top: 8px">
+                    <span>{{mi.srcLabel}}</span><select class="f mono" value="{{mi.src}}" onChange="{{mi.setSrc}}" aria-label="Source field"><option data-for="mi.srcOptions" data-as="o" value="{{o}}">{{o}}</option></select>
+                  </div>
+                </sc-if>
+                <sc-if value="{{mi.isTemplate}}" hint-placeholder-val="{{ false }}">
+                  <div class="kick" style="margin: 12px 0 6px">Template</div>
+                  <input class="f mono" value="{{mi.template}}" onChange="{{mi.setTemplate}}" aria-label="Template" style="width: 100%">
+                  <p class="help">Write <span class="mono">${field}</span> to insert a field. Uses: <span class="mono" style="color: #8fe3d9">{{mi.refs}}</span></p>
+                </sc-if>
+                <sc-if value="{{mi.isTranslate}}" hint-placeholder-val="{{ false }}">
+                  <div class="kick" style="margin: 12px 0 6px">Their value → our value</div>
+                  <div style="display: flex; flex-direction: column; gap: 5px">
+                    <sc-for list="{{mi.table}}" as="t" hint-placeholder-count="3">
+                      <div style="display: flex; gap: 5px; align-items: center">
+                        <input class="f sm mono" value="{{t.from}}" onChange="{{t.setFrom}}" aria-label="Their value" style="flex: 1">
+                        <span style="color: #8b9aa7">⇒</span>
+                        <input class="f sm mono" value="{{t.to}}" onChange="{{t.setTo}}" aria-label="Our value" style="flex: 1; color: #8fe3d9">
+                        <button class="x" onClick="{{t.remove}}" aria-label="Remove translation"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <button class="add" onClick="{{mi.addRow}}">+ Translation</button>
+                  <p class="help" style="margin-top: 0">Screenplay doesn't yet say what happens to a value with no translation; Try it passes it through and warns.</p>
+                </sc-if>
+                <sc-if value="{{mi.isSplit}}" hint-placeholder-val="{{ false }}">
+                  <div style="display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; font-size: 12.5px; color: #a9b7c2; margin-top: 8px">
+                    <span>By</span><input class="f mono" value="{{mi.sep}}" onChange="{{mi.setSep}}" aria-label="Separator">
+                  </div>
+                  <div class="kick" style="margin: 12px 0 6px">Into, in order</div>
+                  <div style="display: flex; flex-direction: column; gap: 5px">
+                    <sc-for list="{{mi.targets}}" as="t" hint-placeholder-count="2">
+                      <div style="display: flex; gap: 5px; align-items: center"><span class="mono" style="width: 18px; color: #4b5e6c; font-size: 11px">{{t.n}}</span><input class="f sm mono" value="{{t.name}}" onChange="{{t.set}}" aria-label="Part" style="flex: 1"><button class="x" onClick="{{t.remove}}" aria-label="Remove part"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+                    </sc-for>
+                  </div>
+                  <button class="add" onClick="{{mi.addPart}}">+ Part</button>
+                </sc-if>
+                <div style="display: flex; justify-content: space-between; margin-top: 8px">
+                  <span><button class="add" onClick="{{mi.up}}" style="font-size: 12px">↑ Earlier</button><button class="add" onClick="{{mi.down}}" style="font-size: 12px; margin-left: 10px">↓ Later</button></span>
+                  <button class="add" onClick="{{mi.remove}}" style="color: #ef7a7a">Remove step</button>
+                </div>
+              </sc-if>
+
+              <!-- Event / append -->
+              <sc-if value="{{ins.event}}" hint-placeholder-val="{{ false }}">
+                <div class="kick" style="color: #f0a060">Append · a private event</div>
+                <input value="{{ei.name}}" onChange="{{ei.setName}}" aria-label="Event name" style="margin-top: 4px; background: transparent; border: 0; border-bottom: 1px dashed #5a4128; color: #e6edf3; font: 700 17px 'Nunito Sans', system-ui, sans-serif; padding: 2px 0; width: 100%; outline: none">
+                <div class="kick" style="margin: 14px 0 6px; color: #e2a84a">Recorded when</div>
+                <select class="f" value="{{ei.when}}" onChange="{{ei.setWhen}}" aria-label="When" style="width: 100%"><option data-for="whenKinds" data-as="o" value="{{o.v}}">{{o.l}}</option></select>
+                <sc-if value="{{ei.isChanges}}" hint-placeholder-val="{{ false }}">
+                  <div class="seg" style="width: max-content; margin: 8px 0">
+                    <button onClick="{{ei.anyOf}}" style="background: {{ei.segAny.bg}}; color: {{ei.segAny.fg}}">any of these</button>
+                    <button onClick="{{ei.allOf}}" style="background: {{ei.segAll.bg}}; color: {{ei.segAll.fg}}">all of these</button>
+                  </div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 5px">
+                    <sc-for list="{{ei.fieldChips}}" as="c" hint-placeholder-count="4"><button onClick="{{c.toggle}}" class="mono" style="border: 1px solid {{c.bd}}; background: {{c.bg}}; color: {{c.fg}}; border-radius: 999px; padding: 3px 9px; font-size: 11px">{{c.name}}</button></sc-for>
+                  </div>
+                  <p class="help">Tip: drop a field from the captured record onto the event's WHEN chip.</p>
+                </sc-if>
+                <sc-if value="{{ei.isTransition}}" hint-placeholder-val="{{ false }}">
+                  <div style="display: grid; grid-template-columns: 44px 1fr; gap: 6px 8px; align-items: center; margin-top: 8px; font-size: 12.5px; color: #a9b7c2">
+                    <span>Field</span><select class="f sm mono" value="{{ei.field}}" onChange="{{ei.setField}}" aria-label="Field"><option data-for="recNames" data-as="o" value="{{o}}">{{o}}</option></select>
+                    <span>From</span><input class="f sm mono" value="{{ei.from}}" onChange="{{ei.setFrom}}" aria-label="From value" list="tvals">
+                    <span>To</span><input class="f sm mono" value="{{ei.to}}" onChange="{{ei.setTo}}" aria-label="To value" list="tvals">
+                  </div>
+                  <datalist id="tvals"><option data-for="ei.suggest" data-as="o" value="{{o}}"></option></datalist>
+                </sc-if>
+                <sc-if value="{{ei.isExpr}}" hint-placeholder-val="{{ false }}">
+                  <input class="f mono" value="{{ei.expr}}" onChange="{{ei.setExpr}}" aria-label="Expression" style="width: 100%; margin-top: 8px">
+                  <p class="help">Fields, literals, comparisons, and / or and parentheses — checked on the captured record as it is now, including the first time.</p>
+                </sc-if>
+                <p class="help" style="margin-top: 6px">{{ei.whenHelp}}</p>
+                <div class="kick" style="margin: 14px 0 6px">Carries</div>
+                <div style="display: flex; flex-direction: column; gap: 5px">
+                  <sc-for list="{{ei.props}}" as="p" hint-placeholder-count="3">
+                    <div style="display: flex; gap: 5px; align-items: center">
+                      <input class="f sm mono" value="{{p.name}}" onChange="{{p.setName}}" aria-label="Event property" style="width: 104px">
+                      <span style="color: #8b9aa7">=</span>
+                      <select class="f sm mono" value="{{p.sel}}" onChange="{{p.setSrc}}" aria-label="Source" style="flex: 1"><option data-for="evSources" data-as="o" value="{{o}}">{{o}}</option></select>
+                      <button class="x" onClick="{{p.remove}}" aria-label="Remove property"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+                    </div>
+                    <sc-if value="{{p.isConst}}" hint-placeholder-val="{{ false }}"><input class="f sm mono" value="{{p.src}}" onChange="{{p.setConst}}" aria-label="Constant" style="margin-left: 120px"></sc-if>
+                  </sc-for>
+                </div>
+                <button class="add" onClick="{{ei.addProp}}">+ Property</button>
+                <p class="help" style="margin-top: 0">The event lands on the captured key, <span class="mono">{{keyText}}</span>.</p>
+                <button class="add" onClick="{{ei.remove}}" style="color: #ef7a7a">Remove event</button>
+              </sc-if>
+
+              <!-- Outbound: public contract -->
+              <sc-if value="{{ins.public}}" hint-placeholder-val="{{ false }}">
+                <div class="kick" style="color: #6ea8ff">Public contract</div>
+                <input value="{{pub.name}}" onChange="{{setPubName}}" aria-label="Public event name" style="margin-top: 4px; background: transparent; border: 0; border-bottom: 1px dashed #2f5f88; color: #e6edf3; font: 700 17px 'Nunito Sans', system-ui, sans-serif; padding: 2px 0; width: 100%; outline: none">
+                <p class="help">Other applications depend on this shape. Changing it means a new <span class="mono">generation</span> of the event, not an edit in place.</p>
+                <div style="display: grid; grid-template-columns: 84px 1fr; gap: 8px; align-items: center; margin-top: 10px; font-size: 12.5px; color: #a9b7c2">
+                  <span>Generation</span><input class="f sm mono" value="{{pub.generation}}" onChange="{{setPubGen}}" aria-label="Generation" style="width: 60px">
+                  <span>Projection</span><input class="f sm mono" value="{{projName}}" onChange="{{setProjName}}" aria-label="Projection name">
+                </div>
+                <div class="kick" style="margin: 14px 0 6px">Properties</div>
+                <div style="display: flex; flex-direction: column; gap: 5px">
+                  <sc-for list="{{pubEdit}}" as="r" hint-placeholder-count="5">
+                    <div style="display: flex; gap: 5px; align-items: center">
+                      <input class="f sm mono" value="{{r.name}}" onChange="{{r.setName}}" aria-label="Property name" style="flex: 1">
+                      <select class="f sm" value="{{r.type}}" onChange="{{r.setType}}" aria-label="Type" style="width: 92px"><option data-for="rawTypes" data-as="o" value="{{o}}">{{o}}</option></select>
+                      <button class="x" onClick="{{r.remove}}" aria-label="Remove property"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+                    </div>
+                  </sc-for>
+                </div>
+                <button class="add" onClick="{{addPubProp}}">+ Property</button>
+                <p class="help">Drag a private event onto the contract's header to map it by convention, or a field onto a property to map just that.</p>
+              </sc-if>
+
+              <!-- Outbound: link -->
+              <sc-if value="{{ins.olink}}" hint-placeholder-val="{{ false }}">
+                <div class="kick" style="color: {{ol.c}}">{{ol.kind}}</div>
+                <div class="mono" style="font-size: 12.5px; margin: 4px 0 8px"><span style="color: #f8b878">{{ol.from}}</span> <span style="color: #6b7d8b">→</span> <span style="color: #8cc0ff">{{ol.to}}</span></div>
+                <p class="help" style="margin: 0 0 10px">{{ol.text}}</p>
+                <sc-if value="{{ol.isAuto}}" hint-placeholder-val="{{ false }}">
+                  <div style="display: flex; flex-direction: column; gap: 6px">
+                    <button onClick="{{ol.explicit}}" style="background: #172633; border: 1px solid #2b3d4b; border-radius: 6px; padding: 7px 10px; font-size: 12.5px; color: #8cc0ff; text-align: left">Pin it as an explicit mapping</button>
+                    <button onClick="{{ol.autoOff}}" style="background: #172633; border: 1px solid #2b3d4b; border-radius: 6px; padding: 7px 10px; font-size: 12.5px; color: #f8b878; text-align: left">Turn AutoMap off for {{ol.event}}</button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ol.isMap}}" hint-placeholder-val="{{ false }}">
+                  <div style="display: flex; gap: 6px; align-items: center">
+                    <span style="color: #8b9aa7; font-size: 12px">set =</span>
+                    <select class="f sm mono" value="{{ol.sel}}" onChange="{{ol.setSrc}}" aria-label="Source" style="flex: 1"><option data-for="ol.sources" data-as="o" value="{{o}}">{{o}}</option></select>
+                  </div>
+                  <sc-if value="{{ol.isConst}}" hint-placeholder-val="{{ false }}"><input class="f sm mono" value="{{ol.src}}" onChange="{{ol.setConst}}" aria-label="Constant" style="width: 100%; margin-top: 6px"></sc-if>
+                  <button class="add" onClick="{{ol.remove}}" style="color: #ef7a7a; font-size: 12.5px">Remove mapping</button>
+                </sc-if>
+                <button class="add" onClick="{{selPublic}}" style="display: block; font-size: 12.5px">← Back to the contract</button>
+              </sc-if>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- DESCRIBE -->
+        <sc-if value="{{isDescribe}}" hint-placeholder-val="{{ false }}">
+          <div class="scroll" style="flex: 1; overflow: auto; padding: 26px 34px">
+            <div style="max-width: 780px; display: flex; flex-direction: column; gap: 14px">
+              <div class="kick">In domain words · written from the design</div>
+              <sc-for list="{{describe}}" as="d" hint-placeholder-count="5">
+                <div style="display: flex; gap: 14px">
+                  <span style="width: 96px; flex: none; font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: {{d.c}}; padding-top: 3px">{{d.k}}</span>
+                  <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #dbe4ea">{{d.t}}</p>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- SCREENPLAY -->
+        <sc-if value="{{isPlay}}" hint-placeholder-val="{{ false }}">
+          <div class="scroll" style="flex: 1; overflow: auto; background: #0f1a24; padding: 18px 10px">
+            <div class="kick" style="padding: 0 14px 12px 40px">payments.play · kept in step with the design</div>
+            <div class="mono">
+              <sc-for list="{{playLines}}" as="l" hint-placeholder-count="20">
+                <div class="ln"><span class="lnno">{{l.n}}</span><span>{{l.ind}}</span><span style="color: {{l.kc}}">{{l.kw}}</span><span style="color: #dbe4ea">{{l.rest}}</span></div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <!-- Checks -->
+      <div style="flex: none; padding: 10px 18px 12px; border-top: 1px solid #22323f; position: relative">
+        <sc-if value="{{showDiags}}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; left: 18px; right: 18px; bottom: 58px; z-index: 50; background: #0f1a24; border: 1px solid #2b3d4b; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 12px 30px rgba(0,0,0,.45); max-height: 300px; overflow-y: auto">
+            <sc-for list="{{diagRows}}" as="d" hint-placeholder-count="2">
+              <button onClick="{{d.go}}" style="display: flex; gap: 10px; align-items: baseline; text-align: left; background: transparent; border: 0; border-radius: 6px; padding: 7px 8px; font-size: 13px; color: #dbe4ea">
+                <span style="width: 80px; flex: none; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: {{d.c}}">{{d.sev}}</span>
+                <span style="flex: 1">{{d.msg}}</span>
+                <span class="mono" style="font-size: 11px; color: #6b7d8b">{{d.code}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <button onClick="{{toggleDiags}}" style="width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: {{bar.bg}}; border: 1px solid {{bar.bd}}; border-radius: 8px; padding: 9px 12px">
+          <span style="font-size: 11px; font-weight: 800; letter-spacing: .08em; color: {{bar.fg}}; white-space: nowrap">{{bar.label}}</span>
+          <span style="font-size: 13.5px; color: {{bar.fg}}; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{bar.msg}}</span>
+          <sc-if value="{{bar.more}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; color: {{bar.fg}}; font-weight: 700; white-space: nowrap">{{bar.moreText}}</span></sc-if>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+/* Minimal template runtime for this standalone prototype.
+   Interprets {{holes}}, <sc-if>, <sc-for> and option[data-for] from #tpl,
+   and patches the live DOM in place so inputs keep focus while typing. */
+(function () {
+  class DCLogic {
+    constructor(props) { this.props = props || {}; this.state = {}; }
+    setState(patch) { Object.assign(this.state, typeof patch === 'function' ? patch(this.state) : patch); schedule(); }
+    forceUpdate() { schedule(); }
+  }
+  window.DCLogic = DCLogic;
+
+  var HOLE = /\{\{\s*([^}]+?)\s*\}\}/g, WHOLE = /^\{\{\s*([^}]+?)\s*\}\}$/;
+  function lookup(path, scope) {
+    if (path === 'true') return true; if (path === 'false') return false;
+    if (/^-?\d+(\.\d+)?$/.test(path)) return parseFloat(path);
+    var parts = path.split('.'), v = scope;
+    for (var i = 0; i < parts.length; i++) { if (v == null) return undefined; v = v[parts[i]]; }
+    return v;
+  }
+  function interp(s, scope) { return s.replace(HOLE, function (_, p) { var v = lookup(p, scope); return v == null ? '' : String(v); }); }
+  function attrVal(s, scope) { var m = s.match(WHOLE); return m ? lookup(m[1], scope) : interp(s, scope); }
+
+  function buildChildren(node, scope, out) {
+    for (var c = node.firstChild; c; c = c.nextSibling) build(c, scope, out);
+    return out;
+  }
+  function build(node, scope, out) {
+    if (node.nodeType === 3) { var t = interp(node.data, scope); if (t !== '') out.push(t); return; }
+    if (node.nodeType !== 1) return;
+    var tag = node.tagName.toLowerCase();
+    if (tag === 'sc-if') { if (attrVal(node.getAttribute('value') || '', scope)) buildChildren(node, scope, out); return; }
+    if (tag === 'sc-for' || node.hasAttribute('data-for')) {
+      var listExpr = tag === 'sc-for' ? node.getAttribute('list') : '{{' + node.getAttribute('data-for') + '}}';
+      var as = node.getAttribute(tag === 'sc-for' ? 'as' : 'data-as') || 'item';
+      var list = attrVal(listExpr, scope) || [];
+      list.forEach(function (it, i) {
+        var s = Object.create(scope); s[as] = it; s.$index = i;
+        if (tag === 'sc-for') buildChildren(node, s, out); else out.push(element(node, tag, s));
+      });
+      return;
+    }
+    out.push(element(node, tag, scope));
+  }
+  function element(node, tag, scope) {
+    var props = {};
+    for (var i = 0; i < node.attributes.length; i++) {
+      var a = node.attributes[i], n = a.name;
+      if (n.indexOf('hint-') === 0 || n === 'data-for' || n === 'data-as') continue;
+      props[n] = attrVal(a.value, scope);
+    }
+    return { t: tag, p: props, c: buildChildren(node, scope, []), node: node };
+  }
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function evType(el, name) {
+    var ev = name.slice(2);
+    if (ev === 'doubleclick') return 'dblclick';
+    if (ev === 'change') {
+      var tg = el.tagName.toLowerCase(), ty = (el.getAttribute('type') || '').toLowerCase();
+      if (tg === 'textarea' || (tg === 'input' && ty !== 'checkbox' && ty !== 'radio')) return 'input';
+    }
+    return ev;
+  }
+  function listen(el, type, fn) {
+    el.__h = el.__h || {};
+    if (!(type in el.__h)) el.addEventListener(type, function (e) { var h = el.__h[type]; if (typeof h === 'function') h(e); });
+    el.__h[type] = fn;
+  }
+  function setProps(el, p) {
+    var old = el.__p || {};
+    Object.keys(old).forEach(function (k) { if (!(k in p) && k.indexOf('on') !== 0) el.removeAttribute(k); });
+    Object.keys(p).forEach(function (k) {
+      var v = p[k];
+      if (k.indexOf('on') === 0) { listen(el, evType(el, k), v); return; }
+      if (k === 'value' && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) {
+        el.__value = v == null ? '' : String(v);
+        if (el.value !== el.__value) el.value = el.__value;
+        return;
+      }
+      if (k === 'checked') { el.checked = !!v; return; }
+      if (old[k] === v && el.hasAttribute(k)) return;
+      if (v === false || v == null) el.removeAttribute(k); else el.setAttribute(k, v === true ? '' : v);
+    });
+    el.__p = p;
+  }
+  function create(v, svg) {
+    if (typeof v === 'string') return document.createTextNode(v);
+    svg = svg || v.t === 'svg';
+    var el = svg ? document.createElementNS(SVGNS, v.node.tagName) : document.createElement(v.t);
+    el.__tag = v.t;
+    patchChildren(el, v.c, svg);
+    setProps(el, v.p);
+    return el;
+  }
+  function patch(parent, el, v, svg) {
+    if (!el) { parent.appendChild(create(v, svg)); return; }
+    if (typeof v === 'string') {
+      if (el.nodeType === 3) { if (el.data !== v) el.data = v; } else parent.replaceChild(document.createTextNode(v), el);
+      return;
+    }
+    if (el.nodeType !== 1 || el.__tag !== v.t) { parent.replaceChild(create(v, svg), el); return; }
+    svg = svg || v.t === 'svg';
+    patchChildren(el, v.c, svg);
+    setProps(el, v.p);
+  }
+  function patchChildren(el, kids, svg) {
+    var nodes = Array.prototype.slice.call(el.childNodes);
+    kids.forEach(function (k, i) { patch(el, nodes[i], k, svg); });
+    for (var j = el.childNodes.length - 1; j >= kids.length; j--) el.removeChild(el.childNodes[j]);
+    // selects: re-apply value after options exist
+    if (el.tagName === 'SELECT' && el.__value != null && el.value !== el.__value) el.value = el.__value;
+  }
+
+  var root, tpl, comp, queued = false;
+  function render() { queued = false; patchChildren(root, buildChildren(tpl, comp.renderVals(), []), false); if (comp.componentDidUpdate) comp.componentDidUpdate(); }
+  function schedule() { if (!queued && root) { queued = true; Promise.resolve().then(render); } }
+  window.__mountDC = function (Component) {
+    root = document.getElementById('app'); tpl = document.getElementById('tpl').content;
+    comp = new Component({}); render();
+  };
+})();
+
+</script>
+<script>
+
+var GL = {
+  String: { g: 'Aa', c: '#0e7490' }, Decimal: { g: '123', c: '#b91c1c' }, Int: { g: '123', c: '#b91c1c' },
+  Bool: { g: 'T/F', c: '#15803d' }, Date: { g: '31', c: '#c2410c' }, Uuid: { g: '#', c: '#0f766e' }
+};
+var RAW_TYPES = ['String', 'Decimal', 'Int', 'Bool', 'Date', 'Uuid'];
+var CLOCK = '2026-10-24T08:00:00Z';
+var CTXS = ['$context.occurred'];
+var CONST = 'constant…';
+var ECTX = ['$eventContext.occurred', '$eventContext.eventSourceId'];
+var WHEN_KINDS = [
+  { v: 'added', l: 'The first time a key is seen (added)' },
+  { v: 'changes', l: 'Fields change' },
+  { v: 'transition', l: 'A field goes from one value to another' },
+  { v: 'removed', l: 'It disappears from the source (removed)' },
+  { v: 'expression', l: 'An expression holds' },
+  { v: 'always', l: 'Every record, no condition' }
+];
+var KW = ['slice', 'direction', 'description', 'event', 'public', 'capture', 'source', 'from', 'key', 'map', 'split', 'append', 'when', 'tag', 'projection', 'no', 'specification', 'given', 'then', 'api', 'route', 'poll', 'path', 'topic', 'for', 'generation'];
+var uid = 100, DRAG = null;
+function nid(p) { uid += 1; return (p || 'x') + uid; }
+function gl(t) { return GL[t] || GL.String; }
+function camel(n) { return String(n).replace(/[_\-\s]+([a-zA-Z0-9])/g, function (_, c) { return c.toUpperCase(); }).replace(/^[A-Z]/, function (c) { return c.toLowerCase(); }); }
+function clone(x) { return JSON.parse(JSON.stringify(x)); }
+function human(n) { return String(n || '').replace(/[_]+/g, ' ').replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2').toLowerCase(); }
+function pascal(s) { return String(s).replace(/[^A-Za-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean).slice(0, 8).map(function (w) { return w[0].toUpperCase() + w.slice(1); }).join(''); }
+function tmplRefs(t) { var out = [], re = /\$\{\s*([A-Za-z][A-Za-z0-9_.]*)\s*\}/g, m; while ((m = re.exec(String(t)))) out.push(m[1]); return out; }
+function q(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '\\"') + '"'; }
+function lit(v, t) { if ((t === 'Decimal' || t === 'Int') && v !== '' && !isNaN(parseFloat(v))) return String(parseFloat(v)); if (t === 'Bool') return String(v === true || v === 'true'); return q(v); }
+function fmt(v) { if (v === undefined || v === null || v === '') return '—'; return typeof v === 'string' ? '"' + v + '"' : String(v); }
+
+/* tiny expression evaluator: fields, literals, == != > >= < <=, and/or, parentheses */
+function evalExpr(src, rec) {
+  var toks = [], s = String(src), i = 0;
+  while (i < s.length) {
+    var c = s[i];
+    if (/\s/.test(c)) { i++; continue; }
+    if (c === '(' || c === ')') { toks.push({ t: c }); i++; continue; }
+    var two = s.substr(i, 2);
+    if (['==', '!=', '>=', '<='].indexOf(two) >= 0) { toks.push({ t: 'op', v: two }); i += 2; continue; }
+    if (c === '>' || c === '<') { toks.push({ t: 'op', v: c }); i++; continue; }
+    if (c === '"') { var j = s.indexOf('"', i + 1); if (j < 0) throw new Error('unclosed string'); toks.push({ t: 'lit', v: s.slice(i + 1, j) }); i = j + 1; continue; }
+    var m = s.slice(i).match(/^-?\d+(\.\d+)?/); if (m) { toks.push({ t: 'lit', v: parseFloat(m[0]) }); i += m[0].length; continue; }
+    m = s.slice(i).match(/^[A-Za-z_][A-Za-z0-9_.]*/);
+    if (m) { var w = m[0]; if (w === 'and' || w === 'or') toks.push({ t: w }); else if (w === 'true' || w === 'false') toks.push({ t: 'lit', v: w === 'true' }); else if (w === 'null') toks.push({ t: 'lit', v: null }); else toks.push({ t: 'id', v: w }); i += w.length; continue; }
+    throw new Error('unexpected “' + c + '”');
+  }
+  var p = 0;
+  var peek = function () { return toks[p]; };
+  var prim = function () {
+    var t = toks[p++]; if (!t) throw new Error('incomplete');
+    if (t.t === '(') { var v = orE(); if (!toks[p] || toks[p].t !== ')') throw new Error('missing )'); p++; return v; }
+    if (t.t === 'lit') return t.v;
+    if (t.t === 'id') { var x = rec ? rec[t.v] : undefined; if (typeof x === 'string' && x !== '' && !isNaN(Number(x))) return Number(x); return x; }
+    throw new Error('unexpected ' + t.t);
+  };
+  var cmpE = function () {
+    var a = prim(), t = peek();
+    if (t && t.t === 'op') { p++; var b = prim();
+      switch (t.v) { case '==': return a == b; case '!=': return a != b; case '>': return a > b; case '>=': return a >= b; case '<': return a < b; case '<=': return a <= b; } }
+    return a;
+  };
+  var andE = function () { var v = cmpE(); while (peek() && peek().t === 'and') { p++; var r = cmpE(); v = !!v && !!r; } return v; };
+  var orE = function () { var v = andE(); while (peek() && peek().t === 'or') { p++; var r = andE(); v = !!v || !!r; } return v; };
+  var out = orE(); if (p < toks.length) throw new Error('unexpected text after the expression');
+  return !!out;
+}
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    var s1 = { txn_id: 'T-20931', belop: '12500', valuta: 'NOK', kid: '000481', status: 'reservert', betaler: 'Nordmann, Ola', bokfort_dato: '' };
+    var s2 = Object.assign({}, s1, { status: 'bokført', bokfort_dato: '2026-10-24' });
+    this.state = {
+      direction: 'inbound', tab: 'design', selected: 'record', trying: false, showDiags: false, drop: '', msg: '', specDraft: '',
+      inName: 'CapturePaymentsFromTheBank', outName: 'PublishInvoiceIssued',
+      inDesc: 'Turns the bank’s transactions into payments on our invoices.',
+      outDesc: 'Publishes the state of an invoice to other applications whenever it changes.',
+      capName: 'BankTransactions',
+      source: { kind: 'api', settings: { api: 'Bank', route: '/v2/transactions', poll: '5m', path: '/hooks/bank', topic: 'bank.transactions' },
+        fields: [{ name: 'txn_id', type: 'String' }, { name: 'belop', type: 'Decimal' }, { name: 'valuta', type: 'String' }, { name: 'kid', type: 'String' }, { name: 'status', type: 'String' }, { name: 'betaler', type: 'String' }, { name: 'bokfort_dato', type: 'Date' }] },
+      sampleJson: '{\n  "txn_id": "T-20931",\n  "belop": 12500,\n  "valuta": "NOK",\n  "kid": "000481",\n  "status": "reservert",\n  "betaler": "Nordmann, Ola",\n  "bokfort_dato": null\n}',
+      foreign: [
+        { name: 'PaymentSettled', origin: 'Bank', fields: { txn_id: 'String', belop: 'Decimal', valuta: 'String', kid: 'String', status: 'String', betaler: 'String' } },
+        { name: 'PaymentStatusChanged', origin: 'Bank', fields: { txn_id: 'String', status: 'String', bokfort_dato: 'Date' } }
+      ],
+      fromOn: ['PaymentSettled', 'PaymentStatusChanged'],
+      key: 'transactionId',
+      map: [
+        { id: 'm1', kind: 'copy', target: 'transactionId', src: 'txn_id' },
+        { id: 'm2', kind: 'copy', target: 'amount', src: 'belop' },
+        { id: 'm3', kind: 'copy', target: 'currency', src: 'valuta' },
+        { id: 'm4', kind: 'template', target: 'invoiceNumber', template: 'INV-${kid}' },
+        { id: 'm5', kind: 'translate', target: 'status', src: 'status', table: [['reservert', 'pending'], ['bokført', 'booked'], ['returnert', 'returned']] },
+        { id: 'm6', kind: 'split', src: 'betaler', sep: ',', targets: ['payerLastName', 'payerFirstName'] }
+      ],
+      events: [
+        { id: 'e1', name: 'PaymentReceived', when: { kind: 'added', fields: [], join: 'or', field: 'status', from: '', to: '', expr: '' },
+          props: [{ name: 'transactionId', src: '$.transactionId' }, { name: 'invoiceNumber', src: '$.invoiceNumber' }, { name: 'amount', src: '$.amount' }, { name: 'currency', src: '$.currency' }, { name: 'payerLastName', src: '$.payerLastName' }, { name: 'receivedAt', src: '$context.occurred' }] },
+        { id: 'e2', name: 'PaymentBooked', when: { kind: 'transition', fields: [], join: 'or', field: 'status', from: 'pending', to: 'booked', expr: '' },
+          props: [{ name: 'transactionId', src: '$.transactionId' }, { name: 'bookedOn', src: '$.bokfort_dato' }] },
+        { id: 'e3', name: 'PaymentReturned', when: { kind: 'transition', fields: [], join: 'or', field: 'status', from: 'booked', to: 'returned', expr: '' },
+          props: [{ name: 'transactionId', src: '$.transactionId' }] },
+        { id: 'e4', name: 'PaymentAmountCorrected', when: { kind: 'changes', fields: ['amount'], join: 'or', field: 'status', from: '', to: '', expr: '' },
+          props: [{ name: 'transactionId', src: '$.transactionId' }, { name: 'amount', src: '$.amount' }] }
+      ],
+      baseline: s1, hasBase: true, current: s2,
+      givenEv: [{ id: 'g1', event: 'PaymentSettled', values: { txn_id: 'T-20931', belop: '12500', valuta: 'NOK', kid: '000481', status: 'reservert', betaler: 'Nordmann, Ola' } }],
+      whenEv: { event: 'PaymentStatusChanged', values: { txn_id: 'T-20931', status: 'bokført', bokfort_dato: '2026-10-24' } },
+      specs: [],
+      /* outbound */
+      priv: {
+        InvoiceRegistered: { invoiceNumber: 'String', customerId: 'String', amount: 'Decimal', currency: 'String', registeredAt: 'Date' },
+        ProFormaInvoiceIssued: { issuedAt: 'Date' },
+        InvoicePaid: { customerId: 'String', amount: 'Decimal' },
+        InvoiceCancelled: { reason: 'String' },
+        PaymentReceived: { transactionId: 'String', invoiceNumber: 'String', amount: 'Decimal' }
+      },
+      pub: { name: 'InvoiceIssued', generation: '1', props: [{ name: 'invoiceNumber', type: 'String' }, { name: 'customerId', type: 'String' }, { name: 'amount', type: 'Decimal' }, { name: 'currency', type: 'String' }, { name: 'status', type: 'String' }, { name: 'issuedAt', type: 'Date' }] },
+      projName: 'InvoiceIssuedPublisher',
+      oFroms: [
+        { id: 'p1', event: 'InvoiceRegistered', automap: true, maps: [{ prop: 'status', src: '"issued"' }, { prop: 'issuedAt', src: '$eventContext.occurred' }] },
+        { id: 'p2', event: 'ProFormaInvoiceIssued', automap: true, maps: [{ prop: 'status', src: '"proforma"' }] },
+        { id: 'p3', event: 'InvoicePaid', automap: false, maps: [{ prop: 'status', src: '"paid"' }] }
+      ],
+      oGiven: [
+        { id: 'og1', event: 'InvoiceRegistered', for: 'inv-0481', values: { invoiceNumber: 'INV-000481', customerId: 'c-1042', amount: '12500', currency: 'NOK' } },
+        { id: 'og2', event: 'InvoicePaid', for: 'inv-0481', values: { customerId: 'c-1042', amount: '12500' } }
+      ],
+      oLink: ''
+    };
+    var first = { mode: 'record', baseline: null, current: s1, givenEv: [], whenEv: null };
+    var booked = { mode: 'record', baseline: s1, current: s2, givenEv: [], whenEv: null };
+    var same = { mode: 'record', baseline: s2, current: s2, givenEv: [], whenEv: null };
+    this.state.specs = [this.makeSpec('RecordsAPaymentTheFirstTimeItIsSeen', first), this.makeSpec('BooksThePaymentWhenTheBankBooksIt', booked), this.makeSpec('RecordsNothingWhenNothingChanged', same)];
+  }
+
+  /* ---------- capture model ---------- */
+  isEv() { return this.state.source.kind === 'events'; }
+  rawFields() {
+    var S = this.state;
+    if (S.source.kind !== 'events') return S.source.fields.map(function (f) { return { name: f.name, type: f.type }; });
+    var out = [], seen = {};
+    S.foreign.filter(function (f) { return S.fromOn.indexOf(f.name) >= 0; }).forEach(function (f) { Object.keys(f.fields).forEach(function (n) { if (!seen[n]) { seen[n] = 1; out.push({ name: n, type: f.fields[n] }); } }); });
+    return out;
+  }
+  rawType(n) { var f = this.rawFields().find(function (x) { return x.name === n; }); return f ? f.type : null; }
+  touched() {
+    var t = {};
+    this.state.map.forEach(function (m) {
+      if (m.kind === 'template') tmplRefs(m.template).forEach(function (r) { t[r] = 1; });
+      else if (m.src) t[m.src] = 1;
+      if (m.kind === 'split') m.targets.forEach(function (x) { t[x] = 1; }); else if (m.target) t[m.target] = 1;
+    });
+    return t;
+  }
+  recRows() {
+    var me = this, out = [], seen = {};
+    var types = {};
+    this.state.map.forEach(function (m) {
+      var push = function (n, type) { if (!n) return; types[n] = type; if (!seen[n]) { seen[n] = 1; out.push({ name: n, kind: 'out', op: m }); } else out.forEach(function (r) { if (r.name === n) r.op = m; }); };
+      if (m.kind === 'copy') push(m.target, me.rawType(m.src) || types[m.src] || 'String');
+      else if (m.kind === 'template' || m.kind === 'translate') push(m.target, 'String');
+      else m.targets.forEach(function (x) { push(x, 'String'); });
+    });
+    var t = this.touched();
+    this.rawFields().forEach(function (f) { if (!t[f.name] && !seen[f.name]) { seen[f.name] = 1; types[f.name] = f.type; out.push({ name: f.name, kind: 'pass', op: null }); } });
+    out.forEach(function (r) { r.type = types[r.name] || 'String'; });
+    return out;
+  }
+  recType(n) { var r = this.recRows().find(function (x) { return x.name === n; }); return r ? r.type : (n === 'receivedAt' ? 'Date' : 'String'); }
+  applyMap(raw) {
+    var rec = Object.assign({}, raw), notes = [];
+    this.state.map.forEach(function (m) {
+      if (m.kind === 'copy') rec[m.target] = rec[m.src];
+      else if (m.kind === 'template') rec[m.target] = String(m.template).replace(/\$\{\s*([A-Za-z][A-Za-z0-9_.]*)\s*\}/g, function (_, n) { return rec[n] == null ? '' : rec[n]; });
+      else if (m.kind === 'translate') {
+        var v = rec[m.src], hit = m.table.find(function (r) { return r[0] === String(v == null ? '' : v); });
+        if (hit) rec[m.target] = hit[1]; else { rec[m.target] = v; if (v !== undefined && v !== '') notes.push('“' + v + '” has no translation for ' + m.target + ' — passed through unchanged'); }
+      } else if (m.kind === 'split') {
+        var parts = rec[m.src] == null ? [] : String(rec[m.src]).split(m.sep).map(function (x) { return x.trim(); });
+        m.targets.forEach(function (t, i) { rec[t] = parts[i] === undefined ? '' : parts[i]; });
+      }
+    });
+    return { rec: rec, notes: notes };
+  }
+  typed(v, t) { if ((t === 'Decimal' || t === 'Int') && v !== '' && v != null && !isNaN(Number(v))) return Number(v); return v; }
+  srcVal(src, rec) {
+    if (src === '$context.occurred') return CLOCK;
+    if (String(src).indexOf('$.') === 0) { var n = src.slice(2); return this.typed(rec ? rec[n] : undefined, this.recType(n)); }
+    return String(src).replace(/^"(.*)"$/, '$1');
+  }
+  changed(a, b) { return String(a == null ? '' : a) !== String(b == null ? '' : b); }
+  holds(ev, prev, cur, mode, gone) {
+    var w = ev.when, me = this;
+    if (gone) return mode === 'record' && w.kind === 'removed';
+    if (!prev) { if (w.kind === 'added' || w.kind === 'always') return true; if (w.kind === 'expression') { try { return evalExpr(w.expr, cur); } catch (e) { return false; } } return false; }
+    switch (w.kind) {
+      case 'always': return mode === 'record' ? true : Object.keys(cur).some(function (k) { return me.changed(prev[k], cur[k]); });
+      case 'added': case 'removed': return false;
+      case 'changes': if (!w.fields.length) return false; return w.join === 'and' ? w.fields.every(function (f) { return me.changed(prev[f], cur[f]); }) : w.fields.some(function (f) { return me.changed(prev[f], cur[f]); });
+      case 'transition': return String(prev[w.field]) === String(w.from) && String(cur[w.field]) === String(w.to);
+      case 'expression': try { return evalExpr(w.expr, cur); } catch (e) { return false; }
+    }
+    return false;
+  }
+  whyText(ev, first) {
+    var w = ev.when;
+    if (w.kind === 'added') return 'first time seen'; if (w.kind === 'always') return 'every record'; if (w.kind === 'removed') return 'it disappeared';
+    if (w.kind === 'changes') return w.fields.join(w.join === 'and' ? ' and ' : ' or ') + ' changed';
+    if (w.kind === 'transition') return w.field + ' ' + w.from + ' → ' + w.to;
+    return w.expr;
+  }
+  keyRaw() { var S = this.state, k = S.key; if (!this.isEv()) return k; return k; }
+  run(sc) {
+    var me = this, S = this.state, mode = sc.mode, prevRaw = null, curRaw = null, keyVal = '', notes = [];
+    if (mode === 'record') { prevRaw = sc.baseline; curRaw = sc.gone ? null : sc.current; }
+    else {
+      if (sc.givenEv.length) { prevRaw = {}; sc.givenEv.forEach(function (g) { Object.assign(prevRaw, g.values); }); }
+      curRaw = Object.assign({}, prevRaw || {}, sc.whenEv ? sc.whenEv.values : {});
+    }
+    var pm = prevRaw ? this.applyMap(prevRaw) : null, cm = curRaw ? this.applyMap(curRaw) : null;
+    var prev = pm ? pm.rec : null, cur = cm ? cm.rec : null;
+    if (cm) notes = notes.concat(cm.notes);
+    var last = cur || prev || {};
+    keyVal = mode === 'events' ? String((sc.whenEv && sc.whenEv.values[S.key]) || last[S.key] || '') : String(last[S.key] == null ? '' : last[S.key]);
+    var fired = S.events.filter(function (ev) { return me.holds(ev, prev, cur, mode, sc.gone); }).map(function (ev) {
+      return { id: ev.id, name: ev.name, why: me.whyText(ev), for: keyVal, payload: ev.props.map(function (p) { return p.name + ': ' + fmt(me.srcVal(p.src, last)); }), values: ev.props.map(function (p) { return { name: p.name, v: me.srcVal(p.src, last) }; }) };
+    });
+    return { prev: prev, cur: cur, fired: fired, notes: notes, keyVal: keyVal, prevRaw: prevRaw, curRaw: curRaw };
+  }
+  scenario() { var S = this.state; return this.isEv() ? { mode: 'events', givenEv: S.givenEv, whenEv: S.whenEv } : { mode: 'record', baseline: S.hasBase ? S.baseline : null, current: S.current, gone: false }; }
+  makeSpec(name, sc) { var r = this.run(sc); return { id: nid('s'), name: name, sc: clone(sc), expect: r.fired.map(function (f) { return f.name; }) }; }
+  specResult(s) { var got = this.run(s.sc).fired.map(function (f) { return f.name; }); return { ok: got.slice().sort().join('|') === s.expect.slice().sort().join('|'), got: got }; }
+  expectText(xs) { return xs.length ? 'records ' + xs.join(', ') : 'records nothing'; }
+
+  /* ---------- outbound model ---------- */
+  pubProp(n) { return this.state.pub.props.find(function (p) { return p.name === n; }); }
+  publish(given) {
+    var S = this.state, me = this, store = {}, out = [];
+    given.forEach(function (g, i) {
+      var f = S.oFroms.find(function (x) { return x.event === g.event; });
+      if (!f) { out.push({ g: g, published: false }); return; }
+      var st = store[g.for] || (store[g.for] = {}), changedK = {};
+      if (f.automap !== false) Object.keys(S.priv[g.event] || {}).forEach(function (k) { if (me.pubProp(k) && !f.maps.some(function (m) { return m.prop === k; })) { st[k] = g.values[k]; changedK[k] = 1; } });
+      f.maps.forEach(function (m) {
+        var v; if (m.src === '$eventContext.occurred') v = '2026-10-' + String(20 + i) + 'T09:00:00Z'; else if (m.src === '$eventContext.eventSourceId') v = g.for; else if ((S.priv[g.event] || {})[m.src] !== undefined) v = g.values[m.src]; else v = String(m.src).replace(/^"(.*)"$/, '$1');
+        st[m.prop] = v; changedK[m.prop] = 1;
+      });
+      out.push({ g: g, published: true, state: Object.assign({}, st), changed: changedK });
+    });
+    return out;
+  }
+
+  /* ---------- diagnostics ---------- */
+  diags() {
+    var me = this, S = this.state, D = [];
+    if (S.direction === 'inbound') {
+      var rows = this.recRows(), rn = rows.map(function (r) { return r.name; }), raw = this.rawFields().map(function (f) { return f.name; });
+      if (!S.key) D.push({ sev: 'error', code: 'PLAY0268', msg: 'A capture needs a key — choose which field identifies a record.', t: 'record' });
+      else if (this.isEv()) {
+        var on = S.foreign.filter(function (f) { return S.fromOn.indexOf(f.name) >= 0; });
+        if (on.some(function (f) { return !f.fields[S.key]; })) D.push({ sev: 'error', code: 'PLAY0700', msg: 'The key ' + S.key + ' must be a property of every event it captures from.', t: 'record' });
+      } else if (rn.indexOf(S.key) < 0) D.push({ sev: 'error', code: '', msg: 'The key ' + S.key + ' isn’t a field of the captured record.', t: 'record' });
+      if (this.isEv()) {
+        var on2 = S.foreign.filter(function (f) { return S.fromOn.indexOf(f.name) >= 0; });
+        if (!on2.length) D.push({ sev: 'error', code: '', msg: 'Choose at least one public event to capture from.', t: 'source' });
+        if (new Set(on2.map(function (f) { return f.origin; })).size > 1) D.push({ sev: 'error', code: 'PLAY0687', msg: 'The events it captures from come from different applications.', t: 'source' });
+        S.events.forEach(function (e) { if (e.when.kind === 'always') D.push({ sev: 'warning', code: '', msg: e.name + ' has no condition; Stage rejects that for event captures, since Chronicle can’t realize it.', t: 'event:' + e.id }); if (e.when.kind === 'removed') D.push({ sev: 'warning', code: '', msg: e.name + ' waits for “removed”, which never holds when capturing events.', t: 'event:' + e.id }); });
+        if (S.specs.some(function (s) { return s.sc.mode === 'record'; })) D.push({ sev: 'error', code: 'PLAY0701', msg: 'Saved specifications use given/when capture, which a capture over events can’t — re-save them from Try it.', t: 'source' });
+      } else {
+        if (!raw.length) D.push({ sev: 'error', code: '', msg: 'The source has no fields yet — add some or paste a sample.', t: 'source' });
+        if (S.specs.some(function (s) { return s.sc.mode === 'events'; })) D.push({ sev: 'error', code: '', msg: 'Some specifications were saved for event delivery; re-save them for records.', t: 'source' });
+      }
+      var known = raw.slice(), outs = {};
+      S.map.forEach(function (m, i) {
+        var t = 'map:' + m.id, label = 'Map step ' + (i + 1);
+        if (m.kind === 'template') { var refs = tmplRefs(m.template); if (!refs.length) D.push({ sev: 'warning', code: '', msg: label + ' is a template with no fields in it.', t: t }); refs.forEach(function (r) { if (known.indexOf(r) < 0) D.push({ sev: 'error', code: '', msg: label + ' uses ${' + r + '}, which isn’t in the record at that point.', t: t }); }); }
+        else if (known.indexOf(m.src) < 0) D.push({ sev: 'error', code: '', msg: label + ' reads ' + (m.src || '(nothing)') + ', which isn’t in the record at that point.', t: t });
+        if (m.kind === 'translate' && !m.table.length) D.push({ sev: 'warning', code: '', msg: label + ' translates nothing yet.', t: t });
+        if (m.kind === 'split' && !m.targets.length) D.push({ sev: 'error', code: '', msg: label + ' splits into nothing.', t: t });
+        var ts = m.kind === 'split' ? m.targets : [m.target];
+        ts.forEach(function (x) { if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(x || '')) D.push({ sev: 'error', code: '', msg: label + ': “' + x + '” isn’t a valid field name.', t: t }); else { if (outs[x] && x !== m.src) D.push({ sev: 'information', code: '', msg: x + ' is set by two map steps — the later one wins.', t: t }); outs[x] = 1; known.push(x); } });
+      });
+      var names = {};
+      var foreignNames = S.foreign.map(function (f) { return f.name; });
+      S.events.forEach(function (e) {
+        var t = 'event:' + e.id;
+        if (!/^[A-Z][A-Za-z0-9]*$/.test(e.name)) D.push({ sev: 'error', code: '', msg: 'Event names are PascalCase words — “' + e.name + '” isn’t one.', t: t });
+        if (names[e.name]) D.push({ sev: 'error', code: '', msg: 'Two appends record ' + e.name + '.', t: t }); names[e.name] = 1;
+        if (foreignNames.indexOf(e.name) >= 0) D.push({ sev: 'error', code: 'PLAY0612', msg: e.name + ' belongs to another application; a capture appends our own private events.', t: t });
+        if (!e.props.length) D.push({ sev: 'warning', code: '', msg: e.name + ' carries nothing.', t: t });
+        var w = e.when;
+        if (w.kind === 'changes') { if (!w.fields.length) D.push({ sev: 'error', code: '', msg: e.name + ' watches for changes but no fields are chosen.', t: t }); w.fields.forEach(function (f) { if (rn.indexOf(f) < 0) D.push({ sev: 'error', code: '', msg: e.name + ' watches ' + f + ', which the captured record doesn’t have.', t: t }); }); }
+        if (w.kind === 'transition') {
+          if (rn.indexOf(w.field) < 0) D.push({ sev: 'error', code: '', msg: e.name + ' watches ' + w.field + ', which the captured record doesn’t have.', t: t });
+          var tr = S.map.filter(function (m) { return m.kind === 'translate' && m.target === w.field; }).pop();
+          if (tr) [w.from, w.to].forEach(function (v) { if (v !== '' && !tr.table.some(function (r) { return r[1] === v; })) D.push({ sev: 'warning', code: '', msg: e.name + ' waits for ' + w.field + ' to be “' + v + '”, which it never becomes — its translations give ' + tr.table.map(function (r) { return r[1]; }).join(', ') + '.', t: t }); });
+          if (w.from === w.to) D.push({ sev: 'error', code: '', msg: e.name + ' waits for ' + w.field + ' to go from “' + w.from + '” to the same value.', t: t });
+        }
+        if (w.kind === 'expression') { try { evalExpr(w.expr, {}); } catch (x) { D.push({ sev: 'error', code: 'PLAY0268', msg: e.name + '’s condition can’t be read: ' + x.message + '.', t: t }); } }
+        var pn = {};
+        e.props.forEach(function (p) {
+          if (pn[p.name]) D.push({ sev: 'error', code: '', msg: e.name + ' has two properties called ' + p.name + '.', t: t }); pn[p.name] = 1;
+          if (String(p.src).indexOf('$.') === 0 && rn.indexOf(p.src.slice(2)) < 0) D.push({ sev: 'error', code: '', msg: e.name + '.' + p.name + ' reads ' + p.src + ', which the captured record doesn’t have.', t: t });
+        });
+      });
+      if (!S.events.length) D.push({ sev: 'warning', code: '', msg: 'The capture records nothing yet — add an event.', t: 'record' });
+      if (!this.isEv()) D.push({ sev: 'information', code: '', msg: 'The reference model runs this capture against records you give it; it never calls ' + (S.source.kind === 'api' ? 'the API' : 'the source') + '.', t: 'source' });
+      S.specs.forEach(function (s) { var r = me.specResult(s); if (!r.ok) D.push({ sev: 'error', code: '', msg: 'Specification “' + human(s.name) + '” no longer passes — expected it to be ' + me.expectText(s.expect) + ', but it ' + me.expectText(r.got) + '.', t: 'spec:' + s.id }); });
+    } else {
+      var P = S.pub;
+      if (!/^[A-Z][A-Za-z0-9]*$/.test(P.name)) D.push({ sev: 'error', code: '', msg: 'Event names are PascalCase words — “' + P.name + '” isn’t one.', t: 'public' });
+      if (!P.props.length) D.push({ sev: 'error', code: '', msg: 'The public contract has no properties.', t: 'public' });
+      if (!S.oFroms.length) D.push({ sev: 'error', code: '', msg: 'Nothing builds the public contract — drag a private event onto it.', t: 'public' });
+      if (!/^[1-9]\d*$/.test(P.generation)) D.push({ sev: 'error', code: '', msg: 'A generation is a whole number from 1.', t: 'public' });
+      P.props.forEach(function (p) { if (!me.oSetBy(p.name).length) D.push({ sev: 'warning', code: '', msg: p.name + ' is never set — consumers always see it empty.', t: 'public' }); });
+      S.oFroms.forEach(function (f) { f.maps.forEach(function (m) { if (!me.pubProp(m.prop)) D.push({ sev: 'error', code: '', msg: f.event + ' sets ' + m.prop + ', which the contract doesn’t have.', t: 'public' }); }); });
+      D.push({ sev: 'information', code: '', msg: 'The reference model records the publication as a fact; it doesn’t deliver it to other applications.', t: 'public' });
+    }
+    return D;
+  }
+  oSetBy(prop) {
+    var S = this.state, me = this;
+    return S.oFroms.filter(function (f) { return f.maps.some(function (m) { return m.prop === prop; }) || (f.automap !== false && (S.priv[f.event] || {})[prop] !== undefined); });
+  }
+
+  /* ---------- Screenplay ---------- */
+  whenLine(w) {
+    if (w.kind === 'added') return 'when added'; if (w.kind === 'removed') return 'when removed';
+    if (w.kind === 'changes') return 'when ' + w.fields.join(w.join === 'and' ? ' and ' : ' or ');
+    if (w.kind === 'transition') return 'when ' + w.field + ' from ' + q(w.from) + ' to ' + q(w.to);
+    if (w.kind === 'expression') return 'when `' + w.expr + '`';
+    return '';
+  }
+  specLines(s) {
+    var S = this.state, me = this, L = [], r = this.run(s.sc), raw = this.rawFields();
+    var rawLine = function (vals, ind) { Object.keys(vals).forEach(function (k) { var t = me.rawType(k); if (t && vals[k] !== '' && vals[k] != null) L.push(ind + k + ' = ' + lit(vals[k], t)); }); };
+    L.push('  specification ' + s.name);
+    L.push('    given clock ' + q(CLOCK));
+    if (s.sc.mode === 'record') {
+      if (s.sc.baseline) { L.push('    given capture ' + S.capName); rawLine(s.sc.baseline, '      '); }
+      L.push('    when capture ' + S.capName); rawLine(s.sc.current, '      ');
+    } else {
+      s.sc.givenEv.forEach(function (g) { L.push('    given ' + g.event); rawLine(g.values, '      '); });
+      if (s.sc.whenEv) { L.push('    when append ' + s.sc.whenEv.event); rawLine(s.sc.whenEv.values, '      '); }
+    }
+    if (!r.fired.length) L.push('    then no events');
+    r.fired.forEach(function (f) { L.push('    then ' + f.name); L.push('      for ' + q(f.for)); f.values.forEach(function (v) { if (v.v !== undefined && v.v !== '' && v.v !== null) L.push('      ' + v.name + ' = ' + (typeof v.v === 'number' ? v.v : q(v.v))); }); });
+    return L;
+  }
+  playText() {
+    var S = this.state, me = this, L = [];
+    if (S.direction === 'inbound') {
+      L.push('slice Translate ' + S.inName);
+      L.push('  direction inbound');
+      if (S.inDesc.trim()) L.push('  description ' + q(S.inDesc.trim()));
+      if (this.isEv()) S.foreign.filter(function (f) { return S.fromOn.indexOf(f.name) >= 0; }).forEach(function (f) { L.push(''); L.push('  event ' + f.name + ' from ' + q(f.origin)); Object.keys(f.fields).forEach(function (k) { L.push('    ' + k + ' ' + f.fields[k]); }); });
+      S.events.forEach(function (e) { L.push(''); L.push('  event ' + e.name); e.props.forEach(function (p) { L.push('    ' + p.name + ' ' + (p.src === '$context.occurred' ? 'Date' : (String(p.src).indexOf('$.') === 0 ? me.recType(p.src.slice(2)) : 'String'))); }); });
+      L.push('');
+      L.push('  capture ' + S.capName);
+      if (this.isEv()) { L.push('    source events'); S.fromOn.forEach(function (n) { L.push('      from ' + n); }); }
+      else {
+        L.push('    source ' + S.source.kind);
+        var st = S.source.settings, keys = S.source.kind === 'api' ? ['api', 'route', 'poll'] : (S.source.kind === 'webhook' ? ['path'] : ['topic']);
+        keys.forEach(function (k) { if (st[k]) L.push('      ' + k + ' ' + st[k]); });
+      }
+      L.push('    key ' + S.key);
+      if (S.map.length) {
+        L.push('    map');
+        S.map.forEach(function (m) {
+          if (m.kind === 'copy') L.push('      ' + m.target + ' = ' + m.src);
+          else if (m.kind === 'template') L.push('      ' + m.target + ' = `' + m.template + '`');
+          else if (m.kind === 'translate') { L.push('      ' + m.target + ' = ' + m.src + ' translate'); m.table.forEach(function (r) { L.push('        ' + q(r[0]) + ' => ' + r[1]); }); }
+          else { L.push('      split ' + m.src + ' by ' + q(m.sep)); m.targets.forEach(function (x) { L.push('        ' + x); }); }
+        });
+      }
+      S.events.forEach(function (e) {
+        L.push('    append ' + e.name);
+        var wl = me.whenLine(e.when), ind = '      ';
+        if (wl) { L.push('      ' + wl); ind = '        '; }
+        e.props.forEach(function (p) { L.push(ind + p.name + ' = ' + p.src); });
+      });
+      S.specs.forEach(function (s) { L.push(''); me.specLines(s).forEach(function (l) { L.push(l); }); });
+    } else {
+      L.push('slice Translate ' + S.outName);
+      L.push('  direction outbound');
+      if (S.outDesc.trim()) L.push('  description ' + q(S.outDesc.trim()));
+      L.push('');
+      L.push('  public event ' + S.pub.name + (S.pub.generation !== '1' ? ' generation ' + S.pub.generation : ''));
+      S.pub.props.forEach(function (p) { L.push('    ' + p.name + ' ' + p.type); });
+      L.push('');
+      L.push('  projection ' + S.projName + ' => ' + S.pub.name);
+      S.oFroms.forEach(function (f) { L.push('    from ' + f.event); if (f.automap === false) L.push('      no automap'); f.maps.forEach(function (m) { L.push('      ' + m.prop + ' = ' + m.src); }); });
+    }
+    return L;
+  }
+  tokenize(lines) {
+    return lines.map(function (l, i) {
+      var m = l.match(/^(\s*)(.*)$/), ind = m[1], body = m[2], kw = '', rest = body;
+      var two = body.split(' ').slice(0, 2).join(' ');
+      if (['public event', 'source events', 'given clock', 'given capture', 'when capture', 'when append', 'then no', 'no automap', 'when added', 'when removed'].indexOf(two) >= 0) { kw = two; rest = body.slice(two.length); }
+      else { var w = body.split(' ')[0]; if (KW.indexOf(w) >= 0) { kw = w; rest = body.slice(w.length); } }
+      var kc = kw === 'slice' || kw === 'direction' ? '#8b8fd9' : (kw === 'capture' || kw === 'source' || kw === 'source events' || kw === 'key' || kw === 'map' || kw === 'split' ? '#4dc0b5' : (kw === 'append' || kw === 'event' || kw === 'from' ? '#f0a060' : (kw === 'public event' ? '#6ea8ff' : (kw.indexOf('when') === 0 ? '#e2a84a' : (kw === 'projection' || kw === 'no automap' ? '#c6e03a' : (kw === 'specification' || kw.indexOf('given') === 0 || kw.indexOf('then') === 0 ? '#f6c56b' : '#8b9aa7'))))));
+      return { n: String(i + 1), ind: ind, kw: kw, rest: rest, kc: kc };
+    });
+  }
+  describe() {
+    var S = this.state, me = this, out = [];
+    if (S.direction === 'inbound') {
+      var d = S.inDesc.trim(); if (d) out.push({ k: 'Purpose', t: d, c: '#8b8fd9' });
+      var src = this.isEv() ? 'It listens for ' + S.fromOn.join(' and ') + ' from ' + ((S.foreign[0] || {}).origin || 'another application') + '.' : (S.source.kind === 'api' ? 'Every ' + S.source.settings.poll + ' it reads ' + S.source.settings.route + ' from the ' + S.source.settings.api + ' API.' : (S.source.kind === 'webhook' ? 'It receives calls on ' + S.source.settings.path + '.' : 'It reads messages from ' + S.source.settings.topic + '.'));
+      out.push({ k: 'Source', t: src + ' Each record is identified by its ' + human(S.key) + '.', c: '#a9b3c4' });
+      var steps = S.map.map(function (m) {
+        if (m.kind === 'copy') return human(m.src) + ' becomes ' + human(m.target);
+        if (m.kind === 'template') return human(m.target) + ' is built as ' + m.template.replace(/\$\{\s*([^}]+)\}/g, function (_, n) { return '<' + human(n) + '>'; });
+        if (m.kind === 'translate') return human(m.target) + ' is translated (' + m.table.map(function (r) { return r[0] + ' → ' + r[1]; }).join(', ') + ')';
+        return human(m.src) + ' is split on “' + m.sep + '” into ' + m.targets.map(human).join(' and ');
+      });
+      if (steps.length) out.push({ k: 'Reshapes', t: steps.join('; ') + '. Everything else passes through as it is.', c: '#4dc0b5' });
+      var ev = S.events.map(function (e) {
+        var w = e.when, when = w.kind === 'added' ? 'the first time it sees a ' + human(S.key) : (w.kind === 'changes' ? 'when ' + w.fields.map(human).join(w.join === 'and' ? ' and ' : ' or ') + ' changes' : (w.kind === 'transition' ? 'when ' + human(w.field) + ' goes from ' + w.from + ' to ' + w.to : (w.kind === 'removed' ? 'when it disappears from the source' : (w.kind === 'expression' ? 'whenever ' + w.expr : 'for every record'))));
+        return 'It records ' + e.name + ' ' + when + '.';
+      });
+      out.push({ k: 'Records', t: ev.join(' ') || 'It records nothing yet.', c: '#f0a060' });
+      out.push({ k: 'Lands on', t: 'Every event lands on the ' + human(S.key) + ' of the record, so everything about one transaction stays together.', c: '#f0a060' });
+      if (S.specs.length) out.push({ k: 'Examples', t: S.specs.map(function (s) { return human(s.name).replace(/^./, function (c) { return c.toUpperCase(); }) + '.'; }).join(' '), c: '#f6c56b' });
+    } else {
+      var d2 = S.outDesc.trim(); if (d2) out.push({ k: 'Purpose', t: d2, c: '#8b8fd9' });
+      out.push({ k: 'Contract', t: 'Other applications receive ' + S.pub.name + ' (generation ' + S.pub.generation + ') with ' + S.pub.props.map(function (p) { return human(p.name); }).join(', ') + '.', c: '#6ea8ff' });
+      out.push({ k: 'Built from', t: S.oFroms.map(function (f) { var bits = f.maps.map(function (m) { return human(m.prop) + ' = ' + m.src.replace(/^"(.*)"$/, '$1').replace('$eventContext.', 'when it ').replace('occurred', 'happened'); }); return f.event + (f.automap !== false ? ' (matching names by convention' + (bits.length ? '; ' + bits.join(', ') : '') + ')' : ' (' + (bits.join(', ') || 'nothing') + ')'); }).join('; ') + '. Each of them publishes the contract again.', c: '#f0a060' });
+    }
+    return out;
+  }
+
+  /* ---------- edits ---------- */
+  set(patch) { this.setState(patch); }
+  updMap(id, fn) { this.setState({ map: this.state.map.map(function (m) { return m.id === id ? fn(clone(m)) : m; }) }); }
+  updEv(id, fn) { this.setState({ events: this.state.events.map(function (e) { return e.id === id ? fn(clone(e)) : e; }) }); }
+  dropRawOnHead(d) {
+    if (!d || d.kind !== 'raw') return;
+    var S = this.state, name = camel(d.field), rows = this.recRows().map(function (r) { return r.name; });
+    if (name === d.field && !this.touched()[d.field]) { this.setState({ drop: '', msg: d.field + ' already passes through unchanged — drop it on a field to rename into it' }); return; }
+    if (rows.indexOf(name) >= 0) name = name + '2';
+    var id = nid('m');
+    this.setState({ map: S.map.concat([{ id: id, kind: 'copy', target: name, src: d.field }]), drop: '', selected: 'map:' + id, msg: 'Captured ' + d.field + ' as ' + name + ' — rename it here' });
+  }
+  dropRawOnRow(d, row) {
+    if (!d || d.kind !== 'raw') return;
+    var S = this.state;
+    if (row.kind === 'out' && row.op && row.op.kind !== 'split' && row.op.kind !== 'template') { this.updMap(row.op.id, function (m) { m.src = d.field; return m; }); this.setState({ drop: '', selected: 'map:' + row.op.id, msg: row.name + ' now comes from ' + d.field }); return; }
+    var id = nid('m');
+    this.setState({ map: S.map.concat([{ id: id, kind: 'copy', target: row.name === d.field ? camel(d.field) + 'Copy' : row.name, src: d.field }]), drop: '', selected: 'map:' + id, msg: row.name + ' now comes from ' + d.field });
+  }
+  addPropTo(ev, field) { var p = ev.props.find(function (x) { return x.src === '$.' + field || x.name === field; }); if (p) { p.src = '$.' + field; } else ev.props.push({ name: field, src: '$.' + field }); return ev; }
+  dropOnEvHead(d, ev) {
+    if (!d) return; var me = this, rows = this.recRows();
+    if (d.kind === 'rec') { this.updEv(ev.id, function (e) { return me.addPropTo(e, d.field); }); this.setState({ drop: '', selected: 'event:' + ev.id, msg: ev.name + ' now carries ' + d.field }); }
+    else if (d.kind === 'recHead') { this.updEv(ev.id, function (e) { rows.forEach(function (r) { me.addPropTo(e, r.name); }); return e; }); this.setState({ drop: '', selected: 'event:' + ev.id, msg: ev.name + ' now carries every captured field' }); }
+  }
+  dropOnEvRow(d, ev, pi) {
+    if (!d || d.kind !== 'rec') return;
+    this.updEv(ev.id, function (e) { e.props[pi].src = '$.' + d.field; return e; });
+    this.setState({ drop: '', selected: 'event:' + ev.id, msg: ev.name + '.' + ev.props[pi].name + ' now comes from ' + d.field });
+  }
+  dropOnChip(d, ev) {
+    if (!d || d.kind !== 'rec') return;
+    this.updEv(ev.id, function (e) { if (e.when.kind !== 'changes') { e.when.kind = 'changes'; e.when.fields = []; } if (e.when.fields.indexOf(d.field) < 0) e.when.fields.push(d.field); return e; });
+    this.setState({ drop: '', selected: 'event:' + ev.id, msg: ev.name + ' is now recorded when ' + d.field + ' changes' });
+  }
+  newEventFrom(d) {
+    var rows = this.recRows(), id = nid('e'), props = [];
+    if (d && d.kind === 'recHead') props = rows.map(function (r) { return { name: r.name, src: '$.' + r.name }; });
+    else if (d && d.kind === 'rec') props = [{ name: this.state.key, src: '$.' + this.state.key }, { name: d.field, src: '$.' + d.field }].filter(function (p, i, a) { return a.findIndex(function (x) { return x.name === p.name; }) === i; });
+    var name = d && d.kind === 'rec' ? pascal(human(d.field) + ' changed') : pascal(this.state.capName.replace(/s$/, '') + ' captured');
+    var when = d && d.kind === 'rec' ? { kind: 'changes', fields: [d.field], join: 'or', field: 'status', from: '', to: '', expr: '' } : { kind: 'added', fields: [], join: 'or', field: 'status', from: '', to: '', expr: '' };
+    this.setState({ events: this.state.events.concat([{ id: id, name: name, when: when, props: props }]), drop: '', selected: 'event:' + id, msg: 'Created ' + name + ' — rename it and adjust when it is recorded' });
+  }
+
+  renderVals() {
+    var me = this, S = this.state, isIn = S.direction === 'inbound';
+    var D = this.diags();
+    var segOn = { bg: '#4dc0b5', fg: '#0d1a20' }, segOff = { bg: 'transparent', fg: '#dbe4ea' };
+    var sel = function (k) { return function (e) { if (e && e.stopPropagation) e.stopPropagation(); me.setState({ selected: k, tab: 'design', trying: false, msg: '' }); }; };
+    var dragOver = function (target) { return function (e) { e.preventDefault(); try { e.dataTransfer.dropEffect = 'copy'; } catch (x) { } if (me.state.drop !== target) me.setState({ drop: target }); }; };
+    var startDrag = function (payload) { return function (e) { if (e && e.stopPropagation) e.stopPropagation(); DRAG = payload; try { e.dataTransfer.setData('text/plain', JSON.stringify(payload)); e.dataTransfer.effectAllowed = 'copy'; } catch (x) { } }; };
+    var take = function (e) { e.preventDefault(); if (e.stopPropagation) e.stopPropagation(); var d = DRAG; DRAG = null; return d; };
+    var errAt = function (pred) { return D.filter(function (d) { return d.sev === 'error' && pred(String(d.t)); }).length; };
+    var trying = S.trying && S.tab === 'design';
+    var run = isIn && trying ? this.run(this.scenario()) : null;
+
+    /* ---------------- inbound canvas ---------------- */
+    var rows = this.recRows(), rn = rows.map(function (r) { return r.name; }), raw = this.rawFields();
+    var AW = 226, BX = 312, BW = 248, CX = 646, top0 = 22;
+    var lines = [], labels = [], rawY = {}, rawUsed = {};
+    var aCards = [], y = top0;
+    var cardFor = function (title, sub, fields, origin) {
+      var c = { y: String(y), title: title, sub: sub, hasOrigin: !!origin, origin: origin || '', hbg: origin ? '#5b6577' : '#5b6577', bd: S.selected === 'source' && !trying ? '#a9b3c4' : '#3a4352', fields: [] };
+      fields.forEach(function (f, i) {
+        var cy = y + 40 + 4 + i * 26 + 13; if (rawY[f.name] === undefined) rawY[f.name] = cy;
+        var g = gl(f.type), v = run ? (run.curRaw ? run.curRaw[f.name] : undefined) : undefined;
+        c.fields.push({ name: f.name, glyph: g.g, gc: g.c, dot: '#1a222d', val: run ? fmt(v) : '', vc: run && run.prevRaw && me.changed(run.prevRaw[f.name], v) ? '#f0c46a' : '#8b9aa7', drag: startDrag({ kind: 'raw', field: f.name }) });
+      });
+      aCards.push(c); y += 40 + 4 + fields.length * 26 + 10 + 16;
+    };
+    if (this.isEv()) S.foreign.filter(function (f) { return S.fromOn.indexOf(f.name) >= 0; }).forEach(function (f) { cardFor(f.name, Object.keys(f.fields).length + ' fields', Object.keys(f.fields).map(function (n) { return { name: n, type: f.fields[n] }; }), f.origin); });
+    else {
+      var st = S.source.settings;
+      cardFor(S.source.kind === 'api' ? st.api + ' API' : (S.source.kind === 'webhook' ? 'Webhook' : 'Message'), S.source.kind === 'api' ? 'GET ' + st.route + ' · every ' + st.poll : (S.source.kind === 'webhook' ? 'POST ' + st.path : st.topic), S.source.fields, '');
+    }
+    var aH = y;
+    var rowTop = function (i) { return top0 + 40 + 6 + i * 32; };
+    var rowMid = function (i) { return rowTop(i) + 14; };
+    var curveAB = function (y1, y2) { return 'M ' + AW + ' ' + y1 + ' C ' + (AW + 48) + ' ' + y1 + ', ' + (BX - 40) + ' ' + y2 + ', ' + (BX - 7) + ' ' + y2; };
+    var curveBC = function (y1, y2) { return 'M ' + (BX + BW) + ' ' + y1 + ' C ' + (BX + BW + 48) + ' ' + y1 + ', ' + (CX - 40) + ' ' + y2 + ', ' + (CX - 8) + ' ' + y2; };
+    var selMap = String(S.selected).indexOf('map:') === 0 ? S.selected.slice(4) : '';
+    var selEv = String(S.selected).indexOf('event:') === 0 ? S.selected.slice(6) : '';
+    var recIn = {}, recOut = {};
+    rows.forEach(function (r, i) {
+      var y2 = rowMid(i), m = r.op;
+      if (r.kind === 'pass') { if (rawY[r.name] !== undefined) { rawUsed[r.name] = 1; lines.push({ d: curveAB(rawY[r.name], y2), c: '#7f8ba0', w: '1.3', dash: '4 4', o: '0.7', pick: sel('record') }); recIn[i] = 1; } return; }
+      var on = selMap === m.id, col = on ? '#4fc3b8' : '#4dc0b5';
+      var srcs = m.kind === 'template' ? tmplRefs(m.template) : [m.src];
+      srcs.forEach(function (s) {
+        var y1 = rawY[s] !== undefined ? rawY[s] : (rn.indexOf(s) >= 0 ? null : null); if (y1 == null) return;
+        rawUsed[s] = 1; recIn[i] = 1;
+        lines.push({ d: curveAB(y1, y2), c: col, w: on ? '2.8' : '1.8', dash: '', o: '0.95', pick: sel('map:' + m.id) });
+      });
+      if (m.kind !== 'copy' && (m.kind !== 'split' || m.targets[0] === r.name)) {
+        var lbl = m.kind === 'template' ? '`…`' : (m.kind === 'translate' ? '⇄ translate' : 'split “' + m.sep + '”');
+        var ly = rawY[srcs[0]] !== undefined ? (rawY[srcs[0]] + y2) / 2 : y2;
+        labels.push({ text: lbl, x: (AW + BX) / 2, y: ly, bg: on ? '#12302d' : '#17262b', fg: '#8fe3d9', bd: on ? '#4fc3b8' : '#2f6e68', pick: sel('map:' + m.id) });
+      }
+    });
+    aCards.forEach(function (c) { c.fields.forEach(function (f) { f.dot = rawUsed[f.name] ? '#4dc0b5' : '#1a222d'; }); });
+
+    /* events column */
+    var evCards = [], cy = top0 + 56;
+    var chipColor = { added: '#4fc3b8', always: '#4fc3b8', removed: '#ef7a7a', changes: '#e2a84a', transition: '#e2a84a', expression: '#e2a84a' };
+    S.events.forEach(function (ev) {
+      var on = selEv === ev.id && !trying, hasErr = errAt(function (t) { return t === 'event:' + ev.id; }) > 0;
+      var fired = run ? run.fired.find(function (f) { return f.id === ev.id; }) : null;
+      var w = ev.when, kw = w.kind === 'added' ? 'ADDED' : (w.kind === 'removed' ? 'REMOVED' : (w.kind === 'always' ? 'ALWAYS' : 'WHEN'));
+      var cond = w.kind === 'added' ? 'first time seen' : (w.kind === 'removed' ? 'gone from the source' : (w.kind === 'always' ? 'every record' : (w.kind === 'changes' ? (w.fields.join(w.join === 'and' ? ' and ' : ' or ') || '…') + ' changes' : (w.kind === 'transition' ? w.field + ' ' + w.from + ' → ' + w.to : w.expr))));
+      var chipY = cy, headY = cy + 34, card = {
+        name: ev.name, kw: kw, cond: cond, dia: chipColor[w.kind], chipY: String(chipY), headY: String(headY),
+        chipBd: hasErr ? '#ef5a5a' : (on ? '#4fc3b8' : '#5a4128'), chipBg: '#221c16', chipOutline: S.drop === 'chip:' + ev.id ? '2px dashed #4fc3b8' : 'none',
+        chipDot: (w.kind === 'changes' || w.kind === 'transition') ? '#e2a84a' : '#221c16',
+        hbg: '#f99a32', headOutline: S.drop === 'evh:' + ev.id ? '2px dashed #4fc3b8' : 'none', sh: on ? '0 0 0 2px #4fc3b8' : (fired ? '0 0 0 2px #3fb871' : 'none'), op: run && !fired ? '0.35' : '1',
+        hasStatus: !!run, status: fired ? '✓ recorded' : 'not recorded', stBg: fired ? '#12291d' : 'rgba(0,0,0,.2)', stFg: fired ? '#7ee2a6' : '#2a1405',
+        pick: sel('event:' + ev.id), chipOver: dragOver('chip:' + ev.id), chipDrop: function (e) { me.dropOnChip(take(e), ev); },
+        headOver: dragOver('evh:' + ev.id), headDrop: function (e) { me.dropOnEvHead(take(e), ev); }, rows: []
+      };
+      /* guard lines */
+      var watched = w.kind === 'changes' ? w.fields : (w.kind === 'transition' ? [w.field] : []);
+      watched.forEach(function (f) { var i = rn.indexOf(f); if (i < 0) return; recOut[i] = 1; lines.push({ d: curveBC(rowMid(i), chipY + 13), c: on ? '#4fc3b8' : '#e2a84a', w: '1.4', dash: '2 4', o: '0.9', pick: sel('event:' + ev.id) }); });
+      ev.props.forEach(function (p, pi) {
+        var py = headY + 30 + pi * 24, g = gl(String(p.src).indexOf('$.') === 0 ? me.recType(p.src.slice(2)) : (p.src === '$context.occurred' ? 'Date' : 'String'));
+        var isField = String(p.src).indexOf('$.') === 0, i = isField ? rn.indexOf(p.src.slice(2)) : -1;
+        if (i >= 0) { recOut[i] = 1; lines.push({ d: curveBC(rowMid(i), py + 12), c: on ? '#4fc3b8' : '#f0913a', w: on ? '2.4' : '1.5', dash: '', o: run && !fired ? '0.25' : '0.85', pick: sel('event:' + ev.id) }); }
+        card.rows.push({ name: p.name, y: String(py), glyph: g.g, gc: g.c, hasSrc: !isField || p.name !== p.src.slice(2), src: isField ? '$.' + p.src.slice(2) : (p.src === '$context.occurred' ? '= now' : '= ' + p.src), dot: i >= 0 ? '#f0913a' : '#1e1912', bg: S.drop === 'evr:' + ev.id + ':' + pi ? '#3a2a14' : '#1e1912',
+          over: dragOver('evr:' + ev.id + ':' + pi), drop: function (e) { me.dropOnEvRow(take(e), ev, pi); } });
+      });
+      evCards.push(card);
+      cy = headY + 30 + ev.props.length * 24 + 22;
+    });
+    var newY = top0;
+    var recRowsV = rows.map(function (r, i) {
+      var isOut = r.kind === 'out', on = r.op && selMap === r.op.id && !trying, hasErr = r.op && errAt(function (t) { return t === 'map:' + r.op.id; }) > 0;
+      var tag = r.kind === 'pass' ? 'as is' : (r.op.kind === 'copy' ? (r.op.src === r.name ? '=' : '← ' + r.op.src) : (r.op.kind === 'template' ? 'template' : (r.op.kind === 'translate' ? 'translate' : 'split')));
+      var cur = run && run.cur ? run.cur[r.name] : undefined, prev = run && run.prev ? run.prev[r.name] : undefined, ch = run && run.prev && run.cur && me.changed(prev, cur);
+      return { name: r.name, y: String(rowTop(i)), isKey: r.name === S.key, tag: tag, tbg: isOut ? '#12302d' : 'transparent', tfg: isOut ? '#8fe3d9' : '#7f8ba0',
+        fg: isOut ? '#e6edf3' : '#a9b3c4', fs: isOut ? 'normal' : 'italic', op: '1',
+        bd: hasErr ? '#ef5a5a' : (on ? '#4fc3b8' : (S.drop === 'rec:' + i ? '#4fc3b8' : (ch ? '#b8892a' : (isOut ? '#2f5f5a' : '#2f3b4c')))), bg: ch ? '#2a2313' : (S.drop === 'rec:' + i ? '#173033' : (isOut ? '#1d2a33' : '#18222b')),
+        hasVal: !!run, val: run ? (ch ? fmt(prev) + ' → ' + fmt(cur) : fmt(cur)) : '', vc: ch ? '#f0c46a' : '#8b9aa7',
+        inDot: recIn[i] ? '#4dc0b5' : '#17232b', outDot: recOut[i] ? '#4dc0b5' : '#17232b',
+        pick: r.op ? sel('map:' + r.op.id) : sel('record'), drag: startDrag({ kind: 'rec', field: r.name }), over: dragOver('rec:' + i), drop: function (e) { me.dropRawOnRow(take(e), r); } };
+    });
+    var recBodyH = rows.length * 32 + 12, addMapY = top0 + 40 + recBodyH + 10;
+    var cv = { aTitle: this.isEv() ? 'From ' + ((S.foreign[0] || {}).origin || 'another application') : 'Outside', lines: lines, labels: labels, aCards: aCards, recRows: recRowsV, recBodyH: String(recBodyH), addMapY: String(addMapY), evCards: evCards, newY: String(newY),
+      h: String(Math.max(aH, addMapY + 50, cy + 20)),
+      recHeadOver: dragOver('recHead'), recHeadDrop: function (e) { me.dropRawOnHead(take(e)); }, recHeadDrag: startDrag({ kind: 'recHead' }),
+      recHeadOutline: S.drop === 'recHead' ? '2px dashed #f0f0f0' : 'none',
+      newOver: dragOver('new'), newDrop: function (e) { me.newEventFrom(take(e)); }, newBd: S.drop === 'new' ? '#4fc3b8' : '#5a4128', newBg: S.drop === 'new' ? '#1c2a2a' : 'transparent' };
+
+    /* ---------------- inbound inspector ---------------- */
+    var mapNo = function (id) { return S.map.findIndex(function (m) { return m.id === id; }) + 1; };
+    var kindSeg = [['api', 'API'], ['webhook', 'Webhook'], ['message', 'Message'], ['events', 'Events']].map(function (k) {
+      var on = S.source.kind === k[0];
+      return { label: k[1], bg: on ? segOn.bg : segOff.bg, fg: on ? segOn.fg : segOff.fg, pick: function () {
+        if (S.source.kind === k[0]) return;
+        var patch = { source: Object.assign({}, S.source, { kind: k[0] }) }, msg = '';
+        var keyOp = S.map.find(function (m) { return m.kind === 'copy' && m.target === S.key; });
+        if (k[0] === 'events' && keyOp) { patch.key = keyOp.src; msg = 'The key is now ' + keyOp.src + ' — an event capture reads its key from each incoming event.'; }
+        if (k[0] !== 'events' && S.source.kind === 'events') { var back = S.map.find(function (m) { return m.kind === 'copy' && m.src === S.key; }); if (back) { patch.key = back.target; msg = 'The key is ' + back.target + ' again.'; } }
+        patch.msg = msg; me.setState(patch);
+      } };
+    });
+    var kindHelp = { api: 'Polls an HTTP API. The reference model never calls it; Try it and specifications give it records.', webhook: 'Receives records when the other system calls us.', message: 'Reads records from a message topic.', events: 'Captures public events from another application. Their fields overlay what was remembered for the key.' }[S.source.kind];
+    var settingKeys = S.source.kind === 'api' ? ['api', 'route', 'poll'] : (S.source.kind === 'webhook' ? ['path'] : ['topic']);
+    var settingRows = settingKeys.map(function (k) { return { name: k, val: S.source.settings[k], set: function (e) { var st2 = Object.assign({}, S.source.settings); st2[k] = e.target.value; me.setState({ source: Object.assign({}, S.source, { settings: st2 }) }); } }; });
+    var rawEdit = S.source.fields.map(function (f, i) {
+      var upd = function (patch) { me.setState({ source: Object.assign({}, S.source, { fields: S.source.fields.map(function (x, j) { return j === i ? Object.assign({}, x, patch) : x; }) }) }); };
+      return { name: f.name, type: f.type, setName: function (e) { upd({ name: e.target.value.replace(/[^A-Za-z0-9_]/g, '') }); }, setType: function (e) { upd({ type: e.target.value }); }, remove: function () { me.setState({ source: Object.assign({}, S.source, { fields: S.source.fields.filter(function (_, j) { return j !== i; }) }) }); } };
+    });
+    var foreignRows = S.foreign.map(function (f) { var on = S.fromOn.indexOf(f.name) >= 0; return { name: f.name, origin: f.origin, on: on, fields: Object.keys(f.fields).join(', '), toggle: function () { me.setState({ fromOn: on ? S.fromOn.filter(function (x) { return x !== f.name; }) : S.fromOn.concat([f.name]) }); } }; });
+
+    var mi = { n: '', kinds: [], hasTarget: false, target: '', hasSrc: false, srcLabel: 'From', src: '', srcOptions: [], isTemplate: false, template: '', refs: '', isTranslate: false, table: [], isSplit: false, sep: '', targets: [] };
+    var selM = selMap ? S.map.find(function (m) { return m.id === selMap; }) : null;
+    if (selM) {
+      var idx = S.map.indexOf(selM), avail = raw.map(function (f) { return f.name; });
+      S.map.slice(0, idx).forEach(function (m) { (m.kind === 'split' ? m.targets : [m.target]).forEach(function (x) { if (avail.indexOf(x) < 0) avail.push(x); }); });
+      var move = function (d) { return function () { var a = S.map.slice(), j = idx + d; if (j < 0 || j >= a.length) return; var t = a[idx]; a[idx] = a[j]; a[j] = t; me.setState({ map: a }); }; };
+      mi = {
+        n: String(idx + 1), hasTarget: selM.kind !== 'split', target: selM.target || '', hasSrc: selM.kind !== 'template', srcLabel: selM.kind === 'split' ? 'Split' : 'From', src: selM.src || '', srcOptions: avail,
+        isTemplate: selM.kind === 'template', template: selM.template || '', refs: tmplRefs(selM.template || '').join(', ') || 'none yet',
+        isTranslate: selM.kind === 'translate', isSplit: selM.kind === 'split', sep: selM.sep || '',
+        kinds: [['copy', 'Copy'], ['template', 'Template'], ['translate', 'Translate'], ['split', 'Split']].map(function (k) { var on = selM.kind === k[0]; return { label: k[1], bg: on ? segOn.bg : segOff.bg, fg: on ? segOn.fg : segOff.fg, pick: function () { me.updMap(selM.id, function (m) {
+          var first = m.kind === 'split' ? m.targets[0] : m.target, src = m.src || (m.kind === 'template' ? (tmplRefs(m.template)[0] || avail[0]) : avail[0]);
+          m.kind = k[0];
+          if (k[0] === 'split') { m.src = src; m.sep = m.sep || ','; m.targets = m.targets && m.targets.length ? m.targets : [first || 'part1', 'part2']; }
+          else { m.target = first || 'field'; if (k[0] === 'template') m.template = m.template || '${' + src + '}'; else m.src = src; if (k[0] === 'translate') m.table = m.table || []; }
+          return m; }); } }; }),
+        setTarget: function (e) { var v = e.target.value.replace(/[^A-Za-z0-9_]/g, ''), old = selM.target; me.updMap(selM.id, function (m) { m.target = v; return m; }); if (S.key === old) me.setState({ key: v }); me.setState({ events: S.events.map(function (ev) { return Object.assign({}, ev, { props: ev.props.map(function (p) { return p.src === '$.' + old ? Object.assign({}, p, { src: '$.' + v }) : p; }), when: Object.assign({}, ev.when, { fields: ev.when.fields.map(function (f) { return f === old ? v : f; }), field: ev.when.field === old ? v : ev.when.field }) }); }) }); },
+        setSrc: function (e) { var v = e.target.value; me.updMap(selM.id, function (m) { m.src = v; return m; }); },
+        setTemplate: function (e) { var v = e.target.value; me.updMap(selM.id, function (m) { m.template = v; return m; }); },
+        setSep: function (e) { var v = e.target.value; me.updMap(selM.id, function (m) { m.sep = v; return m; }); },
+        table: (selM.table || []).map(function (r, ri) { return { from: r[0], to: r[1], setFrom: function (e) { var v = e.target.value; me.updMap(selM.id, function (m) { m.table[ri][0] = v; return m; }); }, setTo: function (e) { var v = e.target.value.replace(/[^A-Za-z0-9_]/g, ''); me.updMap(selM.id, function (m) { m.table[ri][1] = v; return m; }); }, remove: function () { me.updMap(selM.id, function (m) { m.table.splice(ri, 1); return m; }); } }; }),
+        addRow: function () { me.updMap(selM.id, function (m) { m.table.push(['', 'value']); return m; }); },
+        targets: (selM.targets || []).map(function (t, ti) { return { n: String(ti + 1), name: t, set: function (e) { var v = e.target.value.replace(/[^A-Za-z0-9_]/g, ''); me.updMap(selM.id, function (m) { m.targets[ti] = v; return m; }); }, remove: function () { me.updMap(selM.id, function (m) { m.targets.splice(ti, 1); return m; }); } }; }),
+        addPart: function () { me.updMap(selM.id, function (m) { m.targets.push('part' + (m.targets.length + 1)); return m; }); },
+        up: move(-1), down: move(1), remove: function () { me.setState({ map: S.map.filter(function (m) { return m.id !== selM.id; }), selected: 'record' }); }
+      };
+    }
+    var evSources = rn.map(function (n) { return '$.' + n; }).concat(CTXS).concat([CONST]);
+    var ei = { name: '', when: 'added', isChanges: false, isTransition: false, isExpr: false, props: [], fieldChips: [], suggest: [], segAny: segOff, segAll: segOff, whenHelp: '' };
+    var selE = selEv ? S.events.find(function (e) { return e.id === selEv; }) : null;
+    if (selE) {
+      var w = selE.when, tr = S.map.filter(function (m) { return m.kind === 'translate' && m.target === w.field; }).pop();
+      var setW = function (patch) { me.updEv(selE.id, function (e) { e.when = Object.assign({}, e.when, patch); return e; }); };
+      ei = {
+        name: selE.name, when: w.kind, isChanges: w.kind === 'changes', isTransition: w.kind === 'transition', isExpr: w.kind === 'expression',
+        field: w.field, from: w.from, to: w.to, expr: w.expr, suggest: tr ? tr.table.map(function (r) { return r[1]; }) : [],
+        segAny: w.join !== 'and' ? segOn : segOff, segAll: w.join === 'and' ? segOn : segOff,
+        whenHelp: { added: 'Only on the first record for a key. Change guards never hold on that first record.', changes: 'Compared with the record last seen for the same key. A field the earlier record lacked counts as changed once it appears.', transition: 'Holds when the field moves between exactly these two values; never on the first record.', removed: this.isEv() ? 'Never holds when capturing events.' : 'When an item disappears from the source.', expression: '', always: this.isEv() ? 'Any change appends; an unchanged event appends nothing. Stage rejects this for event captures.' : 'Every record, including the first.' }[w.kind],
+        fieldChips: rn.map(function (n) { var on = w.fields.indexOf(n) >= 0; return { name: n, bd: on ? '#e2a84a' : '#2b3d4b', bg: on ? 'rgba(226,168,74,.15)' : 'transparent', fg: on ? '#f0c46a' : '#a9b7c2', toggle: function () { setW({ fields: on ? w.fields.filter(function (x) { return x !== n; }) : w.fields.concat([n]) }); } }; }),
+        setName: function (e) { var v = e.target.value.replace(/[^A-Za-z0-9]/g, ''); me.updEv(selE.id, function (x) { x.name = v; return x; }); },
+        setWhen: function (e) { var v = e.target.value, patch = { kind: v }; if (v === 'transition' && !w.from) { var t0 = S.map.filter(function (m) { return m.kind === 'translate'; }).pop(); if (t0) { patch.field = t0.target; patch.from = (t0.table[0] || [])[1] || ''; patch.to = (t0.table[1] || [])[1] || ''; } } if (v === 'expression' && !w.expr) patch.expr = 'amount > 10000'; setW(patch); },
+        anyOf: function () { setW({ join: 'or' }); }, allOf: function () { setW({ join: 'and' }); },
+        setField: function (e) { setW({ field: e.target.value }); }, setFrom: function (e) { setW({ from: e.target.value }); }, setTo: function (e) { setW({ to: e.target.value }); }, setExpr: function (e) { setW({ expr: e.target.value }); },
+        props: selE.props.map(function (p, pi) {
+          var isC = evSources.indexOf(p.src) < 0;
+          var setP = function (patch) { me.updEv(selE.id, function (x) { x.props[pi] = Object.assign({}, p, patch); return x; }); };
+          return { name: p.name, src: p.src, sel: isC ? CONST : p.src, isConst: isC, setName: function (e) { setP({ name: e.target.value.replace(/[^A-Za-z0-9_]/g, '') }); }, setSrc: function (e) { setP({ src: e.target.value === CONST ? '"Bank"' : e.target.value }); }, setConst: function (e) { setP({ src: e.target.value }); }, remove: function () { me.updEv(selE.id, function (x) { x.props.splice(pi, 1); return x; }); } };
+        }),
+        addProp: function () { me.updEv(selE.id, function (x) { x.props.push({ name: 'field' + (x.props.length + 1), src: '$.' + (rn[0] || 'x') }); return x; }); },
+        remove: function () { me.setState({ events: S.events.filter(function (e) { return e.id !== selE.id; }), selected: 'record' }); }
+      };
+    }
+    var selKey = isIn ? (selM ? 'map' : (selE ? 'event' : (S.selected === 'source' ? 'source' : 'record'))) : (S.oLink ? 'olink' : 'public');
+    var ins = { source: selKey === 'source', record: selKey === 'record', map: selKey === 'map', event: selKey === 'event', public: selKey === 'public', olink: selKey === 'olink' };
+    var keyOptions = this.isEv() ? Object.keys((S.foreign.find(function (f) { return S.fromOn.indexOf(f.name) >= 0; }) || { fields: {} }).fields) : rn;
+
+    /* ---------------- try (inbound) ---------------- */
+    var ti = { title: '', bd: '#2b3d4b', bg: '#15212b', fg: '#dbe4ea', events: [], notes: [], diff: [] }, suggest = '';
+    if (run) {
+      ti.events = run.fired; ti.notes = run.notes;
+      if (run.fired.length) { ti.title = 'Records ' + run.fired.length + (run.fired.length === 1 ? ' event' : ' events'); ti.bd = '#2f7a4e'; ti.bg = '#12291d'; ti.fg = '#7ee2a6'; suggest = 'Records' + pascal(run.fired.map(function (f) { return f.name; }).join(' and ')).slice(0, 60); }
+      else { ti.title = 'Records nothing'; ti.bd = '#3a4b58'; ti.bg = '#15212b'; ti.fg = '#a9b7c2'; suggest = 'RecordsNothing' + (run.prev ? 'WhenNothingItWatchesChanged' : ''); }
+      ti.diff = rows.map(function (r) { var b = run.prev ? run.prev[r.name] : undefined, a = run.cur ? run.cur[r.name] : undefined, ch = run.prev && me.changed(b, a); return { k: r.name, before: run.prev ? fmt(b) : '(first time)', after: fmt(a), c: ch ? '#f0c46a' : '#dbe4ea', bg: ch ? '#2a2313' : '#121c25' }; });
+    }
+    var rowsFor = function (vals, key, setter, prevVals) { return raw.map(function (f) { return { id: key + '-' + f.name, name: f.name, val: vals && vals[f.name] != null ? String(vals[f.name]) : '', bd: prevVals && me.changed(prevVals[f.name], vals[f.name]) ? '#b8892a' : '#2b3d4b', set: function (e) { setter(f.name, e.target.value); } }; }); };
+    var baseRows = rowsFor(S.baseline, 'b', function (k, v) { var b = Object.assign({}, me.state.baseline); b[k] = v; me.setState({ baseline: b }); });
+    var curRows = rowsFor(S.current, 'c', function (k, v) { var c = Object.assign({}, me.state.current); c[k] = v; me.setState({ current: c }); }, S.hasBase ? S.baseline : null);
+    var fEv = function (n) { return S.foreign.find(function (f) { return f.name === n; }) || { fields: {}, origin: '' }; };
+    var givenRows = S.givenEv.map(function (g, gi) { return { event: g.event, origin: fEv(g.event).origin, remove: function () { me.setState({ givenEv: S.givenEv.filter(function (_, j) { return j !== gi; }) }); }, fields: Object.keys(fEv(g.event).fields).map(function (k) { return { id: 'g' + gi + k, name: k, val: g.values[k] == null ? '' : String(g.values[k]), set: function (e) { var v = Object.assign({}, g.values); v[k] = e.target.value; me.setState({ givenEv: S.givenEv.map(function (x, j) { return j === gi ? Object.assign({}, x, { values: v }) : x; }) }); } }; }) }; });
+    var whenRows = Object.keys(fEv(S.whenEv.event).fields).map(function (k) { return { id: 'w' + k, name: k, val: S.whenEv.values[k] == null ? '' : String(S.whenEv.values[k]), set: function (e) { var v = Object.assign({}, S.whenEv.values); v[k] = e.target.value; me.setState({ whenEv: Object.assign({}, S.whenEv, { values: v }) }); } }; });
+
+    /* specs */
+    var passCount = 0;
+    var specRows = S.specs.map(function (s) {
+      var r = me.specResult(s); if (r.ok) passCount++;
+      var on = S.selected === 'spec:' + s.id;
+      return { title: human(s.name).replace(/^./, function (c) { return c.toUpperCase(); }), sub: r.ok ? me.expectText(s.expect) : 'now ' + me.expectText(r.got), subFg: r.ok ? '#8b9aa7' : '#ff9b9b', mark: r.ok ? '✓' : '✕', markBg: r.ok ? '#1d4a30' : '#5a2a2e', markFg: r.ok ? '#7ee2a6' : '#ffb4b4', bg: on ? '#16302f' : 'transparent', bd: on ? '#2f6e68' : 'transparent',
+        load: function () { var sc = s.sc, patch = { tab: 'design', trying: true, selected: 'spec:' + s.id, specDraft: s.name, msg: '' }; if (sc.mode === 'record') { patch.hasBase = !!sc.baseline; if (sc.baseline) patch.baseline = clone(sc.baseline); patch.current = clone(sc.current); } else { patch.givenEv = clone(sc.givenEv); patch.whenEv = clone(sc.whenEv); } me.setState(patch); },
+        remove: function () { me.setState({ specs: S.specs.filter(function (x) { return x.id !== s.id; }) }); } };
+    });
+    var specSummary = !S.specs.length ? { text: '', fg: '#8b9aa7' } : (passCount === S.specs.length ? { text: passCount + ' passing', fg: '#7ee2a6' } : { text: (S.specs.length - passCount) + ' failing', fg: '#ff9b9b' });
+
+    /* ---------------- outbound ---------------- */
+    var SW = 360, TX = 520, OTH = 36, ORH = 30, ORG = 4;
+    var prow = function (n) { return S.pub.props.findIndex(function (p) { return p.name === n; }); };
+    var oRowY = function (i) { return OTH + 8 + i * (ORH + ORG) + ORH / 2; };
+    var oCurve = function (sy, ty) { return 'M ' + SW + ' ' + sy + ' C ' + (SW + 70) + ' ' + sy + ', ' + (TX - 70) + ' ' + ty + ', ' + (TX - 7) + ' ' + ty; };
+    var oLines = [], oLabels = [], oSources = [], oIn = {}, oy = 0, oUsed = {};
+    var pubRun = !isIn && trying ? this.publish(S.oGiven) : null;
+    S.oFroms.forEach(function (f) {
+      var fields = Object.keys(S.priv[f.event] || {}), hy = oy + 15, fy = {};
+      fields.forEach(function (k, j) { fy[k] = oy + 30 + j * 24 + 12; });
+      var add = function (id, sy, ty, kind, label) {
+        var on = S.oLink === id, col = kind === 'auto' ? '#6f93d8' : (kind === 'const' ? '#c6e03a' : '#4f8ef7');
+        oLines.push({ d: oCurve(sy, ty), c: on ? '#4fc3b8' : col, w: on ? '3' : (kind === 'auto' ? '1.5' : '2'), dash: kind === 'auto' ? '5 4' : '', o: on ? '1' : '0.85', pick: function () { me.setState({ oLink: id, selected: 'olink' }); } });
+        if (label) oLabels.push({ text: label, x: SW + 64 + label.length * 3, y: sy, bg: '#202a12', fg: '#c6e03a', bd: on ? '#4fc3b8' : '#4a5a20', pick: function () { me.setState({ oLink: id }); } });
+      };
+      f.maps.forEach(function (m) { var i = prow(m.prop); if (i < 0) return; oIn[i] = 1; var fromField = fy[m.src] !== undefined; if (fromField) oUsed[f.id + m.src] = 1; add(f.id + '|' + m.prop + '|map', fromField ? fy[m.src] : hy, oRowY(i), fromField ? 'map' : 'const', fromField ? '' : '= ' + m.src.replace('$eventContext.', 'ctx.')); });
+      if (f.automap !== false) fields.forEach(function (k) { var i = prow(k); if (i < 0 || f.maps.some(function (m) { return m.prop === k; })) return; oIn[i] = 1; oUsed[f.id + k] = 1; add(f.id + '|' + k + '|auto', fy[k], oRowY(i), 'auto', ''); });
+      oSources.push({ y: String(oy), event: f.event, noAuto: f.automap === false, op: '1',
+        drag: startDrag({ kind: 'pev', event: f.event }),
+        remove: function (e) { if (e && e.stopPropagation) e.stopPropagation(); me.setState({ oFroms: S.oFroms.filter(function (x) { return x.id !== f.id; }), oLink: '' }); },
+        fields: fields.map(function (k) { var g = gl(S.priv[f.event][k]); return { name: k, glyph: g.g, gc: g.c, dot: '#1b2431', drag: startDrag({ kind: 'pfield', event: f.event, field: k }) }; }) });
+      oy += 30 + fields.length * 24 + 18;
+    });
+    oSources.forEach(function (src, si) { var f = S.oFroms[si]; src.fields.forEach(function (x) { x.dot = oUsed[f.id + x.name] ? '#4f8ef7' : '#1b2431'; }); });
+    var oPal = Object.keys(S.priv).filter(function (e) { return !S.oFroms.some(function (f) { return f.event === e; }); }).map(function (e) { return { name: e, drag: startDrag({ kind: 'pev', event: e }) }; });
+    var ensureFrom = function (event) { var f = S.oFroms.find(function (x) { return x.event === event; }); if (f) return { list: S.oFroms, f: f }; f = { id: nid('p'), event: event, automap: true, maps: [] }; return { list: S.oFroms.concat([f]), f: f }; };
+    var oRows = S.pub.props.map(function (p, i) {
+      var g = gl(p.type), unset = !me.oSetBy(p.name).length, last = pubRun && pubRun.length ? pubRun.filter(function (x) { return x.published; }).pop() : null;
+      return { name: p.name, type: p.type, glyph: g.g, gc: g.c, unset: unset, dot: oIn[i] ? '#4f8ef7' : '#1b2431', bd: S.drop === 'pr:' + i ? '#4fc3b8' : (S.oLink.split('|')[1] === p.name ? '#4f8ef7' : '#2f3b4c'), bg: S.drop === 'pr:' + i ? '#173033' : '#202a38',
+        over: dragOver('pr:' + i), drop: function (e) { var d = take(e); if (!d) return; var r = ensureFrom(d.event); var maps = r.f.maps.filter(function (m) { return m.prop !== p.name; }); var src = d.kind === 'pfield' ? d.field : '"value"'; if (d.kind === 'pfield' && d.field === p.name && r.f.automap !== false) { me.setState({ oFroms: r.list, drop: '', msg: d.field + ' already flows into ' + p.name + ' by convention' }); return; } maps.push({ prop: p.name, src: src }); var nf = Object.assign({}, r.f, { maps: maps }); me.setState({ oFroms: r.list.map(function (x) { return x.id === nf.id ? nf : x; }), drop: '', oLink: nf.id + '|' + p.name + '|map', msg: d.event + (d.kind === 'pfield' ? '.' + d.field : '') + ' → ' + p.name }); } };
+    });
+    var obH = Math.max(oy + 110, OTH + 8 + S.pub.props.length * (ORH + ORG) + 160);
+    var ob = { h: String(obH), lines: oLines, labels: oLabels, sources: oSources, palette: oPal, palY: String(oy + 6), rows: oRows,
+      headOver: dragOver('phead'), headOutline: S.drop === 'phead' ? '2px dashed #4fc3b8' : 'none', headHint: S.drop === 'phead' ? 'Drop to map by convention' : 'drop an event here',
+      headDrop: function (e) { var d = take(e); if (!d) return; var r = ensureFrom(d.event), fields = S.priv[d.event] || {}, have = S.pub.props.map(function (p) { return p.name; }); var matched = Object.keys(fields).filter(function (k) { return have.indexOf(k) >= 0; }); me.setState({ oFroms: r.list, drop: '', msg: (r.f.maps.length || S.oFroms.indexOf(r.f) >= 0 ? '' : 'Added ' + d.event + ' — ') + 'AutoMap fills ' + matched.length + ' matching ' + (matched.length === 1 ? 'property' : 'properties') + (matched.length ? ' (' + matched.join(', ') + ')' : '') + '. The contract itself is unchanged.' }); } };
+    var ol = { kind: '', c: '', from: '', to: '', text: '', isAuto: false, isMap: false, event: '', sources: [], sel: '', src: '', isConst: false };
+    if (S.oLink) {
+      var lp = S.oLink.split('|'), lf = S.oFroms.find(function (f) { return f.id === lp[0]; });
+      if (lf) {
+        var setF = function (fn) { me.setState({ oFroms: S.oFroms.map(function (x) { return x.id === lf.id ? fn(clone(x)) : x; }) }); };
+        var lfields = Object.keys(S.priv[lf.event] || {});
+        ol.event = lf.event; ol.to = S.pub.name + '.' + lp[1];
+        if (lp[2] === 'auto') ol = Object.assign(ol, { kind: 'By convention · AutoMap', c: '#8cc0ff', from: lf.event + '.' + lp[1], isAuto: true, text: 'Copied because the names match. Nothing about it is written in the model.',
+          explicit: function () { setF(function (x) { x.maps.push({ prop: lp[1], src: lp[1] }); return x; }); me.setState({ oLink: lf.id + '|' + lp[1] + '|map' }); },
+          autoOff: function () { setF(function (x) { x.automap = false; return x; }); me.setState({ oLink: '', msg: 'AutoMap is off for ' + lf.event }); } });
+        else { var mi2 = lf.maps.findIndex(function (m) { return m.prop === lp[1]; }), m2 = lf.maps[mi2];
+          if (m2) { var srcs = lfields.concat(ECTX).concat([CONST]), isC2 = srcs.indexOf(m2.src) < 0;
+            ol = Object.assign(ol, { kind: 'Mapping', c: '#8cc0ff', from: lf.event + (lfields.indexOf(m2.src) >= 0 ? '.' + m2.src : ''), isMap: true, text: 'Sets ' + lp[1] + ' whenever ' + lf.event + ' happens.', sources: srcs, sel: isC2 ? CONST : m2.src, src: m2.src, isConst: isC2,
+              setSrc: function (e) { var v = e.target.value; setF(function (x) { x.maps[mi2].src = v === CONST ? '"value"' : v; return x; }); },
+              setConst: function (e) { var v = e.target.value; setF(function (x) { x.maps[mi2].src = v; return x; }); },
+              remove: function () { setF(function (x) { x.maps.splice(mi2, 1); return x; }); me.setState({ oLink: '' }); } }); } }
+      }
+    }
+    var pubEdit = S.pub.props.map(function (p, i) { var upd = function (patch) { me.setState({ pub: Object.assign({}, S.pub, { props: S.pub.props.map(function (x, j) { return j === i ? Object.assign({}, x, patch) : x; }) }) }); }; return { name: p.name, type: p.type, setName: function (e) { upd({ name: e.target.value.replace(/[^A-Za-z0-9_]/g, '') }); }, setType: function (e) { upd({ type: e.target.value }); }, remove: function () { me.setState({ pub: Object.assign({}, S.pub, { props: S.pub.props.filter(function (_, j) { return j !== i; }) }) }); } }; });
+    var pubTimeline = pubRun ? pubRun.map(function (r) { return { event: r.g.event, for: r.g.for, published: r.published, skipped: !r.published, dot: r.published ? '#6ea8ff' : '#3a4b58', rows: r.published ? S.pub.props.map(function (p) { var v = r.state[p.name]; return { t: p.name + ': ' + fmt(me.typed(v, p.type)), c: r.changed[p.name] ? '#8cc0ff' : (v === undefined ? '#6b7d8b' : '#c9d4dd') }; }) : [] }; }) : [];
+    var oGivenRows = S.oGiven.map(function (g, gi) { var f = S.priv[g.event] || {}; var upd = function (patch) { me.setState({ oGiven: S.oGiven.map(function (x, j) { return j === gi ? Object.assign({}, x, patch) : x; }) }); }; return { event: g.event, for: g.for, hasFields: Object.keys(f).length > 0, setFor: function (e) { upd({ for: e.target.value }); }, remove: function () { me.setState({ oGiven: S.oGiven.filter(function (_, j) { return j !== gi; }) }); }, fields: Object.keys(f).map(function (k) { return { id: 'og' + gi + k, name: k, val: g.values[k] == null ? '' : String(g.values[k]), set: function (e) { var v = Object.assign({}, g.values); v[k] = e.target.value; upd({ values: v }); } }; }) }; });
+
+    /* ---------------- sidebar ---------------- */
+    var mk = function (key, label, dot, badge, bBg, bFg, pred, onPick) {
+      var on = (S.selected === key || (key === 'map' && String(S.selected).indexOf('map:') === 0) || (key === 'appends' && String(S.selected).indexOf('event:') === 0)) && S.tab === 'design' && !trying;
+      var errs = errAt(pred || function (t) { return t === key; });
+      if (errs) { badge = errs + (errs === 1 ? ' problem' : ' problems'); bBg = '#3a1c1f'; bFg = '#ff9b9b'; }
+      return { label: label, dot: dot, badge: badge, hasBadge: !!badge, badgeBg: bBg || '#1f2e3a', badgeFg: bFg || '#a9b7c2', bg: on ? '#16302f' : 'transparent', bd: on ? '#2f6e68' : 'transparent', pick: onPick || sel(key) };
+    };
+    var steps = isIn ? [
+      mk('source', 'Source', '#8d97a8', { api: 'API', webhook: 'Webhook', message: 'Message', events: 'Events' }[S.source.kind]),
+      mk('map', 'Map', '#4dc0b5', S.map.length + ' steps', '', '', function (t) { return t.indexOf('map:') === 0; }, sel(S.map[0] ? 'map:' + S.map[0].id : 'record')),
+      mk('record', 'Captured record', '#4dc0b5', ''),
+      mk('appends', 'Appends', '#f0913a', S.events.length + '', '', '', function (t) { return t.indexOf('event:') === 0; }, sel(S.events[0] ? 'event:' + S.events[0].id : 'record'))
+    ] : [
+      mk('sources', 'Sources', '#f0913a', S.oFroms.length + ' events', '', '', function () { return false; }, function () { me.setState({ oLink: '', selected: 'public', trying: false, tab: 'design' }); }),
+      mk('public', 'Public contract', '#6ea8ff', 'gen ' + S.pub.generation, '#13243f', '#8cc0ff', null, function () { me.setState({ oLink: '', selected: 'public', trying: false, tab: 'design' }); })
+    ];
+
+    /* ---------------- checks bar ---------------- */
+    var sevColor = { error: '#ff8f8f', warning: '#f0b84a', information: '#8cc0ff' };
+    var errs = D.filter(function (d) { return d.sev === 'error'; }), warns = D.filter(function (d) { return d.sev === 'warning'; }), infos = D.filter(function (d) { return d.sev === 'information'; });
+    var bar = errs.length ? { label: errs.length + (errs.length === 1 ? ' PROBLEM' : ' PROBLEMS'), msg: errs[0].msg, bg: '#2a1719', bd: '#5a2a2e', fg: '#ff9b9b' } : (warns.length ? { label: warns.length + (warns.length === 1 ? ' WARNING' : ' WARNINGS'), msg: warns[0].msg, bg: '#2a2313', bd: '#5a4a24', fg: '#f0c46a' } : { label: 'CHECKED', msg: 'No problems found.' + (infos.length ? ' ' + infos.length + (infos.length === 1 ? ' note.' : ' notes.') : ''), bg: '#11301f', bd: '#1d4a30', fg: '#5fdc8f' });
+    bar.more = D.length > 0; bar.moreText = S.showDiags ? 'Hide' : 'Show all ' + D.length;
+    var diagRows = D.map(function (d) { return { sev: d.sev === 'information' ? 'note' : d.sev, msg: d.msg, code: d.code, c: sevColor[d.sev], go: function () { var t = String(d.t); if (t.indexOf('spec:') === 0) { var s = S.specs.find(function (x) { return 'spec:' + x.id === t; }); if (s) specRows[S.specs.indexOf(s)].load(); me.setState({ showDiags: false }); } else me.setState({ selected: t, tab: 'design', trying: false, showDiags: false, oLink: '' }); } }; });
+
+    var tabs = [['design', 'Design'], ['describe', 'Describe'], ['play', 'Screenplay']].map(function (t) { var on = S.tab === t[0]; return { label: t[1], fg: on ? '#fff' : '#9aa9b5', bd: on ? '#4fc3b8' : 'transparent', pick: function () { me.setState({ tab: t[0] }); } }; });
+    var canSave = !!run;
+
+    return {
+      sliceName: isIn ? S.inName : S.outName, desc: isIn ? S.inDesc : S.outDesc,
+      setSliceName: function (e) { var v = e.target.value.replace(/[^A-Za-z0-9]/g, ''); me.setState(isIn ? { inName: v } : { outName: v }); },
+      setDesc: function (e) { me.setState(isIn ? { inDesc: e.target.value } : { outDesc: e.target.value }); },
+      isIn: isIn, flowTitle: isIn ? 'Capture' : 'Publish',
+      segIn: isIn ? segOn : segOff, segOut: !isIn ? segOn : segOff,
+      goIn: function () { me.setState({ direction: 'inbound', selected: 'record', trying: false, msg: '' }); }, goOut: function () { me.setState({ direction: 'outbound', selected: 'public', oLink: '', trying: false, msg: '' }); },
+      tabs: tabs, isDesign: S.tab === 'design', isDescribe: S.tab === 'describe', isPlay: S.tab === 'play',
+      showInDesign: S.tab === 'design' && isIn, showOutDesign: S.tab === 'design' && !isIn,
+      tryBtn: S.trying ? { label: 'Stop trying', bg: '#16302f', fg: '#8fe3d9', bd: '#2f6e68' } : { label: 'Try it', bg: 'transparent', fg: '#8fe3d9', bd: '#2f6e68' },
+      toggleTry: function () { me.setState({ trying: !S.trying, msg: '' }); },
+      steps: steps, specRows: specRows, specSummary: specSummary,
+      dragEnd: function () { DRAG = null; if (me.state.drop) me.setState({ drop: '' }); },
+      cv: cv, capName: S.capName, keyText: S.key || '(none)',
+      selSource: sel('source'), selRecord: sel('record'), selPublic: function () { me.setState({ selected: 'public', oLink: '', trying: false, tab: 'design' }); },
+      addTemplate: function () { var id = nid('m'); me.setState({ map: S.map.concat([{ id: id, kind: 'template', target: 'newField', template: '${' + (raw[0] || { name: 'x' }).name + '}' }]), selected: 'map:' + id }); },
+      addTranslate: function () { var id = nid('m'); me.setState({ map: S.map.concat([{ id: id, kind: 'translate', target: 'newField', src: (raw[0] || { name: 'x' }).name, table: [['', 'value']] }]), selected: 'map:' + id }); },
+      addSplit: function () { var id = nid('m'); me.setState({ map: S.map.concat([{ id: id, kind: 'split', src: (raw[0] || { name: 'x' }).name, sep: ',', targets: ['part1', 'part2'] }]), selected: 'map:' + id }); },
+      addEvent: function () { me.newEventFrom(null); },
+      msg: { has: !!S.msg, text: S.msg },
+      tryIn: isIn && trying, tryOut: !isIn && trying, editing: !trying,
+      ti: ti, specDraft: S.specDraft || suggest, setSpecDraft: function (e) { me.setState({ specDraft: e.target.value.replace(/[^A-Za-z0-9]/g, '') }); }, saveOp: canSave ? '1' : '0.4',
+      saveSpec: function () { if (!canSave) return; var nm = (S.specDraft || suggest || 'Example').replace(/[^A-Za-z0-9]/g, '') || 'Example'; var ex = S.specs.findIndex(function (s) { return s.name === nm; }); var spec = me.makeSpec(nm, clone(me.scenario())); var list = S.specs.slice(); if (ex >= 0) { spec.id = list[ex].id; list[ex] = spec; } else list.push(spec); me.setState({ specs: list, specDraft: '', selected: 'spec:' + spec.id, msg: (ex >= 0 ? 'Updated' : 'Saved') + ' “' + human(nm) + '” — it re-runs on every change.' }); },
+      tiRecord: !this.isEv(), tiEvents: this.isEv(), sourceWord: S.source.kind === 'api' ? 'API' : 'source',
+      segBase: { none: !S.hasBase ? segOn : segOff, some: S.hasBase ? segOn : segOff }, hasBase: S.hasBase,
+      baseNone: function () { me.setState({ hasBase: false }); }, baseSome: function () { me.setState({ hasBase: true }); },
+      baseRows: baseRows, curRows: curRows, givenRows: givenRows, whenRows: whenRows, whenEv: S.whenEv, fromNames: S.fromOn,
+      addGiven: function (e) { var v = e.target.value; if (!v) return; var vals = {}; Object.keys(fEv(v).fields).forEach(function (k) { vals[k] = k === S.key ? (S.whenEv.values[S.key] || '') : ''; }); me.setState({ givenEv: S.givenEv.concat([{ id: nid('g'), event: v, values: vals }]) }); e.target.value = ''; },
+      setWhenEvent: function (e) { var v = e.target.value, vals = {}; Object.keys(fEv(v).fields).forEach(function (k) { vals[k] = S.whenEv.values[k] || ''; }); me.setState({ whenEv: { event: v, values: vals } }); },
+      ins: ins, kindSeg: kindSeg, kindHelp: kindHelp, isRecordKind: !this.isEv(), isEventsKind: this.isEv(), settingRows: settingRows, rawEdit: rawEdit, rawTypes: RAW_TYPES,
+      addRaw: function () { me.setState({ source: Object.assign({}, S.source, { fields: S.source.fields.concat([{ name: 'field' + (S.source.fields.length + 1), type: 'String' }]) }) }); },
+      setCapName: function (e) { me.setState({ capName: e.target.value.replace(/[^A-Za-z0-9]/g, '') }); },
+      sampleJson: S.sampleJson, setSampleJson: function (e) { me.setState({ sampleJson: e.target.value }); },
+      inferFields: function () {
+        try { var o = JSON.parse(S.sampleJson); if (!o || typeof o !== 'object' || Array.isArray(o)) throw new Error('not an object');
+          var fields = Object.keys(o).map(function (k) { var v = o[k], t = typeof v === 'number' ? (Number.isInteger(v) && !/belop|amount|sum|price/i.test(k) ? 'Int' : 'Decimal') : (typeof v === 'boolean' ? 'Bool' : (/^\d{4}-\d{2}-\d{2}/.test(String(v)) || /dato|date/i.test(k) ? 'Date' : 'String')); return { name: k, type: t }; });
+          var cur = {}; Object.keys(o).forEach(function (k) { cur[k] = o[k] == null ? '' : String(o[k]); });
+          me.setState({ source: Object.assign({}, S.source, { fields: fields }), current: cur, msg: 'Found ' + fields.length + ' fields in the sample; it is also Try it’s current record.' });
+        } catch (x) { me.setState({ msg: 'That isn’t a JSON object — ' + x.message }); }
+      },
+      foreignRows: foreignRows,
+      keyVal: S.key, keyOptions: keyOptions, setKey: function (e) { me.setState({ key: e.target.value }); },
+      keyHelp: this.isEv() ? 'Read from each incoming event; it must be a required property of every event captured from.' : 'Records with the same key are compared with each other to decide what changed. Events land on it.',
+      mapList: S.map.map(function (m, i) { return { n: String(i + 1), text: m.kind === 'copy' ? m.target + ' = ' + m.src : (m.kind === 'template' ? m.target + ' = `' + m.template + '`' : (m.kind === 'translate' ? m.target + ' = ' + m.src + ' translate (' + m.table.length + ')' : 'split ' + m.src + ' by "' + m.sep + '" → ' + m.targets.join(', '))), pick: sel('map:' + m.id) }; }),
+      mi: mi, ei: ei, whenKinds: WHEN_KINDS, recNames: rn, evSources: evSources,
+      pub: S.pub, projName: S.projName, setProjName: function (e) { me.setState({ projName: e.target.value.replace(/[^A-Za-z0-9]/g, '') }); },
+      setPubName: function (e) { me.setState({ pub: Object.assign({}, S.pub, { name: e.target.value.replace(/[^A-Za-z0-9]/g, '') }) }); },
+      setPubGen: function (e) { me.setState({ pub: Object.assign({}, S.pub, { generation: e.target.value.replace(/[^0-9]/g, '') }) }); },
+      pubEdit: pubEdit, addPubProp: function () { me.setState({ pub: Object.assign({}, S.pub, { props: S.pub.props.concat([{ name: 'newProperty', type: 'String' }]) }) }); },
+      ob: ob, ol: ol, pubTimeline: pubTimeline, oGivenRows: oGivenRows, privNames: Object.keys(S.priv),
+      addOGiven: function (e) { var v = e.target.value; if (!v) return; me.setState({ oGiven: S.oGiven.concat([{ id: nid('og'), event: v, for: (S.oGiven[0] || { for: 'inv-0481' }).for, values: {} }]) }); e.target.value = ''; },
+      describe: this.describe(), playLines: this.tokenize(this.playText()),
+      bar: bar, showDiags: S.showDiags && D.length > 0, diagRows: diagRows, toggleDiags: function () { if (D.length) me.setState({ showDiags: !S.showDiags }); }
+    };
+  }
+}
+
+window.__mountDC(Component);
+</script>
+</body>
+</html>
