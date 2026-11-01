@@ -1,0 +1,1859 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Studio · Workflows and state machines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Kalam:wght@400&display=swap">
+<style>
+/* Prototype for Cratis/StudioIssues #1274 (workflows) and #1275 (state machines).
+   Layout: Studio's canvas chrome - project drawer, full-bleed domain canvas with cards, tool rail, zoom bar, chat bar.
+   Clicking a card flies its editor out of the card (the same fly-out every Studio artifact editor uses). */
+:root {
+  --ground: #111827; --card: #1f2937; --line: #374151; --line-2: #4b5563;
+  --text: #f3f4f6; --muted: #9ca3af; --faint: #6b7280;
+  --primary: #60a5fa; --primary-soft: rgba(96,165,250,.16);
+  --dot: rgba(148,163,184,.14);
+  --ce-ground: #15212b; --ce-canvas: #131e28; --ce-panel: #111c26; --ce-node: #172633; --ce-field: #0f1a24;
+  --ce-line: #2b3d4b; --ce-rule: #22323f; --ce-ink: #e6edf3; --ce-soft: #dbe4ea; --ce-muted: #8b9aa7;
+  --ce-flow: #4fc3b8; --ce-command: #3fa9f5; --ce-event: #f0913a; --ce-state: #c6e03a; --ce-code: #a78bfa;
+  --ce-bad: #ef5a5a; --ce-warn: #e8b64f; --ce-ok: #62d08b;
+  --sm-bg: #f49ab8; --sm-ink: #3a0d1c; --sm-border: #c96a86; --sm-badge: #c4517a;
+  --wf-bg: #7fdcb6; --wf-ink: #06301f; --wf-border: #4cae86; --wf-badge: #2f9a6e;
+  --f-ui: "Inter", Avenir, Helvetica, Arial, sans-serif;
+  --f-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--ground); color: var(--text); font: 13px/1.45 var(--f-ui); overflow: hidden; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.mono { font-family: var(--f-mono); }
+
+/* ---------- application shell ---------- */
+#app { display: grid; grid-template-columns: 270px 1fr; height: 100%; }
+#app.drawer-closed { grid-template-columns: 0 1fr; }
+#drawer { background: #0d1320; border-right: 1px solid var(--line); overflow: hidden auto; }
+#app.drawer-closed #drawer { border: 0; }
+.dr-head { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px 0 18px; border-bottom: 1px solid var(--line); font-weight: 700; font-size: 14px; }
+.dr-head .grow { flex: 1; }
+.dr-head button { border: 0; background: none; color: var(--muted); display: grid; place-items: center; width: 26px; height: 26px; border-radius: 6px; }
+.tree { list-style: none; margin: 0; padding: 8px 6px; }
+.tree li { list-style: none; }
+.tn { display: flex; align-items: center; gap: 8px; height: 32px; padding-right: 10px; border-radius: 7px; font-size: 13px; color: var(--text); cursor: pointer; user-select: none; white-space: nowrap; }
+.tn:hover { background: rgba(255,255,255,.04); }
+.tn.on { background: #1a2740; }
+.tn .chev { width: 14px; color: var(--faint); display: grid; place-items: center; }
+.tn .chev svg { width: 13px; height: 13px; }
+.tn .ic svg { width: 15px; height: 15px; }
+.tn .badge-new { margin-left: auto; font-size: 10.5px; font-weight: 600; color: #93c5fd; background: rgba(96,165,250,.16); padding: 1px 7px; border-radius: 5px; }
+.tn .count { margin-left: auto; font-size: 11px; color: var(--faint); }
+
+#board { position: relative; overflow: hidden; }
+#canvas { position: absolute; inset: 0; cursor: default; background-color: var(--ground); background-image: radial-gradient(var(--dot) 1.2px, transparent 1.2px); }
+#canvas.panning { cursor: grabbing; }
+#world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+
+.float { position: absolute; z-index: 5; background: rgba(17,24,39,.78); backdrop-filter: blur(14px) saturate(1.3); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+#pill { left: 16px; top: 14px; border-radius: 999px; display: flex; align-items: center; gap: 12px; padding: 6px 18px 6px 6px; }
+#pill .av { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: #0b1220; display: grid; place-items: center; }
+#pill .av svg { width: 19px; height: 19px; }
+#pill .t1 { font-weight: 600; font-size: 14px; }
+#pill .t2 { font-size: 12px; color: var(--muted); }
+#pill .menu { border: 0; background: none; color: var(--muted); margin-left: 6px; }
+#topbar { right: 16px; top: 14px; border-radius: 999px; display: flex; align-items: center; gap: 2px; padding: 6px; }
+#topbar button { width: 38px; height: 38px; border: 0; background: none; color: #d1d5db; border-radius: 50%; display: grid; place-items: center; }
+#topbar button:hover { background: rgba(255,255,255,.06); }
+#topbar .me { background: #374151; font-weight: 700; font-size: 12px; margin-left: 6px; }
+#rail { left: 16px; top: 50%; transform: translateY(-50%); border-radius: 999px; display: flex; flex-direction: column; gap: 6px; padding: 8px; }
+#rail button { width: 40px; height: 40px; border-radius: 50%; border: 0; background: none; color: #d1d5db; display: grid; place-items: center; position: relative; }
+#rail button:hover { background: rgba(255,255,255,.07); }
+#rail button.on { background: var(--primary); color: #0b1220; }
+#rail .sep { height: 1px; background: rgba(255,255,255,.1); margin: 2px 6px; }
+#rail button[data-tip]:hover::after { content: attr(data-tip); position: absolute; left: 52px; top: 50%; transform: translateY(-50%); background: #0b1220; border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; white-space: nowrap; font-size: 12px; color: var(--text); pointer-events: none; }
+#zoombar { right: 16px; bottom: 16px; border-radius: 999px; display: flex; align-items: center; gap: 4px; padding: 6px 8px; }
+#zoombar button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: none; color: #d1d5db; display: grid; place-items: center; }
+#zoombar button:hover { background: rgba(255,255,255,.07); }
+#zoombar .pct { min-width: 46px; text-align: center; font-size: 13px; font-weight: 600; }
+#zoombar .sep { width: 1px; height: 22px; background: rgba(255,255,255,.1); margin: 0 4px; }
+#chatbar { left: 50%; transform: translateX(-50%); bottom: 16px; width: min(780px, calc(100% - 420px)); border-radius: 22px; padding: 10px 10px 10px 18px; display: flex; flex-direction: column; gap: 8px; }
+#chatbar .scope { align-self: flex-start; font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px; }
+#chatbar .rowc { display: flex; align-items: center; gap: 10px; }
+#chatbar input { flex: 1; background: none; border: 0; outline: none; font-size: 14px; color: var(--text); }
+#chatbar input::placeholder { color: var(--faint); }
+#chatbar .agent { font-size: 12.5px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+#chatbar .send { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--primary); color: #0b1220; display: grid; place-items: center; }
+#hint { right: 16px; top: 78px; width: 300px; border-radius: 14px; padding: 12px 14px; font-size: 12.5px; color: var(--muted); }
+#hint b { color: var(--text); }
+#hint h3 { margin: 0 0 6px; font-size: 12px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+#hint h3 .grow { flex: 1; }
+#hint h3 button { border: 0; background: none; color: var(--faint); padding: 0; }
+#hint ul { margin: 6px 0 0; padding-left: 16px; display: grid; gap: 4px; }
+#hint a { color: #93c5fd; }
+#hint.closed { display: none; }
+
+.empty { position: absolute; left: 50%; top: 42%; transform: translate(-50%,-50%); text-align: center; color: var(--faint); max-width: 380px; }
+
+/* ---------- canvas cards ---------- */
+.card { position: absolute; background: var(--card); border: 1px solid var(--b); border-radius: 6px; box-shadow: 0 2px 8px rgb(0 0 0 / 25%); font-family: var(--f-ui); }
+.card.sm { --b: var(--sm-border); --hb: var(--sm-bg); --hi: var(--sm-ink); width: 340px; }
+.card.wf { --b: var(--wf-border); --hb: var(--wf-bg); --hi: var(--wf-ink); width: 360px; }
+.card.sel { outline: 2px solid var(--primary); outline-offset: 2px; }
+.card-h { display: flex; align-items: center; gap: 6px; padding: 4px 6px 4px 8px; background: var(--hb); color: var(--hi); border-radius: 5px 5px 0 0; cursor: grab; }
+.card-h .kind { display: grid; place-items: center; }
+.card-h .kind svg { width: 14px; height: 14px; }
+.card-h .nm { flex: 1; font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-h button { width: 20px; height: 20px; border: 0; background: none; color: inherit; opacity: .7; display: grid; place-items: center; border-radius: 4px; padding: 0; }
+.card-h button:hover { opacity: 1; background: rgba(0,0,0,.1); }
+.card-h button svg { width: 12px; height: 12px; }
+.card-b { padding: 8px 10px 10px; display: flex; flex-direction: column; gap: 7px; cursor: zoom-in; }
+.card-b:hover .thumb { border-color: #36506a; }
+.thumb { position: relative; background: var(--ce-canvas); border: 1px solid var(--ce-rule); border-radius: 4px; height: 150px; overflow: hidden; background-image: radial-gradient(#1f2e3a 1px, transparent 1px); background-size: 12px 12px; transition: border-color .15s; }
+.thumb svg { width: 100%; height: 100%; display: block; }
+.thumb .open { position: absolute; right: 6px; bottom: 6px; font-size: 10.5px; color: var(--ce-muted); background: rgba(15,26,36,.85); border: 1px solid var(--ce-line); padding: 1px 7px; border-radius: 999px; opacity: 0; transition: opacity .15s; }
+.card-b:hover .thumb .open { opacity: 1; }
+.desc { font-size: 12px; color: #d1d5db; }
+.frow { display: grid; grid-template-columns: 6.5rem 1fr; gap: 6px; align-items: baseline; font-size: 12px; }
+.frow .l { font-size: 11px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; color: var(--muted); }
+.frow .v { display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; padding: 0 6px; border-radius: 4px; height: 19px; white-space: nowrap; }
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 2px; background: var(--c); }
+.chip.ev { --c: var(--ce-event); background: rgba(240,145,58,.12); color: #ffc58f; }
+.chip.cmd { --c: var(--ce-command); background: rgba(63,169,245,.12); color: #9fd3ff; }
+.chip.rm { --c: var(--ce-state); background: rgba(198,224,58,.1); color: #dcef8a; }
+.chip.sm { --c: var(--sm-bg); background: rgba(244,154,184,.12); color: #ffc4d8; }
+.chip.wf { --c: var(--wf-bg); background: rgba(127,220,182,.12); color: #b3f1d6; }
+.chip.more::before { display: none; }
+.chip.more { background: rgba(255,255,255,.06); color: var(--muted); }
+.chip.link { cursor: pointer; text-decoration: underline; text-decoration-color: rgba(255,255,255,.25); text-underline-offset: 2px; }
+.card-f { display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 7px; margin-top: 2px; }
+.card-f .ok { color: var(--ce-ok); }
+.card-f .warn { color: var(--ce-warn); }
+.card-f .bad { color: var(--ce-bad); }
+.card-f span { display: inline-flex; gap: 4px; align-items: center; }
+.card-f svg { width: 12px; height: 12px; }
+
+.note { position: absolute; width: 190px; min-height: 120px; padding: 14px; font: 13px/1.35 "Kalam", "Comic Sans MS", cursive; color: #1f2937; box-shadow: 0 2px 8px rgba(0,0,0,.25); cursor: grab; text-align: center; display: grid; place-items: center; }
+.note.yellow { background: #fffe9e; } .note.pink { background: #ffb3cf; } .note.green { background: #b8f0b0; } .note.blue { background: #aedcff; }
+
+/* ---------- the fly-out editor ---------- */
+#overlay { position: fixed; inset: 0; z-index: 50; display: none; }
+#overlay.open { display: block; }
+.backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.55); opacity: 0; transition: opacity .28s; }
+#overlay.shown .backdrop { opacity: 1; }
+.panel { position: absolute; inset: 0; margin: auto; width: min(94rem, calc(100vw - 48px)); height: min(62rem, calc(100vh - 48px)); background: var(--ce-ground); border: 1px solid #2b3d4b; border-radius: 1rem; box-shadow: 0 24px 80px rgba(0,0,0,.55); display: grid; grid-template-rows: 3.5rem 1fr; overflow: hidden; transform-origin: 0 0; color: var(--ce-ink); }
+.panel.flying { transition: transform .3s cubic-bezier(.4,0,.2,1), opacity .3s; }
+@media (prefers-reduced-motion: reduce) { .panel.flying { transition: none; } .backdrop { transition: none; } }
+.ph { display: flex; align-items: center; gap: 12px; padding: 0 1.25rem; background: #111827; border-bottom: 1px solid var(--ce-line); }
+.kbadge { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; padding: 2px 8px; border-radius: 4px; color: #fff; }
+.kbadge.sm { background: var(--sm-badge); } .kbadge.wf { background: var(--wf-badge); }
+.ph .title { font-size: 16px; font-weight: 600; }
+.ph .crumbs { color: var(--ce-muted); font-size: 13px; }
+.ph .grow { flex: 1; }
+.ph .x { width: 30px; height: 30px; border: 0; background: none; color: var(--ce-muted); display: grid; place-items: center; border-radius: 6px; }
+.ph .x:hover { background: rgba(255,255,255,.06); color: var(--ce-ink); }
+.pb { display: grid; grid-template-columns: 226px minmax(0,1fr); min-height: 0; }
+
+.side { background: var(--ce-panel); border-right: 1px solid var(--ce-line); overflow: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 4px; }
+.side h4 { margin: 12px 4px 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ce-muted); display: flex; align-items: center; gap: 6px; }
+.side h4:first-child { margin-top: 0; }
+.side h4 .r { margin-left: auto; letter-spacing: 0; text-transform: none; font-weight: 700; }
+.side h4 .r.ok { color: var(--ce-ok); } .side h4 .r.bad { color: var(--ce-bad); }
+.side h4 button { margin-left: auto; border: 0; background: none; color: var(--ce-muted); padding: 0 2px; font-size: 16px; line-height: 1; }
+.sitem { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; font-size: 13px; padding: 5px 8px; border-radius: 8px; border: 1px solid transparent; background: none; color: var(--ce-soft); }
+.sitem:hover { background: rgba(255,255,255,.03); }
+.sitem.on { background: #16302f; border-color: #2f6e68; }
+.sitem .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--ce-muted)); flex: none; }
+.sitem .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sitem .bd { font-size: 10px; font-weight: 800; border-radius: 5px; padding: 1px 5px; background: rgba(255,255,255,.07); color: var(--ce-muted); }
+.sitem .bd.fin { background: rgba(244,154,184,.16); color: #ffc4d8; }
+.sitem .bd.ini { background: rgba(79,195,184,.16); color: #9be7df; }
+.sitem small { display: block; color: var(--ce-muted); font-size: 11px; }
+.spec { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; border-radius: 8px; cursor: pointer; font-size: 12.5px; }
+.spec:hover { background: rgba(255,255,255,.03); }
+.spec .st-ic { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; flex: none; margin-top: 1px; }
+.spec .st-ic.ok { background: rgba(98,208,139,.18); color: var(--ce-ok); }
+.spec .st-ic.bad { background: rgba(239,90,90,.18); color: var(--ce-bad); }
+.spec .st-ic svg { width: 10px; height: 10px; stroke-width: 3; }
+.spec small { display: block; color: var(--ce-muted); font-size: 11px; margin-top: 2px; }
+.legend { margin-top: auto; padding: 12px 4px 0; border-top: 1px solid var(--ce-rule); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; font-size: 11.5px; color: var(--ce-muted); }
+.legend span { display: flex; align-items: center; gap: 6px; }
+.legend i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+
+.main { display: grid; grid-template-rows: auto auto minmax(0,1fr) auto; grid-template-columns: minmax(0,1fr); min-width: 0; min-height: 0; }
+.det { display: flex; gap: 20px; align-items: flex-start; padding: 16px 22px 12px; }
+.det .l { flex: 1; min-width: 0; }
+.det .name { font-size: 22px; font-weight: 800; background: none; border: 1px solid transparent; border-radius: 6px; padding: 0 4px; margin-left: -5px; width: 100%; color: var(--ce-ink); }
+.det .name:hover { border-color: var(--ce-line); }
+.det .name:focus { border-color: var(--ce-flow); outline: none; background: var(--ce-field); }
+.det .about { margin-top: 6px; width: 100%; resize: none; background: var(--ce-field); border: 1px solid var(--ce-line); border-radius: 6px; padding: 7px 10px; color: var(--ce-soft); font-size: 13.5px; height: 38px; }
+.det .about:focus { outline: none; border-color: var(--ce-flow); }
+.det .r { display: flex; flex-direction: column; gap: 6px; }
+.det .r .eye { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ce-muted); }
+.facts { display: flex; gap: 8px; }
+.fact { background: var(--ce-node); border: 1px solid var(--ce-line); border-radius: 8px; padding: 6px 12px; font-size: 12px; color: var(--ce-muted); min-width: 120px; }
+.fact b { display: block; font-size: 13.5px; color: var(--ce-ink); font-weight: 700; }
+.tabs { display: flex; align-items: flex-end; gap: 4px; padding: 0 16px; background: #131f29; border-top: 1px solid var(--ce-rule); border-bottom: 1px solid var(--ce-rule); }
+.tabs .tab { border: 0; background: none; color: var(--ce-muted); font-weight: 700; font-size: 14px; padding: 12px 14px 10px; border-bottom: 2px solid transparent; }
+.tabs .tab.on { color: var(--ce-ink); border-bottom-color: var(--ce-flow); }
+.tabs .grow { flex: 1; }
+.tabs .tb { align-self: center; margin-bottom: 0; }
+.tb { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--ce-line); background: var(--ce-node); color: var(--ce-soft); font-weight: 600; font-size: 12.5px; white-space: nowrap; }
+.tb:hover:not(:disabled) { border-color: #3d566a; }
+.tb:disabled { opacity: .45; cursor: default; }
+.tb.primary { background: var(--ce-flow); color: #0d1a20; border-color: transparent; }
+.tb.ghost { background: none; }
+.tb svg { width: 14px; height: 14px; }
+.tb.sm { height: 26px; padding: 0 9px; font-size: 12px; }
+
+.work { display: grid; grid-template-columns: minmax(0,1fr) 380px; min-height: 0; }
+.work.full { grid-template-columns: 1fr; }
+.gcanvas { position: relative; overflow: hidden; background: var(--ce-canvas); background-image: radial-gradient(#1f2e3a 1px, transparent 1px); cursor: default; }
+.gcanvas.panning { cursor: grabbing; }
+.gworld { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.gworld svg.edges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+.gtools { position: absolute; left: 12px; top: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 3; }
+.palette { background: rgba(17,28,38,.92); border: 1px solid var(--ce-line); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 3px; width: 170px; }
+.palette .ph2 { font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ce-muted); padding: 2px 6px 6px; }
+.palette button { display: flex; align-items: center; gap: 8px; border: 1px solid transparent; background: none; color: var(--ce-soft); padding: 5px 6px; border-radius: 7px; text-align: left; font-size: 12.5px; }
+.palette button:hover { background: rgba(255,255,255,.04); border-color: var(--ce-line); }
+.palette .kic { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; background: color-mix(in srgb, var(--k) 20%, transparent); color: var(--k); }
+.palette .kic svg { width: 13px; height: 13px; }
+.palette small { display: block; font-size: 10.5px; color: var(--ce-muted); }
+.gzoom { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 4px; z-index: 3; }
+.gzoom button { width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--ce-line); background: rgba(17,28,38,.92); color: var(--ce-soft); display: grid; place-items: center; }
+.gzoom svg { width: 14px; height: 14px; }
+.ghelp { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); font-size: 11.5px; color: var(--ce-muted); background: rgba(17,28,38,.85); border: 1px solid var(--ce-rule); border-radius: 999px; padding: 3px 12px; z-index: 3; white-space: nowrap; }
+
+/* state machine diagram */
+.st { position: absolute; width: 150px; height: 56px; border-radius: 14px; background: var(--ce-node); border: 1.5px solid #3a5163; display: flex; flex-direction: column; justify-content: center; padding: 0 14px; cursor: grab; user-select: none; transition: border-color .15s, box-shadow .2s; }
+.st .n { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st .s { font-size: 11px; color: var(--ce-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st.fin { box-shadow: 0 0 0 3px var(--ce-canvas), 0 0 0 4.5px #6b4a57; }
+.st.ini { border-color: var(--ce-flow); }
+.st.sel { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(96,165,250,.25); }
+.st.fin.sel { box-shadow: 0 0 0 3px var(--ce-canvas), 0 0 0 4.5px var(--primary); }
+.st.problem { border-color: var(--ce-warn); border-style: dashed; }
+.st .h { position: absolute; right: -7px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--ce-flow); border: 2px solid var(--ce-canvas); opacity: 0; cursor: crosshair; transition: opacity .12s; }
+.st:hover .h, .st.sel .h { opacity: 1; }
+.st.cur { border-color: var(--ce-flow); box-shadow: 0 0 0 4px rgba(79,195,184,.25), 0 0 26px rgba(79,195,184,.35); background: #173634; }
+.st.fin.cur { box-shadow: 0 0 0 3px var(--ce-canvas), 0 0 0 4.5px var(--ce-flow), 0 0 26px rgba(79,195,184,.35); }
+.st.visited { background: #1a2d33; }
+.st.dim { opacity: .55; }
+.st .react { position: absolute; right: 8px; top: -9px; font-size: 10px; font-weight: 700; padding: 0 6px; border-radius: 999px; background: #2a1f33; border: 1px solid #5b3f6b; color: #d9b8ef; height: 17px; display: flex; align-items: center; gap: 3px; }
+.tl { position: absolute; transform: translate(-50%,-50%); background: var(--ce-field); border: 1px solid var(--ce-line); border-radius: 6px; padding: 2px 8px 3px; font-size: 11.5px; white-space: nowrap; cursor: pointer; z-index: 2; text-align: center; line-height: 1.35; }
+.tl .e { color: #ffc58f; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; }
+.tl .e::before { content: ""; width: 6px; height: 6px; border-radius: 2px; background: var(--ce-event); }
+.tl .g { display: block; font-family: var(--f-mono); font-size: 10.5px; color: var(--ce-muted); }
+.tl.sel { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(96,165,250,.25); }
+.tl.hot { border-color: var(--ce-flow); background: #12302d; }
+.tl.problem { border-color: var(--ce-warn); }
+svg.edges path.e { fill: none; stroke: #4d6a80; stroke-width: 1.6; }
+svg.edges path.e.sel { stroke: var(--primary); stroke-width: 2.2; }
+svg.edges path.e.hot { stroke: var(--ce-flow); stroke-width: 2.6; stroke-dasharray: 7 5; animation: flow 0.7s linear infinite; }
+svg.edges path.e.bad { stroke: #8a4b4b; stroke-dasharray: 4 4; }
+svg.edges path.e.temp { stroke: var(--ce-flow); stroke-dasharray: 5 4; }
+@keyframes flow { to { stroke-dashoffset: -12; } }
+
+/* workflow graph */
+.wn { position: absolute; width: 190px; height: 78px; background: var(--ce-node); border: 1.5px solid #3a5163; border-radius: 10px; cursor: grab; user-select: none; transition: border-color .15s, box-shadow .2s; }
+.wn .hd { height: 30px; display: flex; align-items: center; gap: 7px; padding: 0 9px; }
+.wn .hd .kic { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; background: color-mix(in srgb, var(--k) 22%, transparent); color: var(--k); flex: none; }
+.wn .hd .kic svg { width: 12px; height: 12px; }
+.wn .hd .n { font-size: 13px; font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wn .hd .k { font-size: 9.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--k); }
+.wn .sb { height: 18px; padding: 0 10px; font-size: 11px; color: var(--ce-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wn .ols { display: flex; height: 26px; margin-top: 2px; border-top: 1px solid var(--ce-rule); }
+.wn .ol { flex: 1; min-width: 0; position: relative; display: flex; justify-content: center; align-items: center; font-size: 10.5px; color: var(--ce-soft); white-space: nowrap; }
+.wn .ol + .ol { border-left: 1px solid var(--ce-rule); }
+.wn .ol.neg { color: #f2a7a7; }
+.wn .ol.free { color: var(--ce-muted); font-style: italic; }
+.port { position: absolute; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ce-canvas); background: #6d8aa0; }
+.port.out { left: 50%; bottom: -8px; margin-left: -6px; cursor: crosshair; z-index: 2; }
+.port.out:hover { background: var(--ce-flow); transform: scale(1.25); }
+.port.in { left: 50%; top: -7px; margin-left: -6px; }
+.wn.sel { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(96,165,250,.25); }
+.wn.problem { border-color: var(--ce-warn); border-style: dashed; }
+.wn.cur { border-color: var(--ce-flow); box-shadow: 0 0 0 4px rgba(79,195,184,.25), 0 0 26px rgba(79,195,184,.35); }
+.wn.done { background: #16302a; border-color: #2f7a5b; }
+.wn.failed { background: #331a1d; border-color: #8a3b3b; }
+.wn.dim { opacity: .55; }
+.wn .mult { position: absolute; right: -8px; top: -9px; background: var(--ce-state); color: #1d2400; font-size: 10px; font-weight: 800; border-radius: 999px; padding: 0 6px; height: 17px; display: grid; place-items: center; }
+.wn .att { position: absolute; left: 8px; top: -9px; background: #3a1d1d; border: 1px solid #8a3b3b; color: #ffb4b4; font-size: 10px; font-weight: 700; border-radius: 999px; padding: 0 6px; height: 17px; display: grid; place-items: center; }
+
+/* inspector */
+.insp { border-left: 1px solid var(--ce-line); background: var(--ce-panel); overflow: auto; padding: 16px 16px 24px; display: flex; flex-direction: column; gap: 14px; }
+.insp .eye { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ce-flow); }
+.insp h3 { margin: 2px 0 0; font-family: var(--f-mono); font-size: 17px; font-weight: 600; }
+.insp p.lead { margin: 0; color: var(--ce-muted); font-size: 12.5px; }
+.fld { display: grid; grid-template-columns: 92px 1fr; gap: 8px; align-items: center; font-size: 13px; }
+.fld > label { color: var(--ce-muted); }
+.fld.stack { grid-template-columns: 1fr; gap: 5px; }
+.inp, .sel2 { height: 32px; background: var(--ce-field); border: 1px solid var(--ce-line); border-radius: 6px; padding: 0 9px; color: var(--ce-ink); width: 100%; min-width: 0; }
+.inp:focus, .sel2:focus { outline: none; border-color: var(--ce-flow); }
+textarea.inp { height: 60px; padding: 7px 9px; resize: vertical; }
+.seg2 { display: inline-flex; border: 1px solid var(--ce-line); border-radius: 7px; overflow: hidden; background: var(--ce-field); }
+.seg2 button { border: 0; background: none; color: var(--ce-muted); height: 30px; padding: 0 11px; font-size: 12.5px; font-weight: 600; }
+.seg2 button + button { border-left: 1px solid var(--ce-line); }
+.seg2 button.on { background: #1d3b3a; color: var(--ce-ink); }
+.sect { border-top: 1px solid var(--ce-rule); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.sect > .t { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ce-muted); display: flex; align-items: center; }
+.sect > .t .r { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; }
+.sect > .why { font-size: 12px; color: var(--ce-muted); margin-top: -3px; }
+.box { background: var(--ce-node); border: 1px solid var(--ce-line); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 7px; font-size: 12.5px; }
+.box.hl { border-color: #6c5a2a; }
+.rowx { display: flex; gap: 6px; align-items: center; }
+.rowx > * { flex: 1; min-width: 0; }
+.rowx > .fixed { flex: none; }
+.ibtn { width: 26px; height: 26px; border: 0; background: none; color: var(--ce-muted); border-radius: 5px; display: grid; place-items: center; flex: none; }
+.ibtn:hover { background: rgba(255,255,255,.06); color: var(--ce-ink); }
+.ibtn svg { width: 13px; height: 13px; }
+.addl { border: 1px dashed var(--ce-line); background: none; border-radius: 6px; color: var(--ce-muted); font-size: 12.5px; padding: 6px; }
+.addl:hover { border-color: var(--primary); color: var(--ce-ink); }
+.check { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; cursor: pointer; }
+.check input { margin-top: 3px; accent-color: var(--ce-flow); }
+.check small { display: block; color: var(--ce-muted); font-size: 11.5px; }
+.code-note { font-family: var(--f-mono); font-size: 11.5px; color: var(--ce-muted); background: var(--ce-field); border: 1px solid var(--ce-rule); border-radius: 6px; padding: 6px 8px; white-space: pre-wrap; }
+.callout { font-size: 12px; color: var(--ce-soft); background: rgba(232,182,79,.08); border: 1px solid rgba(232,182,79,.35); border-radius: 8px; padding: 8px 10px; }
+.callout.info { background: rgba(96,165,250,.07); border-color: rgba(96,165,250,.3); }
+.listrow { display: flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 3px 0; }
+.listrow .arrow { color: var(--ce-muted); }
+.listrow .lnk { cursor: pointer; }
+.listrow .lnk:hover { text-decoration: underline; }
+
+/* simulate */
+.sim { border-left: 1px solid var(--ce-line); background: var(--ce-panel); display: grid; grid-template-rows: auto auto 1fr auto; min-height: 0; }
+.sim .top { padding: 14px 16px 10px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--ce-rule); }
+.sim .now { display: flex; align-items: center; gap: 10px; }
+.sim .now .big { font-size: 20px; font-weight: 800; }
+.sim .now .pillst { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+.pillst.running { background: rgba(79,195,184,.16); color: #9be7df; }
+.pillst.ok { background: rgba(98,208,139,.16); color: var(--ce-ok); }
+.pillst.bad { background: rgba(239,90,90,.16); color: var(--ce-bad); }
+.pillst.idle { background: rgba(255,255,255,.07); color: var(--ce-muted); }
+.sim .send { padding: 10px 16px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--ce-rule); }
+.sim .send .t { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ce-muted); }
+.evbtns { display: flex; flex-wrap: wrap; gap: 5px; }
+.evbtn { border: 1px solid rgba(240,145,58,.35); background: rgba(240,145,58,.09); color: #ffc58f; border-radius: 6px; font-size: 12px; padding: 3px 8px; display: inline-flex; gap: 5px; align-items: center; }
+.evbtn:hover { background: rgba(240,145,58,.18); }
+.evbtn.dim { opacity: .55; }
+.evbtn::before { content: ""; width: 6px; height: 6px; border-radius: 2px; background: var(--ce-event); }
+.choice { display: flex; flex-direction: column; gap: 6px; }
+.choice .q { font-size: 13px; color: var(--ce-soft); }
+.choice .q b { color: var(--ce-ink); }
+.choice .opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.timeline { overflow: auto; padding: 10px 16px; display: flex; flex-direction: column; gap: 2px; }
+.ti { display: grid; grid-template-columns: 18px 1fr; gap: 8px; font-size: 12.5px; padding: 5px 0; position: relative; }
+.ti::before { content: ""; position: absolute; left: 8px; top: 22px; bottom: -6px; width: 1px; background: var(--ce-rule); }
+.ti:last-child::before { display: none; }
+.ti .d { width: 17px; height: 17px; border-radius: 50%; display: grid; place-items: center; background: var(--ce-node); border: 1px solid var(--ce-line); color: var(--ce-muted); }
+.ti .d svg { width: 10px; height: 10px; stroke-width: 3; }
+.ti.moved .d { background: rgba(79,195,184,.2); border-color: #2f6e68; color: var(--ce-flow); }
+.ti.ignored .d { color: var(--ce-muted); }
+.ti.failed .d { background: rgba(239,90,90,.18); border-color: #8a3b3b; color: var(--ce-bad); }
+.ti.done .d { background: rgba(98,208,139,.18); border-color: #2f7a5b; color: var(--ce-ok); }
+.ti .w { color: var(--ce-muted); font-size: 11.5px; }
+.ti .r2 { color: #d9b8ef; font-size: 11.5px; }
+.sim .foot { padding: 10px 16px; border-top: 1px solid var(--ce-rule); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.sim .foot .inp { flex: 1; min-width: 120px; height: 30px; }
+
+/* C# */
+.codewrap { overflow: auto; background: #0d1720; padding: 18px 22px; }
+.codehead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 12.5px; color: var(--ce-muted); }
+pre.code { margin: 0; font: 12.5px/1.6 var(--f-mono); color: #d7e1e8; white-space: pre; }
+pre.code .kw { color: #c792ea; } pre.code .ty { color: #82d3c8; } pre.code .st2 { color: #c3e88d; } pre.code .cm { color: #637989; font-style: italic; } pre.code .ev { color: #ffc58f; }
+
+/* used in */
+.usedin { overflow: auto; padding: 22px; display: flex; flex-direction: column; gap: 16px; }
+.strip { display: flex; align-items: stretch; gap: 0; background: var(--ce-canvas); border: 1px solid var(--ce-rule); border-radius: 10px; padding: 18px; overflow-x: auto; }
+.emc { width: 150px; min-height: 76px; border-radius: 4px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #1b1b1b; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+.emc small { display: block; font-weight: 500; font-size: 10.5px; opacity: .75; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.emc.ev { background: #ff9933; } .emc.cmd { background: #42b3ff; } .emc.rm { background: #c8e03a; }
+.emc.auto { background: #253543; color: var(--ce-ink); border: 1.5px dashed #5b7a90; width: 210px; font-weight: 600; }
+.emc.auto .chip { margin-top: 6px; }
+.strip .arr { align-self: center; color: #5b7a90; padding: 0 8px; font-size: 18px; }
+
+/* checks bar */
+.checks { border-top: 1px solid var(--ce-line); padding: 8px 18px; display: flex; align-items: center; gap: 12px; font-size: 13px; min-height: 42px; background: #121d27; }
+.checks.ok { color: var(--ce-ok); }
+.checks.warn { background: #2a2414; border-top-color: #5c4a1c; color: #f3d38d; }
+.checks.bad { background: #2c1717; border-top-color: #6b2b2b; color: #ffb4b4; }
+.checks .lbl { font-weight: 800; letter-spacing: .06em; font-size: 12px; text-transform: uppercase; }
+.checks .msg { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ce-soft); }
+.checks .lnk { border: 0; background: none; color: inherit; font-weight: 700; }
+.problems { position: absolute; right: 18px; bottom: 50px; width: 520px; max-height: 340px; overflow: auto; background: #1b2431; border: 1px solid #3b4658; border-radius: 10px; box-shadow: 0 14px 34px rgb(0 0 0 / 50%); padding: 8px; z-index: 10; }
+.prob { display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; padding: 7px 8px; border-radius: 7px; font-size: 12.5px; align-items: start; }
+.prob:hover { background: rgba(255,255,255,.03); }
+.prob .ic { color: var(--ce-warn); } .prob.info .ic { color: var(--primary); } .prob.bad .ic { color: var(--ce-bad); }
+.prob .ic svg { width: 14px; height: 14px; }
+.prob small { display: block; color: var(--ce-muted); font-size: 11.5px; margin-top: 2px; }
+
+#toast { position: fixed; left: 50%; bottom: 96px; transform: translate(-50%, 20px); background: #1b2431; border: 1px solid #3b4658; color: var(--text); padding: 8px 14px; border-radius: 10px; font-size: 13px; box-shadow: 0 14px 34px rgb(0 0 0 / 50%); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 100; display: flex; gap: 12px; align-items: center; }
+#toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+#toast button { border: 0; background: none; color: #93c5fd; font-weight: 700; }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="drawer"></aside>
+  <main id="board">
+    <div id="canvas"><div id="world"></div></div>
+    <div id="pill" class="float">
+      <div class="av"></div>
+      <div><div class="t1">Acme Commerce</div><div class="t2" id="pillSub">Acme Shop · Storefront</div></div>
+      <button class="menu" title="Project menu" data-act="noop"></button>
+    </div>
+    <div id="topbar" class="float"></div>
+    <div id="rail" class="float"></div>
+    <div id="hint" class="float"></div>
+    <div id="zoombar" class="float"></div>
+    <div id="chatbar" class="float">
+      <span class="scope" id="chatScope">State machines</span>
+      <div class="rowc">
+        <input id="chatInput" placeholder="Talk to your agents, or tell Studio what to change…">
+        <span class="agent">✦ Built-in ⌄</span>
+        <button class="send" title="Send" data-act="chat"></button>
+      </div>
+    </div>
+  </main>
+</div>
+<div id="overlay"><div class="backdrop" data-act="close"></div><div class="panel" id="panel"></div></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* =========================================================================================
+   Icons (lucide-style strokes, inlined so the prototype works offline)
+   ========================================================================================= */
+const P = {
+  zap: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+  diamond: '<path d="M12 2.5 21.5 12 12 21.5 2.5 12z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  userCheck: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/>',
+  repeat: '<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
+  merge: '<path d="M6 3v6a6 6 0 0 0 6 6h6"/><path d="M6 21v-6"/><path d="m15 12 3 3-3 3"/>',
+  pencil: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  minus: '<path d="M5 12h14"/>',
+  flow: '<rect x="3" y="3" width="8" height="8" rx="2"/><path d="M7 11v4a2 2 0 0 0 2 2h4"/><rect x="13" y="13" width="8" height="8" rx="2"/>',
+  states: '<circle cx="5.5" cy="12" r="3"/><circle cx="18.5" cy="5.5" r="3"/><circle cx="18.5" cy="18.5" r="3"/><path d="M8.3 10.7 15.8 7M8.3 13.3l7.5 3.7"/>',
+  sticky: '<path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9.5L21 14.5V5a2 2 0 0 0-2-2z"/><path d="M15 21v-5a1 1 0 0 1 1-1h5"/>',
+  columns: '<rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="11" rx="1"/>',
+  cursor: '<path d="m4 4 7 17 2.5-7.5L21 11z"/>',
+  folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+  tag: '<path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z"/><circle cx="7.5" cy="7.5" r="1"/>',
+  lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  bulb: '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  layers: '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+  monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  chevR: '<path d="m9 18 6-6-6-6"/>',
+  chevD: '<path d="m6 9 6 6 6-6"/>',
+  chevL: '<path d="m15 18-6-6 6-6"/>',
+  home: '<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  warn: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  reset: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  skip: '<polygon points="5 4 15 12 5 20 5 4"/><path d="M19 5v14"/>',
+  arrowR: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  code: '<path d="m16 18 6-6-6-6"/><path d="m8 6-6 6 6 6"/>',
+  history: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+  chat: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/>',
+  flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+  sliders: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+  dots: '<circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>',
+  help: '<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+  undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+};
+const ic = (name, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24">${P[name] || ''}</svg>`;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+let uidN = 100;
+const uid = p => `${p}${++uidN}`;
+const pascal = s => String(s).replace(/[^A-Za-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean).map(w => w[0].toUpperCase() + w.slice(1)).join('') || 'Unnamed';
+const kebab = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'node';
+
+/* =========================================================================================
+   The Storefront domain - what the board knows about (events, commands, read models)
+   ========================================================================================= */
+const DOMAIN = {
+  events: ['OrderPlaced', 'PaymentCaptured', 'OrderPacked', 'ShipmentDispatched', 'DeliveryConfirmed', 'OrderCancelled', 'RefundIssued', 'ShipmentReturned',
+    'PaymentAuthorized', 'PaymentDeclined', 'PaymentVoided', 'AuthorizationExpired', 'RefundRequested', 'StockReserved', 'StockLevelChanged', 'SupplierQuoteReceived'],
+  commands: ['ReserveStock', 'CreateShipment', 'NotifyCustomer', 'CancelOrder', 'ReleaseStock', 'OpenSupportCase', 'IssueRefund', 'PlaceBackorder',
+    'FindLowStockItems', 'RequestSupplierQuote', 'SendRestockSummary'],
+  readModels: {
+    Order: ['Status', 'Total', 'ReturnReason', 'ItemsInStock', 'Customer', 'PaidAt'],
+    Payment: ['Status', 'Amount', 'AuthorizedAt'],
+    Refund: ['Amount', 'Reason', 'OrderId'],
+    Product: ['StockLevel', 'ReorderPoint'],
+  },
+  roles: ['Warehouse lead', 'Finance', 'Support', 'Store manager'],
+};
+
+/* =========================================================================================
+   State machines (#1275) - modeled on Cratis.Orleans' EventSourcedStateMachine:
+   states, transitions "on <event> [when <guard>] -> <state>", an initial state and a followed read model.
+   ========================================================================================= */
+const S = {
+  board: 'sm',
+  view: { sm: { x: 120, y: 60, k: 1 }, wf: { x: 120, y: 60, k: 1 } },
+  selCard: null,
+  hint: true,
+  machines: [
+    {
+      id: 'sm-order', name: 'Order lifecycle', about: 'Where an order is, from placed to delivered, cancelled or refunded. Follows the facts; never decides them.',
+      model: 'Order', x: 0, y: 0, initial: 'placed',
+      states: [
+        { id: 'placed', name: 'Placed', x: 300, y: 20, final: false, about: 'The customer has checked out.', onEnter: [] },
+        { id: 'paid', name: 'Paid', x: 300, y: 145, final: false, about: 'Payment is captured.', onEnter: [{ kind: 'workflow', ref: 'wf-fulfil' }] },
+        { id: 'packed', name: 'Packed', x: 300, y: 270, final: false, about: '', onEnter: [] },
+        { id: 'shipped', name: 'Shipped', x: 300, y: 395, final: false, about: '', onEnter: [{ kind: 'command', ref: 'NotifyCustomer' }] },
+        { id: 'delivered', name: 'Delivered', x: 300, y: 520, final: true, about: '', onEnter: [] },
+        { id: 'cancelled', name: 'Cancelled', x: 640, y: 20, final: true, about: '', onEnter: [{ kind: 'command', ref: 'ReleaseStock' }] },
+        { id: 'refunded', name: 'Refunded', x: 640, y: 270, final: true, about: '', onEnter: [] },
+      ],
+      transitions: [
+        { id: 't1', from: 'placed', to: 'paid', event: 'PaymentCaptured', guard: null },
+        { id: 't2', from: 'placed', to: 'cancelled', event: 'OrderCancelled', guard: null },
+        { id: 't3', from: 'paid', to: 'packed', event: 'OrderPacked', guard: null },
+        { id: 't4', from: 'paid', to: 'refunded', event: 'RefundIssued', guard: null },
+        { id: 't5', from: 'packed', to: 'shipped', event: 'ShipmentDispatched', guard: null },
+        { id: 't6', from: 'shipped', to: 'delivered', event: 'DeliveryConfirmed', guard: null },
+        { id: 't7', from: 'shipped', to: 'refunded', event: 'ShipmentReturned', guard: { prop: 'ReturnReason', op: 'is set', value: '' } },
+      ],
+      specs: [
+        { id: 'sp1', name: 'A paid order that gets packed is packed', given: ['PaymentCaptured', 'OrderPacked'], guards: {}, then: 'packed' },
+        { id: 'sp2', name: 'Dispatching an unpacked order is ignored', given: ['PaymentCaptured', 'ShipmentDispatched'], guards: {}, then: 'paid' },
+        { id: 'sp3', name: 'A return with a reason refunds the order', given: ['PaymentCaptured', 'OrderPacked', 'ShipmentDispatched', 'ShipmentReturned'], guards: { t7: true }, then: 'refunded' },
+      ],
+      usedIn: [{ model: 'Order fulfilment', slice: 'Fulfil when paid', event: 'PaymentCaptured', workflow: 'wf-fulfil', command: 'ReserveStock', state: 'paid' }],
+    },
+    {
+      id: 'sm-payment', name: 'Payment', about: 'A card payment from authorization to capture.',
+      model: 'Payment', x: 400, y: 0, initial: 'pending',
+      states: [
+        { id: 'pending', name: 'Pending', x: 300, y: 20, final: false, about: '', onEnter: [] },
+        { id: 'authorized', name: 'Authorized', x: 300, y: 160, final: false, about: '', onEnter: [] },
+        { id: 'captured', name: 'Captured', x: 300, y: 300, final: false, about: '', onEnter: [] },
+        { id: 'declined', name: 'Declined', x: 640, y: 20, final: true, about: '', onEnter: [{ kind: 'command', ref: 'NotifyCustomer' }] },
+        { id: 'voided', name: 'Voided', x: 640, y: 160, final: true, about: '', onEnter: [] },
+        { id: 'expired', name: 'Expired', x: 640, y: 300, final: true, about: 'An authorization the bank let lapse.', onEnter: [] },
+      ],
+      transitions: [
+        { id: 'p1', from: 'pending', to: 'authorized', event: 'PaymentAuthorized', guard: null },
+        { id: 'p2', from: 'pending', to: 'declined', event: 'PaymentDeclined', guard: null },
+        { id: 'p3', from: 'authorized', to: 'captured', event: 'PaymentCaptured', guard: null },
+        { id: 'p4', from: 'authorized', to: 'voided', event: 'PaymentVoided', guard: null },
+      ],
+      specs: [
+        { id: 'ps1', name: 'An authorized payment can be captured', given: ['PaymentAuthorized', 'PaymentCaptured'], guards: {}, then: 'captured' },
+      ],
+      usedIn: [],
+    },
+  ],
+  workflows: [],
+  notes: {
+    sm: [
+      { id: 'n1', x: 0, y: 760, colour: 'yellow', text: '[QUESTION] Can a delivered order still be returned, or does that start a new return?' },
+      { id: 'n2', x: 230, y: 760, colour: 'pink', text: '[RISK] Payment captures before the order is placed if the provider retries late.' },
+    ],
+    wf: [
+      { id: 'n3', x: 0, y: 640, colour: 'green', text: '[DECISION] Backorders need a warehouse lead to accept them within a day.' },
+    ],
+  },
+};
+
+/* =========================================================================================
+   Workflows (#1274) - a graph of nodes with named outlets, the shape of the workflow engine
+   being extracted into Cratis.Orleans: trigger, action, decision, wait, approval, for each, join.
+   ========================================================================================= */
+const KINDS = {
+  trigger: { label: 'Trigger', icon: 'zap', k: '#f0913a', blurb: 'What starts a run' },
+  action: { label: 'Action', icon: 'play', k: '#3fa9f5', blurb: 'Sends a command' },
+  decision: { label: 'Decision', icon: 'diamond', k: '#a78bfa', blurb: 'Chooses a path' },
+  wait: { label: 'Wait', icon: 'clock', k: '#4fc3b8', blurb: 'For an event or time' },
+  approval: { label: 'Approval', icon: 'userCheck', k: '#e8b64f', blurb: 'A person decides' },
+  foreach: { label: 'For each', icon: 'repeat', k: '#c6e03a', blurb: 'Runs per item' },
+  join: { label: 'Join', icon: 'merge', k: '#8b9aa7', blurb: 'Waits for branches' },
+};
+const NEG = ['failed', 'rejected', 'expired'];
+function outletsOf(n) {
+  switch (n.kind) {
+    case 'trigger': return ['next'];
+    case 'action': return ['next', 'failed'];
+    case 'decision': return n.cfg.outlets;
+    case 'wait': return n.cfg.expires ? ['resumed', 'expired'] : ['resumed'];
+    case 'approval': return n.cfg.expires ? ['approved', 'rejected', 'expired'] : ['approved', 'rejected'];
+    case 'foreach': return ['each', 'completed'];
+    case 'join': return ['next'];
+  }
+  return ['next'];
+}
+function nodeSummary(n) {
+  const c = n.cfg;
+  switch (n.kind) {
+    case 'trigger':
+      if (c.on === 'state') return `When ${machineName(c.machine)} enters ${stateName(c.machine, c.state)}`;
+      if (c.on === 'schedule') return `On schedule · ${c.schedule}`;
+      if (c.on === 'manual') return 'Started by a person';
+      return `When ${c.event}`;
+    case 'action': return `Sends ${c.command}${c.attempts > 1 ? ` · ${c.attempts} tries` : ''}`;
+    case 'decision': return `If ${c.condition}`;
+    case 'wait': return c.for === 'timer' ? `For ${c.after}` : `For ${c.event}${c.expires ? ` · ${c.expires}` : ' · no limit'}`;
+    case 'approval': return `By ${c.role}${c.expires ? ` · ${c.expires}` : ''}`;
+    case 'foreach': return `Each of ${c.items} · ${c.parallel} at a time`;
+    case 'join': return c.mode === 'all' ? 'All branches' : c.mode === 'any' ? 'First branch' : `At least ${c.atLeast}`;
+  }
+  return '';
+}
+const WN = (id, kind, name, x, y, cfg) => ({ id, kind, name, x, y, cfg });
+S.workflows = [
+  {
+    id: 'wf-fulfil', name: 'Fulfil order', about: 'From a paid order to a parcel on its way, or a backorder someone accepted.', subject: 'Order', x: 0, y: 0,
+    nodes: [
+      WN('paid', 'trigger', 'Order is paid', 260, 0, { on: 'state', machine: 'sm-order', state: 'paid', event: 'PaymentCaptured' }),
+      WN('reserve', 'action', 'Reserve stock', 260, 130, { command: 'ReserveStock', attempts: 3, timeout: '1 min', delay: '30 s' }),
+      WN('instock', 'decision', 'In stock?', 260, 260, { condition: 'Order.ItemsInStock', outlets: ['in stock', 'backorder'] }),
+      WN('ship', 'action', 'Create shipment', 30, 390, { command: 'CreateShipment', attempts: 3, timeout: '1 min', delay: '30 s' }),
+      WN('dispatched', 'wait', 'Parcel leaves', 30, 520, { for: 'event', event: 'ShipmentDispatched', expires: '2 days', after: '' }),
+      WN('notify', 'action', 'Tell the customer', 30, 650, { command: 'NotifyCustomer', attempts: 5, timeout: '30 s', delay: '1 min' }),
+      WN('accept', 'approval', 'Accept backorder?', 370, 390, { role: 'Warehouse lead', expires: '1 day' }),
+      WN('backorder', 'action', 'Place backorder', 260, 520, { command: 'PlaceBackorder', attempts: 3, timeout: '1 min', delay: '30 s' }),
+      WN('cancel', 'action', 'Cancel order', 490, 520, { command: 'CancelOrder', attempts: 3, timeout: '1 min', delay: '30 s' }),
+      WN('escalate', 'action', 'Escalate to support', 640, 650, { command: 'OpenSupportCase', attempts: 3, timeout: '1 min', delay: '30 s' }),
+    ],
+    edges: [
+      { from: 'paid', outlet: 'next', to: 'reserve' },
+      { from: 'reserve', outlet: 'next', to: 'instock' },
+      { from: 'reserve', outlet: 'failed', to: 'escalate' },
+      { from: 'instock', outlet: 'in stock', to: 'ship' },
+      { from: 'instock', outlet: 'backorder', to: 'accept' },
+      { from: 'ship', outlet: 'next', to: 'dispatched' },
+      { from: 'dispatched', outlet: 'resumed', to: 'notify' },
+      { from: 'dispatched', outlet: 'expired', to: 'escalate' },
+      { from: 'accept', outlet: 'approved', to: 'backorder' },
+      { from: 'accept', outlet: 'rejected', to: 'cancel' },
+      { from: 'accept', outlet: 'expired', to: 'escalate' },
+    ],
+  },
+  {
+    id: 'wf-restock', name: 'Nightly restock', about: 'Every night, ask suppliers for quotes on what is running low.', subject: 'Product', x: 410, y: 0,
+    nodes: [
+      WN('night', 'trigger', 'Every night', 120, 0, { on: 'schedule', schedule: '02:00 every day', event: 'StockLevelChanged' }),
+      WN('find', 'action', 'Find low stock', 120, 130, { command: 'FindLowStockItems', attempts: 2, timeout: '5 min', delay: '1 min' }),
+      WN('each', 'foreach', 'Each low item', 120, 260, { items: 'low stock items', parallel: 4 }),
+      WN('quote', 'action', 'Ask the supplier', 0, 390, { command: 'RequestSupplierQuote', attempts: 3, timeout: '1 min', delay: '5 min' }),
+      WN('alldone', 'join', 'All asked', 120, 520, { mode: 'all', atLeast: 1 }),
+      WN('summary', 'action', 'Send summary', 120, 650, { command: 'SendRestockSummary', attempts: 3, timeout: '1 min', delay: '1 min' }),
+    ],
+    edges: [
+      { from: 'night', outlet: 'next', to: 'find' },
+      { from: 'find', outlet: 'next', to: 'each' },
+      { from: 'each', outlet: 'each', to: 'quote' },
+      { from: 'quote', outlet: 'next', to: 'alldone' },
+      { from: 'each', outlet: 'completed', to: 'alldone' },
+      { from: 'alldone', outlet: 'next', to: 'summary' },
+    ],
+  },
+  {
+    id: 'wf-refund', name: 'Large refund approval', about: 'Refunds above 5 000 need Finance before the money leaves.', subject: 'Refund', x: 840, y: 0,
+    nodes: [
+      WN('req', 'trigger', 'Refund requested', 220, 0, { on: 'event', event: 'RefundRequested' }),
+      WN('large', 'decision', 'Over 5 000?', 220, 130, { condition: 'Refund.Amount > 5000', outlets: ['yes', 'no'] }),
+      WN('finance', 'approval', 'Finance approves', 40, 260, { role: 'Finance', expires: '' }),
+      WN('issue', 'action', 'Issue refund', 130, 400, { command: 'IssueRefund', attempts: 3, timeout: '1 min', delay: '30 s' }),
+      WN('tell', 'action', 'Tell the customer', 370, 400, { command: 'NotifyCustomer', attempts: 5, timeout: '30 s', delay: '1 min' }),
+    ],
+    edges: [
+      { from: 'req', outlet: 'next', to: 'large' },
+      { from: 'large', outlet: 'yes', to: 'finance' },
+      { from: 'large', outlet: 'no', to: 'issue' },
+      { from: 'finance', outlet: 'approved', to: 'issue' },
+      { from: 'finance', outlet: 'rejected', to: 'tell' },
+    ],
+  },
+];
+
+const machine = id => S.machines.find(m => m.id === id);
+const workflow = id => S.workflows.find(w => w.id === id);
+const machineName = id => machine(id)?.name ?? 'a state machine';
+const stateName = (mid, sid) => machine(mid)?.states.find(s => s.id === sid)?.name ?? '?';
+const guardText = (m, g) => g ? `${m.model}.${g.prop} ${g.op}${g.op === 'is set' || g.op === 'is not set' ? '' : ' ' + g.value}` : '';
+
+/* =========================================================================================
+   State machine semantics - the same rules EventSourcedStateMachine runs:
+   a state allows the targets of its outgoing transitions; on an event the first defined
+   transition for that event whose guard holds and whose target the current state allows is taken;
+   anything else is ignored (a refused transition is a no-op, not an error).
+   ========================================================================================= */
+function allowed(m, sid) { return [...new Set(m.transitions.filter(t => t.from === sid).map(t => t.to))]; }
+function definitions(m) {
+  // In code, a transition is "On<E>().When(g).TransitionTo<T>()" - it is not tied to the state it leaves.
+  const seen = new Map();
+  for (const t of m.transitions) {
+    const key = `${t.event}|${guardText(m, t.guard)}|${t.to}`;
+    if (!seen.has(key)) seen.set(key, { ...t, sources: [t.from], ids: [t.id] });
+    else { seen.get(key).sources.push(t.from); seen.get(key).ids.push(t.id); }
+  }
+  return [...seen.values()];
+}
+function step(m, cur, event, guards) {
+  const defs = definitions(m).filter(d => d.event === event);
+  if (!defs.length) return { outcome: 'unknown', from: cur, to: cur };
+  const allow = allowed(m, cur);
+  let blockedByGuard = null;
+  for (const d of defs) {
+    if (!allow.includes(d.to)) continue;
+    const ok = !d.guard || d.ids.some(id => guards[id]);
+    if (!ok) { blockedByGuard = d; continue; }
+    const drawn = m.transitions.find(t => t.from === cur && t.to === d.to && t.event === event);
+    return { outcome: 'moved', from: cur, to: d.to, tid: drawn ? drawn.id : d.ids[0], implicit: !drawn };
+  }
+  if (blockedByGuard) return { outcome: 'guard', from: cur, to: cur, def: blockedByGuard };
+  return { outcome: 'ignored', from: cur, to: cur };
+}
+function run(m, events, guards) {
+  let cur = m.initial;
+  const steps = [];
+  for (const e of events) { const r = step(m, cur, e, guards); steps.push({ event: e, ...r }); cur = r.to; }
+  return { state: cur, steps };
+}
+function reachable(m) {
+  const seen = new Set([m.initial]); const q = [m.initial];
+  while (q.length) { const s = q.shift(); for (const t of allowed(m, s)) if (!seen.has(t)) { seen.add(t); q.push(t); } }
+  return seen;
+}
+function smChecks(m) {
+  const out = [];
+  const reach = reachable(m);
+  for (const s of m.states) {
+    if (!reach.has(s.id)) out.push({ sev: 'warn', on: s.id, text: `${s.name} can never be reached`, why: `No transition leads to it from ${stateName(m.id, m.initial)}. Add one, or remove the state.` });
+    else if (!s.final && allowed(m, s.id).length === 0) out.push({ sev: 'warn', on: s.id, text: `${s.name} has no way out`, why: `Once a ${m.model.toLowerCase()} is here, nothing can move it. Mark it final if that is the point, or add a transition.`, fix: { label: 'Mark final', act: 'mark-final', id: s.id } });
+    if (s.final && allowed(m, s.id).length) out.push({ sev: 'bad', on: s.id, text: `${s.name} is final but has transitions out`, why: 'A final state allows no transitions. Remove them, or stop marking it final.' });
+  }
+  // a transition that has the same event as another from the same state, with no guard telling them apart
+  for (const s of m.states) {
+    const from = m.transitions.filter(t => t.from === s.id);
+    const byEv = {};
+    for (const t of from) (byEv[t.event] ||= []).push(t);
+    for (const [ev, ts] of Object.entries(byEv)) if (ts.length > 1 && ts.filter(t => !t.guard).length > 1)
+      out.push({ sev: 'warn', on: ts[1].id, text: `${s.name} has ${ts.length} ways out on ${ev}`, why: 'Only the first one is ever taken. Give the others a guard, or a different event.' });
+  }
+  // where the code reading is wider than the drawing: a state also allows a target another state reaches on another event
+  for (const s of m.states) {
+    for (const d of definitions(m)) {
+      if (!allowed(m, s.id).includes(d.to)) continue;
+      if (m.transitions.some(t => t.from === s.id && t.to === d.to && t.event === d.event)) continue;
+      out.push({ sev: 'info', on: s.id, text: `${s.name} also moves to ${stateName(m.id, d.to)} on ${d.event}`, why: `${s.name} can go to ${stateName(m.id, d.to)}, and in the generated code a transition is not tied to the state it leaves. Studio simulates it the same way.`, fix: { label: 'Draw it', act: 'draw-implicit', from: s.id, to: d.to, event: d.event } });
+    }
+  }
+  for (const sp of m.specs) if (run(m, sp.given, sp.guards).state !== sp.then) out.push({ sev: 'bad', on: sp.id, text: `Specification breaks: ${sp.name}`, why: `It expects ${stateName(m.id, sp.then)}, the machine now ends in ${stateName(m.id, run(m, sp.given, sp.guards).state)}.` });
+  return out;
+}
+function wfChecks(w) {
+  const out = [];
+  const trig = w.nodes.filter(n => n.kind === 'trigger');
+  if (!trig.length) out.push({ sev: 'bad', text: 'Nothing starts this workflow', why: 'Add a trigger from the palette.' });
+  const seen = new Set(trig.map(n => n.id)); const q = [...seen];
+  while (q.length) { const id = q.shift(); for (const e of w.edges.filter(e => e.from === id)) if (!seen.has(e.to)) { seen.add(e.to); q.push(e.to); } }
+  for (const n of w.nodes) {
+    if (!seen.has(n.id)) out.push({ sev: 'warn', on: n.id, text: `${n.name} is never reached`, why: 'Connect an outlet to it, or remove it.' });
+    if ((n.kind === 'wait' && n.cfg.for !== 'timer' || n.kind === 'approval') && !n.cfg.expires) out.push({ sev: 'warn', on: n.id, text: `${n.name} can wait forever`, why: `Give it an expiry, so a run that never hears back ends up somewhere.`, fix: { label: 'Expire after 1 day', act: 'set-expiry', id: n.id } });
+    if (n.kind === 'decision') for (const o of n.cfg.outlets) if (!w.edges.some(e => e.from === n.id && e.outlet === o)) out.push({ sev: 'warn', on: n.id, text: `${n.name} has nowhere to go on “${o}”`, why: 'The run ends there. Connect the outlet if that is not what you mean.' });
+    if (n.kind === 'join' && w.edges.filter(e => e.to === n.id).length < 2) out.push({ sev: 'info', on: n.id, text: `${n.name} joins a single branch`, why: 'A join is only needed where branches meet.' });
+    if (n.kind === 'action' && !w.edges.some(e => e.from === n.id && e.outlet === 'failed') && seen.has(n.id)) out.push({ sev: 'info', on: n.id, text: `The run fails if ${n.name} fails ${n.cfg.attempts} times`, why: 'Connect “failed” to handle it, for example by escalating.' });
+  }
+  return out;
+}
+const sevRank = { bad: 3, warn: 2, info: 1 };
+function summarize(checks) {
+  const bad = checks.filter(c => c.sev === 'bad').length, warn = checks.filter(c => c.sev === 'warn').length, info = checks.filter(c => c.sev === 'info').length;
+  return { bad, warn, info, worst: bad ? 'bad' : warn ? 'warn' : 'ok' };
+}
+
+/* =========================================================================================
+   Board: drawer, chrome, cards
+   ========================================================================================= */
+const $ = s => document.querySelector(s);
+function renderDrawer() {
+  const sm = S.board === 'sm', wf = S.board === 'wf';
+  const node = (depth, icon, color, name, extra = '', on = false, act = 'noop', chev = '') =>
+    `<li><div class="tn ${on ? 'on' : ''}" data-act="${act}" style="padding-left:${10 + depth * 16}px"><span class="chev">${chev}</span><span class="ic" style="color:${color}">${ic(icon)}</span><span>${esc(name)}</span>${extra}</div></li>`;
+  const down = ic('chevD'), right = ic('chevR');
+  $('#drawer').innerHTML = `
+    <div class="dr-head">${ic('home')}<span class="grow">Projects</span><button data-act="drawer" title="Close">${ic('chevL')}</button></div>
+    <ul class="tree">
+      ${node(0, 'layers', '#93c5fd', 'Acme Commerce', '', false, 'noop', down)}
+      ${node(1, 'monitor', '#93c5fd', 'Acme Catalog', '', false, 'noop', right)}
+      ${node(1, 'monitor', '#93c5fd', 'Acme Shop', '', false, 'noop', down)}
+      ${node(2, 'folder', '#fb923c', 'Files')}
+      ${node(2, 'grid', '#c084fc', 'Design')}
+      ${node(2, 'grid', '#818cf8', 'Domains', '', false, 'noop', down)}
+      ${node(3, 'layers', '#93c5fd', 'Storefront', '', false, 'noop', down)}
+      ${node(4, 'folder', '#facc15', 'Event Models', '<span class="count">3</span>')}
+      ${node(4, 'bulb', '#4ade80', 'Brainstormings')}
+      ${node(4, 'users', '#d1d5db', 'Personas')}
+      ${node(4, 'tag', '#2dd4bf', 'Concepts', '<span class="count">14</span>')}
+      ${node(4, 'lock', '#fca5a5', 'Constraints', '<span class="count">4</span>')}
+      ${node(4, 'lock', '#14b8a6', 'Event sources')}
+      ${node(4, 'states', '#f49ab8', 'State machines', '<span class="badge-new">New</span>', sm, 'board-sm')}
+      ${node(4, 'flow', '#7fdcb6', 'Workflows', '<span class="badge-new">New</span>', wf, 'board-wf')}
+      ${node(3, 'layers', '#93c5fd', 'Warehouse', '', false, 'noop', right)}
+    </ul>`;
+}
+function renderChrome() {
+  $('#pill .av').innerHTML = ic('folder');
+  $('#pill .menu').innerHTML = ic('dots');
+  $('#topbar').innerHTML = ['play', 'sliders', 'history', 'chat', 'flag', 'download', 'info'].map(n => `<button data-act="noop" title="Not part of this prototype">${ic(n)}</button>`).join('') + '<button class="me">EI</button>';
+  const sm = S.board === 'sm';
+  $('#rail').innerHTML = `
+    <button data-act="noop" data-tip="Select" class="on">${ic('cursor')}</button>
+    <div class="sep"></div>
+    <button data-act="${sm ? 'add-sm' : 'add-wf'}" data-tip="${sm ? 'Add state machine' : 'Add workflow'}">${ic(sm ? 'states' : 'flow')}</button>
+    <button data-act="add-note" data-tip="Sticky note">${ic('sticky')}</button>
+    <button data-act="arrange" data-tip="Arrange">${ic('columns')}</button>`;
+  $('#zoombar').innerHTML = `<button data-act="fit" title="Fit">${ic('grid')}</button><div class="sep"></div><button data-act="zoom-out">${ic('minus')}</button><span class="pct" id="pct"></span><button data-act="zoom-in">${ic('plus')}</button><div class="sep"></div><button data-act="hint" title="What to try">${ic('help')}</button>`;
+  $('#chatbar .send').innerHTML = ic('arrowR');
+  $('#chatScope').textContent = sm ? 'State machines' : 'Workflows';
+  $('#pillSub').textContent = `Acme Shop · Storefront · ${sm ? 'State machines' : 'Workflows'}`;
+  $('#hint').className = 'float' + (S.hint ? '' : ' closed');
+  $('#hint').innerHTML = `<h3>${ic('info')}<span class="grow">Prototype · StudioIssues #1274, #1275</span><button data-act="hint">${ic('x')}</button></h3>
+    <div>State machines and workflows as cards on a domain board. <b>Click a card</b> and its editor flies out of it.</div>
+    <ul>
+      <li><b>State machines</b>: drag from a state's teal dot to another state to add a transition. <b>Simulate</b> it by sending events.</li>
+      <li><b>Workflows</b>: add nodes from the palette, drag from an outlet to a node, then <b>Simulate</b> a run and take its decisions.</li>
+      <li>The <b>C#</b> tab shows what Studio generates: Cratis.Orleans' <span class="mono">EventSourcedStateMachine</span>, and the proposed workflow engine.</li>
+      <li>Switch board in the drawer. The cards link to each other.</li>
+    </ul>`;
+}
+
+function thumbSM(m) {
+  const b = bounds(m.states.map(s => ({ x: s.x, y: s.y, w: 150, h: 56 })));
+  const sid = id => m.states.find(s => s.id === id);
+  const edges = m.transitions.map(t => { const a = sid(t.from), c = sid(t.to); if (!a || !c) return ''; const pth = smEdgePath(m, t, a, c); return `<path d="${pth.d}" fill="none" stroke="#5f7d93" stroke-width="3" marker-end="url(#ta-${m.id})"/>`; }).join('');
+  const reach = reachable(m);
+  const nodes = m.states.map(s => `<g>
+      ${s.final ? `<rect x="${s.x - 6}" y="${s.y - 6}" width="162" height="68" rx="18" fill="none" stroke="#7a5161" stroke-width="2.5"/>` : ''}
+      <rect x="${s.x}" y="${s.y}" width="150" height="56" rx="14" fill="${s.id === m.initial ? '#173634' : '#1b2c3a'}" stroke="${!reach.has(s.id) ? '#e8b64f' : s.id === m.initial ? '#4fc3b8' : '#46647a'}" stroke-width="3" ${!reach.has(s.id) ? 'stroke-dasharray="9 6"' : ''}/>
+      <text x="${s.x + 75}" y="${s.y + 37}" text-anchor="middle" font-size="25" font-weight="700" fill="#dbe4ea" font-family="Inter, sans-serif">${esc(s.name)}</text></g>`).join('');
+  const ini = sid(m.initial);
+  const start = ini ? `<circle cx="${ini.x - 40}" cy="${ini.y + 28}" r="9" fill="#4fc3b8"/><path d="M${ini.x - 31} ${ini.y + 28}H${ini.x - 4}" stroke="#4fc3b8" stroke-width="3" marker-end="url(#ta-${m.id})"/>` : '';
+  return `<svg viewBox="${b.x - 60} ${b.y - 40} ${b.w + 100} ${b.h + 80}" preserveAspectRatio="xMidYMid meet">
+    <defs><marker id="ta-${m.id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5f7d93"/></marker></defs>
+    ${edges}${start}${nodes}</svg>`;
+}
+function thumbWF(w) {
+  const b = bounds(w.nodes.map(n => ({ x: n.x, y: n.y, w: NW, h: NH })));
+  const nd = id => w.nodes.find(n => n.id === id);
+  const edges = w.edges.map(e => { const a = nd(e.from), c = nd(e.to); if (!a || !c) return ''; const o = outletsOf(a).indexOf(e.outlet); if (o < 0) return ''; const p = wfEdgePath(a, o, c); return `<path d="${p}" fill="none" stroke="${NEG.includes(e.outlet) ? '#8a5656' : '#5f7d93'}" stroke-width="3"/>`; }).join('');
+  const nodes = w.nodes.map(n => { const k = KINDS[n.kind]; const h = nodeH(n);
+    return `<g><rect x="${n.x}" y="${n.y}" width="${NW}" height="${h}" rx="12" fill="#1b2c3a" stroke="#46647a" stroke-width="3"/>
+      <rect x="${n.x + 10}" y="${n.y + 8}" width="22" height="22" rx="6" fill="${k.k}" opacity=".85"/>
+      <text x="${n.x + 42}" y="${n.y + 27}" font-size="22" font-weight="700" fill="#dbe4ea" font-family="Inter, sans-serif">${esc(n.name.length > 13 ? n.name.slice(0, 12) + '…' : n.name)}</text></g>`; }).join('');
+  return `<svg viewBox="${b.x - 30} ${b.y - 30} ${b.w + 60} ${b.h + 60}" preserveAspectRatio="xMidYMid meet">${edges}${nodes}</svg>`;
+}
+function bounds(rs) {
+  if (!rs.length) return { x: 0, y: 0, w: 400, h: 200 };
+  const x1 = Math.min(...rs.map(r => r.x)), y1 = Math.min(...rs.map(r => r.y)), x2 = Math.max(...rs.map(r => r.x + r.w)), y2 = Math.max(...rs.map(r => r.y + r.h));
+  return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+}
+function chips(list, cls, max = 4) {
+  const u = [...new Set(list)];
+  return u.slice(0, max).map(x => `<span class="chip ${cls}">${esc(x)}</span>`).join('') + (u.length > max ? `<span class="chip more">+${u.length - max}</span>` : '');
+}
+function footer(checks, specs) {
+  const s = summarize(checks);
+  let h = '';
+  if (specs) { const failing = specs.filter(sp => sp.failing).length; h += failing ? `<span class="bad">${ic('x')} ${failing} of ${specs.length} specifications break</span>` : `<span class="ok">${ic('check')} ${specs.length} specification${specs.length === 1 ? '' : 's'} pass</span>`; }
+  if (s.bad + s.warn) h += `<span class="${s.bad ? 'bad' : 'warn'}">${ic('warn')} ${s.bad + s.warn} to look at</span>`;
+  else if (!specs) h += `<span class="ok">${ic('check')} No problems</span>`;
+  return h;
+}
+function cardSM(m) {
+  const reacts = m.transitions.map(t => t.event);
+  const finals = m.states.filter(s => s.final).length;
+  const starts = m.states.flatMap(s => s.onEnter.filter(r => r.kind === 'workflow').map(r => ({ s, w: workflow(r.ref) }))).filter(x => x.w);
+  const specs = m.specs.map(sp => ({ failing: run(m, sp.given, sp.guards).state !== sp.then }));
+  return `<div class="card sm ${S.selCard === m.id ? 'sel' : ''}" data-card="${m.id}" style="left:${m.x}px;top:${m.y}px">
+    <div class="card-h" data-drag="${m.id}"><span class="kind">${ic('states')}</span><span class="nm">${esc(m.name)}</span>
+      <button data-act="edit" data-id="${m.id}" title="Edit">${ic('pencil')}</button><button data-act="del-card" data-id="${m.id}" title="Remove">${ic('trash')}</button></div>
+    <div class="card-b" data-act="open" data-id="${m.id}">
+      <div class="thumb">${thumbSM(m)}<span class="open">Click to open</span></div>
+      <div class="desc">${esc(m.about)}</div>
+      <div class="frow"><span class="l">Follows</span><span class="v"><span class="chip rm">${esc(m.model)}</span></span></div>
+      <div class="frow"><span class="l">States</span><span class="v">${m.states.length} · starts in ${esc(stateName(m.id, m.initial))} · ${finals} final</span></div>
+      <div class="frow"><span class="l">Reacts to</span><span class="v">${chips(reacts, 'ev', 3)}</span></div>
+      ${starts.length ? `<div class="frow"><span class="l">Starts</span><span class="v">${starts.map(x => `<span class="chip wf link" data-act="goto-wf" data-id="${x.w.id}">${esc(x.w.name)}</span> <span style="color:var(--muted);font-size:11.5px">in ${esc(x.s.name)}</span>`).join('')}</span></div>` : ''}
+      <div class="card-f">${footer(smChecks(m).filter(c => !c.text.startsWith('Specification')), specs)}</div>
+    </div></div>`;
+}
+function cardWF(w) {
+  const trig = w.nodes.find(n => n.kind === 'trigger');
+  const cmds = w.nodes.filter(n => n.kind === 'action').map(n => n.cfg.command);
+  const waits = w.nodes.filter(n => n.kind === 'wait').length, apps = w.nodes.filter(n => n.kind === 'approval').length;
+  const viaSM = trig && trig.cfg.on === 'state' ? machine(trig.cfg.machine) : null;
+  return `<div class="card wf ${S.selCard === w.id ? 'sel' : ''}" data-card="${w.id}" style="left:${w.x}px;top:${w.y}px">
+    <div class="card-h" data-drag="${w.id}"><span class="kind">${ic('flow')}</span><span class="nm">${esc(w.name)}</span>
+      <button data-act="edit" data-id="${w.id}" title="Edit">${ic('pencil')}</button><button data-act="del-card" data-id="${w.id}" title="Remove">${ic('trash')}</button></div>
+    <div class="card-b" data-act="open" data-id="${w.id}">
+      <div class="thumb">${thumbWF(w)}<span class="open">Click to open</span></div>
+      <div class="desc">${esc(w.about)}</div>
+      <div class="frow"><span class="l">Starts</span><span class="v">${trig ? (viaSM ? `When <span class="chip sm link" data-act="goto-sm" data-id="${viaSM.id}">${esc(viaSM.name)}</span> enters ${esc(stateName(viaSM.id, trig.cfg.state))}` : esc(nodeSummary(trig))) : '<span style="color:var(--ce-bad)">Nothing starts it</span>'}</span></div>
+      <div class="frow"><span class="l">Steps</span><span class="v">${w.nodes.length} steps${waits ? ` · ${waits} wait${waits > 1 ? 's' : ''}` : ''}${apps ? ` · ${apps} approval${apps > 1 ? 's' : ''}` : ''}</span></div>
+      <div class="frow"><span class="l">Sends</span><span class="v">${chips(cmds, 'cmd', 3)}</span></div>
+      <div class="frow"><span class="l">One run per</span><span class="v"><span class="chip rm">${esc(w.subject)}</span></span></div>
+      <div class="card-f">${footer(wfChecks(w).filter(c => c.sev !== 'info'))}</div>
+    </div></div>`;
+}
+function renderBoard() {
+  const items = S.board === 'sm' ? S.machines : S.workflows;
+  const notes = S.notes[S.board];
+  $('#world').innerHTML = items.map(S.board === 'sm' ? cardSM : cardWF).join('') +
+    notes.map(n => `<div class="note ${n.colour}" data-note="${n.id}" style="left:${n.x}px;top:${n.y}px">${esc(n.text)}</div>`).join('') +
+    (items.length ? '' : `<div class="empty" style="position:absolute;left:300px;top:200px;width:380px;color:var(--faint)">No ${S.board === 'sm' ? 'state machines' : 'workflows'} in Storefront yet. Add one from the rail.</div>`);
+  applyView();
+}
+function applyView() {
+  const v = S.view[S.board];
+  $('#world').style.transform = `translate(${v.x}px,${v.y}px) scale(${v.k})`;
+  const c = $('#canvas');
+  c.style.backgroundSize = `${24 * v.k}px ${24 * v.k}px`;
+  c.style.backgroundPosition = `${v.x}px ${v.y}px`;
+  const p = $('#pct'); if (p) p.textContent = Math.round(v.k * 100) + '%';
+}
+function renderAll() { renderDrawer(); renderChrome(); renderBoard(); }
+
+/* board interactions: pan, zoom, drag cards and notes */
+(function boardInput() {
+  const canvas = $('#canvas');
+  let drag = null;
+  canvas.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    const head = e.target.closest('[data-drag]'), note = e.target.closest('[data-note]');
+    const v = S.view[S.board];
+    if (head && !e.target.closest('button')) {
+      const id = head.dataset.drag, it = (S.board === 'sm' ? S.machines : S.workflows).find(x => x.id === id);
+      drag = { kind: 'card', it, sx: e.clientX, sy: e.clientY, ox: it.x, oy: it.y, moved: false };
+      S.selCard = id;
+      document.querySelectorAll('.card').forEach(c => c.classList.toggle('sel', c.dataset.card === id));
+    } else if (note) {
+      const it = S.notes[S.board].find(n => n.id === note.dataset.note);
+      drag = { kind: 'note', it, sx: e.clientX, sy: e.clientY, ox: it.x, oy: it.y };
+    } else if (!e.target.closest('.card')) {
+      drag = { kind: 'pan', sx: e.clientX, sy: e.clientY, ox: v.x, oy: v.y };
+      canvas.classList.add('panning');
+      if (S.selCard) { S.selCard = null; document.querySelectorAll('.card.sel').forEach(c => c.classList.remove('sel')); }
+    }
+  });
+  window.addEventListener('mousemove', e => {
+    if (!drag) return;
+    const v = S.view[S.board];
+    const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+    if (drag.kind === 'pan') { v.x = drag.ox + dx; v.y = drag.oy + dy; applyView(); return; }
+    drag.it.x = Math.round(drag.ox + dx / v.k); drag.it.y = Math.round(drag.oy + dy / v.k);
+    const el = drag.kind === 'card' ? document.querySelector(`[data-card="${drag.it.id}"]`) : document.querySelector(`[data-note="${drag.it.id}"]`);
+    el.style.left = drag.it.x + 'px'; el.style.top = drag.it.y + 'px';
+  });
+  window.addEventListener('mouseup', () => { drag = null; canvas.classList.remove('panning'); });
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const v = S.view[S.board]; const r = canvas.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const k2 = Math.min(2, Math.max(.25, v.k * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
+    v.x = mx - (mx - v.x) * k2 / v.k; v.y = my - (my - v.y) * k2 / v.k; v.k = k2; applyView();
+  }, { passive: false });
+})();
+function zoomBy(f) { const v = S.view[S.board]; const r = $('#canvas').getBoundingClientRect(); const mx = r.width / 2, my = r.height / 2; const k2 = Math.min(2, Math.max(.25, v.k * f)); v.x = mx - (mx - v.x) * k2 / v.k; v.y = my - (my - v.y) * k2 / v.k; v.k = k2; applyView(); }
+function fitBoard() {
+  const els = [...document.querySelectorAll('#world .card, #world .note')]; if (!els.length) return;
+  const v = S.view[S.board];
+  const rs = els.map(el => ({ x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight }));
+  const b = bounds(rs); const r = $('#canvas').getBoundingClientRect();
+  const L = 90, R = S.hint ? 330 : 40, T = 92, B = 130;
+  const k = Math.min(1.1, (r.width - L - R) / b.w, (r.height - T - B) / b.h);
+  v.k = Math.max(.3, k); v.x = L + (r.width - L - R - b.w * v.k) / 2 - b.x * v.k; v.y = T - b.y * v.k + Math.max(0, (r.height - T - B - b.h * v.k) / 2); applyView();
+}
+function arrange() {
+  const items = S.board === 'sm' ? S.machines : S.workflows;
+  let x = 0; items.forEach(it => { it.x = x; it.y = 0; x += (S.board === 'sm' ? 340 : 360) + 50; });
+  S.notes[S.board].forEach((n, i) => { n.x = x; n.y = i * 150; });
+  renderBoard(); fitBoard();
+}
+function toast(msg, undo) {
+  const t = $('#toast');
+  t.innerHTML = `<span>${esc(msg)}</span>${undo ? '<button data-act="undo">Undo</button>' : ''}`;
+  t.classList.add('on'); toast.undo = undo;
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), undo ? 5000 : 2600);
+}
+
+/* =========================================================================================
+   Geometry for edges
+   ========================================================================================= */
+function rectHit(cx, cy, w, h, tx, ty) {
+  // the point where the line from the rectangle's center towards (tx,ty) leaves the rectangle
+  const dx = tx - cx, dy = ty - cy;
+  if (!dx && !dy) return { x: cx, y: cy };
+  const sx = (w / 2) / Math.abs(dx || 1e-9), sy = (h / 2) / Math.abs(dy || 1e-9);
+  const s = Math.min(sx, sy);
+  return { x: cx + dx * s, y: cy + dy * s };
+}
+function smEdgePath(m, t, a, b) {
+  const ax = a.x + 75, ay = a.y + 28, bx = b.x + 75, by = b.y + 28;
+  // parallel or opposite edges between the same pair bend apart
+  const pair = m.transitions.filter(o => (o.from === t.from && o.to === t.to) || (o.from === t.to && o.to === t.from));
+  const idx = pair.indexOf(t);
+  let bend = 0;
+  if (pair.length > 1) bend = (idx - (pair.length - 1) / 2) * 46 * (t.from < t.to ? 1 : -1);
+  if (pair.length > 1 && pair.some(o => o.from === t.to)) bend = (t.from < t.to ? 1 : -1) * 30 + (idx - (pair.length - 1) / 2) * 20;
+  const mx = (ax + bx) / 2, my = (ay + by) / 2;
+  const len = Math.hypot(bx - ax, by - ay) || 1;
+  const nx = -(by - ay) / len, ny = (bx - ax) / len;
+  const cx = mx + nx * bend * 2, cy = my + ny * bend * 2;
+  const p1 = rectHit(ax, ay, 158, 64, cx, cy), p2 = rectHit(bx, by, 166, 72, cx, cy);
+  const lx = .25 * p1.x + .5 * cx + .25 * p2.x, ly = .25 * p1.y + .5 * cy + .25 * p2.y;
+  return { d: `M${p1.x.toFixed(1)} ${p1.y.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`, lx, ly };
+}
+const NW = 190, NH = 78;
+const nodeH = () => NH;
+const portX = (n, i) => n.x + NW * (i + .5) / outletsOf(n).length;
+function wfEdgePath(a, outletIndex, b) {
+  const x1 = portX(a, outletIndex), y1 = a.y + NH + 6, x2 = b.x + NW / 2, y2 = b.y - 6;
+  const dy = Math.max(40, Math.abs(y2 - y1) / 2);
+  return `M${x1} ${y1} C${x1} ${y1 + dy} ${x2} ${y2 - dy} ${x2} ${y2}`;
+}
+
+/* =========================================================================================
+   The editor fly-out
+   ========================================================================================= */
+let E = null; // { kind, id, tab, sel, view, sim, wsim, probs }
+function openEditor(id, originEl) {
+  const kind = S.machines.some(m => m.id === id) ? 'sm' : 'wf';
+  E = { kind, id, tab: 'design', sel: null, view: null, sim: { events: [], guards: {} }, wsim: null, probs: false, side: null };
+  const ov = $('#overlay'), panel = $('#panel');
+  panel.classList.remove('flying');
+  panel.style.transform = 'none';
+  panel.style.opacity = '1';
+  ov.classList.add('open');
+  renderEditor();
+  fitGraph();
+  // fly out of the card: start scaled over the card, then animate to the full panel
+  const o = (originEl || document.querySelector(`[data-card="${id}"]`)).getBoundingClientRect();
+  const p = panel.getBoundingClientRect();
+  panel.style.transform = `translate(${o.left - p.left}px, ${o.top - p.top}px) scale(${Math.max(.02, o.width / p.width)}, ${Math.max(.02, o.height / p.height)})`;
+  panel.style.opacity = '.4';
+  E.origin = o;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    panel.classList.add('flying'); panel.style.transform = 'none'; panel.style.opacity = '1'; ov.classList.add('shown');
+  }));
+}
+function closeEditor() {
+  if (!E) return;
+  const ov = $('#overlay'), panel = $('#panel');
+  const card = document.querySelector(`[data-card="${E.id}"]`);
+  renderBoard();
+  const cardNow = document.querySelector(`[data-card="${E.id}"]`) || card;
+  const o = cardNow ? cardNow.getBoundingClientRect() : E.origin;
+  panel.classList.remove('flying'); panel.style.transform = 'none';
+  const p = panel.getBoundingClientRect();
+  panel.classList.add('flying');
+  panel.style.transform = `translate(${o.left - p.left}px, ${o.top - p.top}px) scale(${Math.max(.02, o.width / p.width)}, ${Math.max(.02, o.height / p.height)})`;
+  panel.style.opacity = '.3';
+  ov.classList.remove('shown');
+  const id = E.id; E = null;
+  setTimeout(() => { ov.classList.remove('open'); panel.innerHTML = ''; panel.classList.remove('flying'); S.selCard = id; renderBoard(); }, 300);
+}
+const cur = () => E.kind === 'sm' ? machine(E.id) : workflow(E.id);
+
+function renderEditor() {
+  const it = cur();
+  const sm = E.kind === 'sm';
+  $('#panel').innerHTML = `
+    <div class="ph"><span class="kbadge ${E.kind}">${sm ? 'State machine' : 'Workflow'}</span><span class="title" id="phTitle">${esc(it.name)}</span>
+      <span class="crumbs">Storefront › ${sm ? 'State machines' : 'Workflows'}</span><span class="grow"></span>
+      <button class="x" data-act="close" title="Close (Esc)">${ic('x')}</button></div>
+    <div class="pb"><nav class="side" id="side"></nav>
+      <section class="main">
+        <div class="det" id="det"></div>
+        <div class="tabs" id="tabs"></div>
+        <div id="workArea" style="min-height:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)"></div>
+        <div id="checks"></div>
+      </section></div>`;
+  renderDetails(); renderTabs(); renderSide(); renderWork(); renderChecks();
+}
+function renderDetails() {
+  const it = cur(), sm = E.kind === 'sm';
+  const trig = !sm && it.nodes.find(n => n.kind === 'trigger');
+  $('#det').innerHTML = `
+    <div class="l"><input class="name" value="${esc(it.name)}" data-field="name" aria-label="Name">
+      <textarea class="about" data-field="about" aria-label="What it is for">${esc(it.about)}</textarea></div>
+    <div class="r">
+      <span class="eye">${sm ? 'Follows the facts in' : 'Runs'}</span>
+      <div class="facts">
+        ${sm ? `<div class="fact">Read model<b><select class="sel2" data-field="model" style="height:26px;padding:0 4px;margin-top:2px">${Object.keys(DOMAIN.readModels).map(r => `<option ${r === it.model ? 'selected' : ''}>${r}</option>`).join('')}</select></b></div>
+               <div class="fact">One machine per<b>${esc(it.model)}</b></div>
+               <div class="fact">Starts in<b>${esc(stateName(it.id, it.initial))}</b></div>`
+             : `<div class="fact">One run at a time per<b><select class="sel2" data-field="subject" style="height:26px;padding:0 4px;margin-top:2px">${Object.keys(DOMAIN.readModels).map(r => `<option ${r === it.subject ? 'selected' : ''}>${r}</option>`).join('')}</select></b></div>
+               <div class="fact">Started by<b>${trig ? esc(trig.name) : '—'}</b></div>
+               <div class="fact">Steps<b>${it.nodes.length}</b></div>`}
+      </div></div>`;
+}
+function renderTabs() {
+  const tabs = [['design', 'Design'], ['simulate', 'Simulate'], ['used', 'Used in'], ['code', 'C#']];
+  $('#tabs').innerHTML = tabs.map(([k, l]) => `<button class="tab ${E.tab === k ? 'on' : ''}" data-act="tab" data-tab="${k}">${l}</button>`).join('') +
+    `<span class="grow"></span>` + (E.tab !== 'simulate' ? `<button class="tb" data-act="tab" data-tab="simulate">${ic('play')} Simulate</button>` : `<button class="tb" data-act="tab" data-tab="design">${ic('pencil')} Back to design</button>`);
+}
+function renderSide() {
+  const it = cur();
+  let h = '';
+  if (E.kind === 'sm') {
+    const ck = smChecks(it); const flagged = new Set(ck.filter(c => c.sev !== 'info').map(c => c.on));
+    h += `<h4>States <span class="r" style="color:var(--ce-muted)">${it.states.length}</span><button data-act="add-state" title="Add state">+</button></h4>`;
+    h += it.states.map(s => `<button class="sitem ${E.sel?.type === 'state' && E.sel.id === s.id ? 'on' : ''}" data-act="sel" data-type="state" data-id="${s.id}" style="--c:${flagged.has(s.id) ? 'var(--ce-warn)' : s.final ? 'var(--sm-bg)' : 'var(--ce-flow)'}"><span class="dot"></span><span class="nm">${esc(s.name)}</span>${s.id === it.initial ? '<span class="bd ini">start</span>' : ''}${s.final ? '<span class="bd fin">final</span>' : ''}</button>`).join('');
+    h += `<h4>Transitions <span class="r" style="color:var(--ce-muted)">${it.transitions.length}</span></h4>`;
+    h += it.transitions.map(t => `<button class="sitem ${E.sel?.type === 'transition' && E.sel.id === t.id ? 'on' : ''}" data-act="sel" data-type="transition" data-id="${t.id}" style="--c:var(--ce-event)"><span class="dot"></span><span class="nm">${esc(t.event)}<small>${esc(stateName(it.id, t.from))} → ${esc(stateName(it.id, t.to))}${t.guard ? ' · guarded' : ''}</small></span></button>`).join('');
+    const results = it.specs.map(sp => ({ sp, ok: run(it, sp.given, sp.guards).state === sp.then }));
+    const failing = results.filter(r => !r.ok).length;
+    h += `<h4>Specifications <span class="r ${failing ? 'bad' : 'ok'}">${failing ? failing + ' breaking' : results.length + ' passing'}</span></h4>`;
+    h += results.length ? results.map(({ sp, ok }) => `<div class="spec" data-act="load-spec" data-id="${sp.id}"><span class="st-ic ${ok ? 'ok' : 'bad'}">${ic(ok ? 'check' : 'x')}</span><div>${esc(sp.name)}<small>${esc(sp.given.join(', '))} → ${esc(stateName(it.id, sp.then))}</small></div></div>`).join('')
+      : `<div style="font-size:12px;color:var(--ce-muted);padding:0 4px">Simulate a story and save it to keep it.</div>`;
+    h += `<div class="legend"><span><i style="--c:var(--ce-flow)"></i>State</span><span><i style="--c:var(--sm-bg)"></i>Final</span><span><i style="--c:var(--ce-event)"></i>Event</span><span><i style="--c:var(--ce-command)"></i>Command</span></div>`;
+  } else {
+    const ck = wfChecks(it); const flagged = new Set(ck.filter(c => c.sev !== 'info').map(c => c.on));
+    const order = topo(it);
+    h += `<h4>Steps <span class="r" style="color:var(--ce-muted)">${it.nodes.length}</span></h4>`;
+    h += order.map(n => `<button class="sitem ${E.sel?.type === 'node' && E.sel.id === n.id ? 'on' : ''}" data-act="sel" data-type="node" data-id="${n.id}" style="--c:${flagged.has(n.id) ? 'var(--ce-warn)' : KINDS[n.kind].k}"><span class="dot"></span><span class="nm">${esc(n.name)}<small>${esc(KINDS[n.kind].label)}</small></span></button>`).join('');
+    h += `<h4>Policies</h4><div style="font-size:12px;color:var(--ce-muted);padding:0 4px;display:grid;gap:4px">
+      <div>Runs keyed by <b style="color:var(--ce-soft)">${esc(it.subject)}</b>; a second trigger for the same one waits.</div>
+      <div>Actions retry with their own attempts, timeout and delay.</div>
+      <div>Side effects may run again after a crash, so every command must be safe to repeat.</div></div>`;
+    h += `<div class="legend">${Object.entries(KINDS).map(([k, v]) => `<span><i style="--c:${v.k}"></i>${v.label}</span>`).join('')}</div>`;
+  }
+  $('#side').innerHTML = h;
+}
+function topo(w) {
+  const out = [], seen = new Set();
+  const visit = id => { if (seen.has(id)) return; seen.add(id); const n = w.nodes.find(x => x.id === id); if (!n) return; out.push(n); w.edges.filter(e => e.from === id).forEach(e => visit(e.to)); };
+  w.nodes.filter(n => n.kind === 'trigger').forEach(n => visit(n.id));
+  w.nodes.forEach(n => visit(n.id));
+  return out;
+}
+function renderWork() {
+  const area = $('#workArea');
+  if (E.tab === 'code') { area.innerHTML = codeView(); return; }
+  if (E.tab === 'used') { area.innerHTML = usedView(); return; }
+  const side = E.tab === 'simulate' ? `<aside class="sim" id="simPanel"></aside>` : `<aside class="insp" id="insp"></aside>`;
+  area.innerHTML = `<div class="work"><div class="gcanvas" id="gc"><div class="gworld" id="gw"></div>
+      ${E.kind === 'wf' && E.tab === 'design' ? `<div class="gtools"><div class="palette"><div class="ph2">Add a step</div>${Object.entries(KINDS).map(([k, v]) => `<button data-act="add-node" data-kind="${k}" style="--k:${v.k}"><span class="kic">${ic(v.icon)}</span><span>${v.label}<small>${v.blurb}</small></span></button>`).join('')}</div></div>` : ''}
+      ${E.kind === 'sm' && E.tab === 'design' ? `<div class="gtools"><button class="tb" data-act="add-state">${ic('plus')} State</button></div>` : ''}
+      <div class="gzoom"><button data-act="gfit" title="Fit">${ic('grid')}</button><button data-act="gzoom-out">${ic('minus')}</button><button data-act="gzoom-in">${ic('plus')}</button></div>
+      ${E.tab === 'design' ? `<div class="ghelp">${E.kind === 'sm' ? 'Drag a state to move it · drag its teal dot onto another state to add a transition · Delete removes the selection' : 'Drag from an outlet onto a step to connect it · Delete removes the selection'}</div>` : ''}
+    </div>${side}</div>`;
+  bindGraph();
+  renderGraph();
+  if (E.tab === 'simulate') renderSim(); else renderInspector();
+}
+function renderChecks() {
+  const it = cur();
+  const ck = (E.kind === 'sm' ? smChecks(it) : wfChecks(it)).sort((a, b) => sevRank[b.sev] - sevRank[a.sev]);
+  const s = summarize(ck);
+  const el = $('#checks');
+  if (!el) return;
+  if (!ck.length) { el.innerHTML = `<div class="checks ok">${ic('check')}<span class="lbl">All good</span><span class="msg">Every state is reachable and every path ends somewhere.</span></div>`; return; }
+  const top = ck[0];
+  const lbl = s.bad ? `${s.bad} error${s.bad > 1 ? 's' : ''}` : s.warn ? `${s.warn} warning${s.warn > 1 ? 's' : ''}` : `${s.info} note${s.info > 1 ? 's' : ''}`;
+  el.innerHTML = `<div class="checks ${s.worst === 'ok' ? 'ok' : s.worst}" style="position:relative">${ic(s.worst === 'ok' ? 'info' : 'warn')}<span class="lbl">${lbl}</span><span class="msg">${esc(top.text)} — ${esc(top.why)}</span>
+    <button class="lnk" data-act="probs">${E.probs ? 'Hide' : `Show all ${ck.length}`}</button>
+    ${E.probs ? `<div class="problems">${ck.map(c => `<div class="prob ${c.sev}"><span class="ic">${ic(c.sev === 'info' ? 'info' : 'warn')}</span><div>${esc(c.text)}<small>${esc(c.why)}</small></div>${c.fix ? `<button class="tb sm" data-act="${c.fix.act}" data-id="${c.fix.id || ''}" data-from="${c.fix.from || ''}" data-to="${c.fix.to || ''}" data-event="${c.fix.event || ''}">${esc(c.fix.label)}</button>` : c.on ? `<button class="tb sm ghost" data-act="sel" data-type="${E.kind === 'sm' ? (it.states.some(s => s.id === c.on) ? 'state' : it.transitions.some(t => t.id === c.on) ? 'transition' : 'spec') : 'node'}" data-id="${c.on}">Show</button>` : '<span></span>'}</div>`).join('')}</div>` : ''}
+  </div>`;
+}
+
+/* ---------- graph (shared pan/zoom, per-kind drawing) ---------- */
+function fitGraph() {
+  const gc = $('#gc'); if (!gc) return;
+  const it = cur();
+  const rs = E.kind === 'sm' ? it.states.map(s => ({ x: s.x, y: s.y, w: 150, h: 56 })) : it.nodes.map(n => ({ x: n.x, y: n.y, w: NW, h: NH }));
+  const b = bounds(rs); const r = gc.getBoundingClientRect();
+  const padL = E.kind === 'wf' && E.tab === 'design' ? 200 : 60;
+  const k = Math.max(.35, Math.min(1.1, (r.width - padL - 70) / (b.w + 40), (r.height - 110) / (b.h + 40)));
+  E.view = { k, x: padL + (r.width - padL - 40 - b.w * k) / 2 - b.x * k, y: (r.height - b.h * k) / 2 - b.y * k - 10 };
+  applyGView();
+}
+function applyGView() {
+  const gw = $('#gw'), gc = $('#gc'); if (!gw || !E.view) return;
+  gw.style.transform = `translate(${E.view.x}px,${E.view.y}px) scale(${E.view.k})`;
+  gc.style.backgroundSize = `${18 * E.view.k}px ${18 * E.view.k}px`;
+  gc.style.backgroundPosition = `${E.view.x}px ${E.view.y}px`;
+}
+function gZoom(f, mx, my) {
+  const gc = $('#gc'); const r = gc.getBoundingClientRect(); if (mx == null) { mx = r.width / 2; my = r.height / 2; }
+  const v = E.view; const k2 = Math.min(2, Math.max(.3, v.k * f));
+  v.x = mx - (mx - v.x) * k2 / v.k; v.y = my - (my - v.y) * k2 / v.k; v.k = k2; applyGView();
+}
+let G = null; // graph drag state
+function toWorld(e) { const r = $('#gc').getBoundingClientRect(); return { x: (e.clientX - r.left - E.view.x) / E.view.k, y: (e.clientY - r.top - E.view.y) / E.view.k }; }
+function bindGraph() {
+  const gc = $('#gc');
+  gc.addEventListener('wheel', e => { e.preventDefault(); const r = gc.getBoundingClientRect(); gZoom(e.deltaY < 0 ? 1.1 : 1 / 1.1, e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+  gc.addEventListener('mousedown', e => {
+    if (e.button !== 0 || e.target.closest('.gtools, .gzoom')) return;
+    const it = cur(); const design = E.tab === 'design';
+    const handle = e.target.closest('.st .h'), port = e.target.closest('.port.out');
+    const st = e.target.closest('.st'), wn = e.target.closest('.wn'), tl = e.target.closest('.tl');
+    if (design && handle) { G = { kind: 'link', from: st.dataset.id }; e.preventDefault(); return; }
+    if (design && port) { G = { kind: 'wlink', from: port.dataset.node, outlet: port.dataset.outlet }; e.preventDefault(); return; }
+    if (tl) { select({ type: 'transition', id: tl.dataset.id }); return; }
+    if (st || wn) {
+      const id = (st || wn).dataset.id;
+      const obj = E.kind === 'sm' ? it.states.find(s => s.id === id) : it.nodes.find(n => n.id === id);
+      select({ type: E.kind === 'sm' ? 'state' : 'node', id });
+      if (design) G = { kind: 'move', obj, sx: e.clientX, sy: e.clientY, ox: obj.x, oy: obj.y };
+      e.preventDefault();
+      return;
+    }
+    G = { kind: 'pan', sx: e.clientX, sy: e.clientY, ox: E.view.x, oy: E.view.y, moved: false };
+    gc.classList.add('panning');
+  });
+}
+window.addEventListener('mousemove', e => {
+  if (!G || !E) return;
+  if (G.kind === 'pan') { E.view.x = G.ox + e.clientX - G.sx; E.view.y = G.oy + e.clientY - G.sy; G.moved = true; applyGView(); return; }
+  if (G.kind === 'move') { G.obj.x = Math.round(G.ox + (e.clientX - G.sx) / E.view.k); G.obj.y = Math.round(G.oy + (e.clientY - G.sy) / E.view.k); renderGraph(); return; }
+  if (G.kind === 'link' || G.kind === 'wlink') { G.to = toWorld(e); renderGraph(); }
+});
+window.addEventListener('mouseup', e => {
+  if (!G || !E) { G = null; return; }
+  const g = G; G = null;
+  const gc = $('#gc'); gc && gc.classList.remove('panning');
+  const it = cur();
+  if (g.kind === 'pan' && !g.moved) { select(null); return; }
+  if (g.kind === 'link') {
+    const tgt = document.elementFromPoint(e.clientX, e.clientY)?.closest('.st');
+    if (tgt && tgt.dataset.id !== g.from) {
+      const used = new Set(it.transitions.filter(t => t.from === g.from).map(t => t.event));
+      const ev = DOMAIN.events.find(x => !used.has(x) && !it.transitions.some(t => t.event === x)) || DOMAIN.events[0];
+      const t = { id: uid('t'), from: g.from, to: tgt.dataset.id, event: ev, guard: null };
+      it.transitions.push(t);
+      E.sel = { type: 'transition', id: t.id };
+      refresh(true);
+      toast(`Added ${stateName(it.id, t.from)} → ${stateName(it.id, t.to)}. Pick the event it reacts to.`);
+    } else renderGraph();
+    return;
+  }
+  if (g.kind === 'wlink') {
+    const tgt = document.elementFromPoint(e.clientX, e.clientY)?.closest('.wn');
+    if (tgt && tgt.dataset.id !== g.from) {
+      it.edges = it.edges.filter(x => !(x.from === g.from && x.outlet === g.outlet));
+      it.edges.push({ from: g.from, outlet: g.outlet, to: tgt.dataset.id });
+      refresh(false);
+    } else renderGraph();
+    return;
+  }
+  if (g.kind === 'move') { renderSide(); }
+});
+
+function renderGraph() {
+  const gw = $('#gw'); if (!gw) return;
+  if (E.kind === 'sm') renderSMGraph(gw); else renderWFGraph(gw);
+}
+function renderSMGraph(gw) {
+  const m = cur();
+  const sid = id => m.states.find(s => s.id === id);
+  const sim = E.tab === 'simulate' ? run(m, E.sim.events, E.sim.guards) : null;
+  const visited = sim ? new Set([m.initial, ...sim.steps.map(s => s.to)]) : null;
+  const last = sim && [...sim.steps].reverse().find(s => s.outcome === 'moved');
+  const lastIsLatest = sim && sim.steps.length && sim.steps[sim.steps.length - 1].outcome === 'moved';
+  const ck = smChecks(m); const flagged = new Set(ck.filter(c => c.sev === 'warn' || c.sev === 'bad').map(c => c.on));
+  let svg = `<svg class="edges" width="10" height="10"><defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4d6a80"/></marker>
+    <marker id="ars" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#60a5fa"/></marker>
+    <marker id="arh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#4fc3b8"/></marker></defs>`;
+  let labels = '';
+  for (const t of m.transitions) {
+    const a = sid(t.from), b = sid(t.to); if (!a || !b) continue;
+    const p = smEdgePath(m, t, a, b);
+    const sel = E.sel?.type === 'transition' && E.sel.id === t.id;
+    const hot = last && last.tid === t.id && lastIsLatest;
+    svg += `<path class="e ${sel ? 'sel' : ''} ${hot ? 'hot' : ''}" d="${p.d}" marker-end="url(#${sel ? 'ars' : hot ? 'arh' : 'ar'})"/>`;
+    labels += `<div class="tl ${sel ? 'sel' : ''} ${hot ? 'hot' : ''} ${flagged.has(t.id) ? 'problem' : ''}" data-id="${t.id}" style="left:${p.lx}px;top:${p.ly}px"><span class="e">${esc(t.event)}</span>${t.guard ? `<span class="g">when ${esc(guardText(m, t.guard))}</span>` : ''}</div>`;
+  }
+  const ini = sid(m.initial);
+  if (ini) svg += `<circle cx="${ini.x - 44}" cy="${ini.y + 28}" r="7" fill="#4fc3b8"/><path class="e" style="stroke:#4fc3b8" d="M${ini.x - 37} ${ini.y + 28}H${ini.x - 6}" marker-end="url(#arh)"/>`;
+  if (G?.kind === 'link' && G.to) { const a = sid(G.from); svg += `<path class="e temp" d="M${a.x + 150} ${a.y + 28} L${G.to.x} ${G.to.y}"/>`; }
+  svg += '</svg>';
+  const nodes = m.states.map(s => {
+    const reacts = s.onEnter.length ? `<span class="react" title="${esc(s.onEnter.map(r => reactionText(r)).join('; '))}">${ic('zap')} ${s.onEnter.length}</span>` : '';
+    const cls = ['st', s.final ? 'fin' : '', s.id === m.initial ? 'ini' : '', E.sel?.type === 'state' && E.sel.id === s.id ? 'sel' : '', flagged.has(s.id) && !sim ? 'problem' : '',
+      sim && sim.state === s.id ? 'cur' : '', sim && visited.has(s.id) && sim.state !== s.id ? 'visited' : '', sim && !visited.has(s.id) ? 'dim' : ''].join(' ');
+    const sub = s.id === m.initial ? 'starts here' : s.final ? 'final' : (s.onEnter[0] ? reactionText(s.onEnter[0]) : `${allowed(m, s.id).length} way${allowed(m, s.id).length === 1 ? '' : 's'} out`);
+    return `<div class="${cls}" data-id="${s.id}" style="left:${s.x}px;top:${s.y}px">${reacts}<span class="n">${esc(s.name)}</span><span class="s">${esc(sub)}</span>${E.tab === 'design' ? '<span class="h" title="Drag to another state"></span>' : ''}</div>`;
+  }).join('');
+  gw.innerHTML = svg + nodes + labels;
+}
+function reactionText(r) { return r.kind === 'workflow' ? `starts ${workflow(r.ref)?.name ?? 'a workflow'}` : `sends ${r.ref}`; }
+function renderWFGraph(gw) {
+  const w = cur();
+  const nd = id => w.nodes.find(n => n.id === id);
+  const ws = E.tab === 'simulate' ? E.wsim : null;
+  const ck = wfChecks(w); const flagged = new Set(ck.filter(c => c.sev !== 'info').map(c => c.on));
+  let svg = `<svg class="edges" width="10" height="10"><defs><marker id="war" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4d6a80"/></marker>
+    <marker id="warh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4fc3b8"/></marker></defs>`;
+  for (const e of w.edges) {
+    const a = nd(e.from), b = nd(e.to); if (!a || !b) continue;
+    const oi = outletsOf(a).indexOf(e.outlet); if (oi < 0) continue;
+    const sel = E.sel?.type === 'edge' && E.sel.id === `${e.from}|${e.outlet}`;
+    const hot = ws && ws.taken.some(t => t.from === e.from && t.outlet === e.outlet);
+    svg += `<path class="e ${sel ? 'sel' : ''} ${hot ? 'hot' : ''} ${NEG.includes(e.outlet) && !hot && !sel ? 'bad' : ''}" d="${wfEdgePath(a, oi, b)}" marker-end="url(#${hot ? 'warh' : 'war'})"/>`;
+  }
+  if (G?.kind === 'wlink' && G.to) { const a = nd(G.from); const oi = outletsOf(a).indexOf(G.outlet); svg += `<path class="e temp" d="M${portX(a, oi)} ${a.y + NH + 6} L${G.to.x} ${G.to.y}"/>`; }
+  svg += '</svg>';
+  const nodes = w.nodes.map(n => {
+    const k = KINDS[n.kind]; const outs = outletsOf(n);
+    const st = ws ? ws.state[n.id] : null;
+    const cls = ['wn', E.sel?.type === 'node' && E.sel.id === n.id ? 'sel' : '', flagged.has(n.id) && !ws ? 'problem' : '',
+      ws && ws.pending[0] === n.id && ws.status === 'running' ? 'cur' : '', st && st !== 'failed' ? 'done' : '', st === 'failed' ? 'failed' : '', ws && !st && !ws.pending.includes(n.id) ? 'dim' : ''].join(' ');
+    return `<div class="${cls}" data-id="${n.id}" style="left:${n.x}px;top:${n.y}px;--k:${k.k}">
+      ${ws && ws.mult[n.id] ? `<span class="mult">×${ws.mult[n.id]}</span>` : ''}${ws && ws.attempts[n.id] ? `<span class="att">${ws.attempts[n.id]} failed attempt${ws.attempts[n.id] > 1 ? 's' : ''}</span>` : ''}
+      ${n.kind !== 'trigger' ? '<span class="port in"></span>' : ''}
+      <div class="hd"><span class="kic">${ic(k.icon)}</span><span class="n">${esc(n.name)}</span><span class="k">${k.label}</span></div>
+      <div class="sb">${esc(nodeSummary(n))}</div>
+      <div class="ols">${outs.map(o => { const free = !w.edges.some(e => e.from === n.id && e.outlet === o); return `<div class="ol ${NEG.includes(o) ? 'neg' : ''} ${free ? 'free' : ''}">${esc(o)}<span class="port out" data-node="${n.id}" data-outlet="${esc(o)}" title="Drag onto a step"></span></div>`; }).join('')}</div>
+    </div>`;
+  }).join('');
+  gw.innerHTML = svg + nodes;
+}
+function select(sel) {
+  E.sel = sel;
+  if (sel && sel.type === 'spec') { loadSpec(sel.id); return; }
+  if (E.tab !== 'design' && E.tab !== 'simulate') { E.tab = 'design'; renderTabs(); renderWork(); }
+  renderGraph(); renderSide();
+  if (E.tab === 'design') renderInspector();
+}
+function refresh(withInspector) {
+  renderGraph(); renderSide(); renderChecks(); renderDetails();
+  if (withInspector) { if (E.tab === 'design') renderInspector(); else if (E.tab === 'simulate') renderSim(); }
+  $('#phTitle').textContent = cur().name;
+}
+
+/* ---------- inspector ---------- */
+const opt = (v, cur, label) => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(label ?? v)}</option>`;
+function renderInspector() {
+  const el = $('#insp'); if (!el) return;
+  const it = cur();
+  if (E.kind === 'sm') el.innerHTML = E.sel?.type === 'state' ? inspState(it, it.states.find(s => s.id === E.sel.id)) : E.sel?.type === 'transition' ? inspTransition(it, it.transitions.find(t => t.id === E.sel.id)) : inspMachine(it);
+  else el.innerHTML = E.sel?.type === 'node' ? inspNode(it, it.nodes.find(n => n.id === E.sel.id)) : inspWorkflow(it);
+}
+function inspMachine(m) {
+  const evs = [...new Set(m.transitions.map(t => t.event))];
+  return `<div><div class="eye">State machine</div><h3>${esc(pascal(m.name))}</h3></div>
+    <p class="lead">A state machine follows facts that already happened. It never decides on a command; when the facts move it, it moves, and what it does on entering a state may run again, so it must be safe to repeat.</p>
+    <div class="fld"><label>Follows</label><select class="sel2" data-field="model">${Object.keys(DOMAIN.readModels).map(r => opt(r, m.model)).join('')}</select></div>
+    <div class="fld"><label>Starts in</label><select class="sel2" data-field="initial">${m.states.map(s => opt(s.id, m.initial, s.name)).join('')}</select></div>
+    <div class="sect"><div class="t">Reacts to <span class="r" style="color:var(--ce-muted)">${evs.length} events</span></div><div style="display:flex;flex-wrap:wrap;gap:4px">${chips(evs, 'ev', 20)}</div></div>
+    <div class="sect"><div class="t">After a restart</div><div class="why">Nothing about the current state is stored. When the machine wakes up it reads ${esc(m.model)} and works out where it is, so the model must say enough to tell every state apart.</div>
+      <div class="code-note">${esc(m.model)}.Status → ${m.states.map(s => s.name).join(' · ')}</div></div>
+    <div class="callout info">Select a state or a transition to edit it. Drag a state's teal dot onto another state to add a transition.</div>`;
+}
+function inspState(m, s) {
+  const outs = m.transitions.filter(t => t.from === s.id), ins = m.transitions.filter(t => t.to === s.id);
+  return `<div><div class="eye">State</div><h3>${esc(pascal(s.name))}</h3></div>
+    <div class="fld"><label>Name</label><input class="inp" data-sfield="name" value="${esc(s.name)}"></div>
+    <div class="fld stack"><label>What it means</label><textarea class="inp" data-sfield="about" placeholder="What is true about an ${esc(m.model.toLowerCase())} in this state?">${esc(s.about)}</textarea></div>
+    <label class="check"><input type="checkbox" data-act="toggle-initial" ${m.initial === s.id ? 'checked disabled' : ''}><span>Starts here<small>A new ${esc(m.model.toLowerCase())} is in this state until a transition moves it.</small></span></label>
+    <label class="check"><input type="checkbox" data-act="toggle-final" ${s.final ? 'checked' : ''}><span>Final<small>Nothing moves it on. Allows no transitions out.</small></span></label>
+    <div class="sect"><div class="t">When entering <span class="r" style="color:var(--ce-muted)">${s.onEnter.length}</span></div>
+      <div class="why">Runs every time the machine enters ${esc(s.name)}. It may run again after a redelivery.</div>
+      ${s.onEnter.map((r, i) => `<div class="box"><div class="rowx"><select class="sel2 fixed" style="width:120px" data-ract="kind" data-i="${i}">${opt('command', r.kind, 'Send command')}${opt('workflow', r.kind, 'Start workflow')}</select>
+        <select class="sel2" data-ract="ref" data-i="${i}">${r.kind === 'command' ? DOMAIN.commands.map(c => opt(c, r.ref)).join('') : S.workflows.map(w => opt(w.id, r.ref, w.name)).join('')}</select>
+        <button class="ibtn" data-act="del-reaction" data-i="${i}" title="Remove">${ic('x')}</button></div>
+        ${r.kind === 'workflow' ? `<span style="font-size:11.5px;color:var(--ce-muted)">The workflow's trigger is this state. <a style="color:#93c5fd;cursor:pointer" data-act="goto-wf-open" data-id="${r.ref}">Open ${esc(workflow(r.ref)?.name || '')} →</a></span>` : ''}</div>`).join('')}
+      <button class="addl" data-act="add-reaction">+ Add what happens</button></div>
+    <div class="sect"><div class="t">Ways out <span class="r" style="color:var(--ce-muted)">${outs.length}</span></div>
+      ${outs.map(t => `<div class="listrow"><span class="chip ev lnk" data-act="sel" data-type="transition" data-id="${t.id}">${esc(t.event)}</span><span class="arrow">→</span><span class="lnk" data-act="sel" data-type="state" data-id="${t.to}">${esc(stateName(m.id, t.to))}</span>${t.guard ? `<span style="color:var(--ce-muted);font-size:11px" class="mono">when …</span>` : ''}</div>`).join('') || `<div class="why">${s.final ? 'None. It is final.' : 'None yet. Drag the teal dot onto another state.'}</div>`}
+      <div class="code-note">AllowedTransitions =&gt; [${allowed(m, s.id).map(x => `typeof(${pascal(stateName(m.id, x))})`).join(', ')}]</div></div>
+    <div class="sect"><div class="t">Ways in <span class="r" style="color:var(--ce-muted)">${ins.length}</span></div>
+      ${ins.map(t => `<div class="listrow"><span class="lnk" data-act="sel" data-type="state" data-id="${t.from}">${esc(stateName(m.id, t.from))}</span><span class="arrow">→</span><span class="chip ev lnk" data-act="sel" data-type="transition" data-id="${t.id}">${esc(t.event)}</span></div>`).join('') || `<div class="why">${m.initial === s.id ? 'It is where the machine starts.' : 'Nothing leads here.'}</div>`}</div>
+    <button class="tb" data-act="del-sel" style="align-self:flex-start">${ic('trash')} Remove state</button>`;
+}
+function inspTransition(m, t) {
+  const props = DOMAIN.readModels[m.model] || [];
+  const others = m.transitions.filter(o => o.event === t.event && o !== t);
+  return `<div><div class="eye">Transition</div><h3>On ${esc(t.event)}</h3></div>
+    <div class="fld"><label>From</label><select class="sel2" data-tfield="from">${m.states.map(s => opt(s.id, t.from, s.name)).join('')}</select></div>
+    <div class="fld"><label>To</label><select class="sel2" data-tfield="to">${m.states.map(s => opt(s.id, t.to, s.name)).join('')}</select></div>
+    <div class="fld"><label>On event</label><select class="sel2" data-tfield="event">${DOMAIN.events.map(e => opt(e, t.event)).join('')}</select></div>
+    <div class="sect"><div class="t">Only when</div><div class="why">A guard reads the ${esc(m.model)} the machine follows, after the event is applied.</div>
+      ${t.guard ? `<div class="box"><div class="rowx"><span class="fixed mono" style="color:var(--ce-muted)">${esc(m.model)}.</span>
+          <select class="sel2" data-gfield="prop">${props.map(p => opt(p, t.guard.prop)).join('')}</select>
+          <select class="sel2 fixed" style="width:100px" data-gfield="op">${['is set', 'is not set', '=', '>', '<'].map(o => opt(o, t.guard.op)).join('')}</select>
+          <button class="ibtn" data-act="del-guard" title="Remove guard">${ic('x')}</button></div>
+          ${t.guard.op === 'is set' || t.guard.op === 'is not set' ? '' : `<input class="inp" data-gfield="value" value="${esc(t.guard.value)}" placeholder="value">`}</div>`
+      : `<button class="addl" data-act="add-guard">+ Add a guard</button>`}</div>
+    <div class="sect"><div class="t">How it is taken</div>
+      <div class="why">When ${esc(t.event)} arrives, the first transition on it whose guard holds and that the current state allows is taken. If none is, the event is ignored and the machine stays where it is.</div>
+      ${others.length ? `<div class="callout">${esc(t.event)} is also used by ${others.map(o => `${esc(stateName(m.id, o.from))} → ${esc(stateName(m.id, o.to))}`).join(', ')}.</div>` : ''}
+      <div class="code-note">.On&lt;${esc(t.event)}&gt;()${t.guard ? `.When(${m.model.toLowerCase()} =&gt; …)` : ''}.TransitionTo&lt;${esc(pascal(stateName(m.id, t.to)))}&gt;()</div></div>
+    <button class="tb" data-act="del-sel" style="align-self:flex-start">${ic('trash')} Remove transition</button>`;
+}
+function inspWorkflow(w) {
+  return `<div><div class="eye">Workflow</div><h3>${esc(pascal(w.name))}</h3></div>
+    <p class="lead">A workflow does things: it sends commands, waits for facts or people, and chooses a path. Every step it takes is recorded, so a run picks up where it was after a restart.</p>
+    <div class="fld"><label>One run per</label><select class="sel2" data-field="subject">${Object.keys(DOMAIN.readModels).map(r => opt(r, w.subject)).join('')}</select></div>
+    <div class="sect"><div class="t">Starts</div>${w.nodes.filter(n => n.kind === 'trigger').map(n => `<div class="listrow"><span class="lnk" data-act="sel" data-type="node" data-id="${n.id}">${esc(n.name)}</span><span class="arrow">·</span><span style="color:var(--ce-muted)">${esc(nodeSummary(n))}</span></div>`).join('') || '<div class="why">Nothing yet. Add a trigger.</div>'}</div>
+    <div class="sect"><div class="t">Sends</div><div style="display:flex;flex-wrap:wrap;gap:4px">${chips(w.nodes.filter(n => n.kind === 'action').map(n => n.cfg.command), 'cmd', 20)}</div></div>
+    <div class="callout info">Select a step to edit it, or add one from the palette. Drag from an outlet onto a step to connect them.</div>`;
+}
+function inspNode(w, n) {
+  const k = KINDS[n.kind], c = n.cfg;
+  let body = '';
+  const policy = () => `<div class="sect"><div class="t">If it fails</div><div class="why">Each attempt is a job step; a failed attempt is retried after the delay until it runs out of attempts, then the run takes “failed”.</div>
+      <div class="fld"><label>Attempts</label><input class="inp" type="number" min="1" max="10" data-cfg="attempts" value="${c.attempts}"></div>
+      <div class="fld"><label>Each up to</label><input class="inp" data-cfg="timeout" value="${esc(c.timeout)}"></div>
+      <div class="fld"><label>Retry after</label><input class="inp" data-cfg="delay" value="${esc(c.delay)}"></div></div>`;
+  switch (n.kind) {
+    case 'trigger':
+      body = `<div class="fld"><label>Starts</label><div class="seg2">${[['event', 'On an event'], ['state', 'On a state'], ['schedule', 'On a schedule'], ['manual', 'By hand']].map(([v, l]) => `<button class="${c.on === v ? 'on' : ''}" data-act="cfg-set" data-key="on" data-val="${v}">${l}</button>`).join('')}</div></div>
+        ${c.on === 'event' ? `<div class="fld"><label>Event</label><select class="sel2" data-cfg="event">${DOMAIN.events.map(e => opt(e, c.event)).join('')}</select></div>` : ''}
+        ${c.on === 'state' ? `<div class="fld"><label>Machine</label><select class="sel2" data-cfg="machine">${S.machines.map(m => opt(m.id, c.machine, m.name)).join('')}</select></div>
+          <div class="fld"><label>Enters</label><select class="sel2" data-cfg="state">${(machine(c.machine)?.states || []).map(s => opt(s.id, c.state, s.name)).join('')}</select></div>
+          <div class="callout info">Starting on a state keeps the rules about <i>when</i> in the state machine, and the doing here. ${esc(machineName(c.machine))} lists this workflow under “When entering”. <a style="color:#93c5fd;cursor:pointer" data-act="goto-sm-open" data-id="${c.machine}">Open ${esc(machineName(c.machine))} →</a></div>` : ''}
+        ${c.on === 'schedule' ? `<div class="fld"><label>When</label><input class="inp" data-cfg="schedule" value="${esc(c.schedule || '')}"></div>` : ''}
+        ${c.on === 'manual' ? `<div class="why">A person starts a run from the ${esc(w.subject)}'s page.</div>` : ''}`;
+      break;
+    case 'action':
+      body = `<div class="fld"><label>Sends</label><select class="sel2" data-cfg="command">${DOMAIN.commands.map(x => opt(x, c.command)).join('')}</select></div>
+        <div class="why">Its properties come from the ${esc(w.subject)} the run is for. A rejected command counts as a failed attempt.</div>${policy()}`;
+      break;
+    case 'decision':
+      body = `<div class="fld stack"><label>If</label><input class="inp mono" data-cfg="condition" value="${esc(c.condition)}"></div>
+        <div class="sect"><div class="t">Paths</div>${c.outlets.map((o, i) => `<div class="rowx"><input class="inp" data-outlet="${i}" value="${esc(o)}">${c.outlets.length > 2 ? `<button class="ibtn" data-act="del-outlet" data-i="${i}">${ic('x')}</button>` : ''}</div>`).join('')}<button class="addl" data-act="add-outlet">+ Add a path</button></div>`;
+      break;
+    case 'wait':
+      body = `<div class="fld"><label>Wait for</label><div class="seg2">${[['event', 'An event'], ['timer', 'Time to pass']].map(([v, l]) => `<button class="${c.for === v ? 'on' : ''}" data-act="cfg-set" data-key="for" data-val="${v}">${l}</button>`).join('')}</div></div>
+        ${c.for === 'event' ? `<div class="fld"><label>Event</label><select class="sel2" data-cfg="event">${DOMAIN.events.map(e => opt(e, c.event)).join('')}</select></div>
+          <div class="why">Only the ${esc(c.event)} for this run's ${esc(w.subject)} resumes it.</div>
+          <div class="fld"><label>Give up after</label><input class="inp" data-cfg="expires" value="${esc(c.expires)}" placeholder="never"></div>`
+          : `<div class="fld"><label>For</label><input class="inp" data-cfg="after" value="${esc(c.after || '1 hour')}"></div>`}
+        <div class="why">Waiting holds nothing: the deadline is written down with the wait, and a sweep resumes runs whose time has come.</div>`;
+      break;
+    case 'approval':
+      body = `<div class="fld"><label>Asks</label><select class="sel2" data-cfg="role">${DOMAIN.roles.map(r => opt(r, c.role)).join('')}</select></div>
+        <div class="fld"><label>Expires after</label><input class="inp" data-cfg="expires" value="${esc(c.expires)}" placeholder="never"></div>
+        <div class="why">Shows up in the role's inbox with the ${esc(w.subject)} it is about. Approved and rejected are the person's answer; expired is the run's.</div>`;
+      break;
+    case 'foreach':
+      body = `<div class="fld"><label>Each of</label><input class="inp" data-cfg="items" value="${esc(c.items)}"></div>
+        <div class="fld"><label>At a time</label><input class="inp" type="number" min="1" max="32" data-cfg="parallel" value="${c.parallel}"></div>
+        <div class="why">“each” runs once per item, up to ${c.parallel} at the same time. “completed” continues once every item has been through.</div>`;
+      break;
+    case 'join':
+      body = `<div class="fld"><label>Continues</label><div class="seg2">${[['all', 'When all'], ['any', 'On the first'], ['atLeast', 'At least']].map(([v, l]) => `<button class="${c.mode === v ? 'on' : ''}" data-act="cfg-set" data-key="mode" data-val="${v}">${l}</button>`).join('')}</div></div>
+        ${c.mode === 'atLeast' ? `<div class="fld"><label>Branches</label><input class="inp" type="number" min="1" data-cfg="atLeast" value="${c.atLeast}"></div>` : ''}
+        <div class="why">${w.edges.filter(e => e.to === n.id).length} branch${w.edges.filter(e => e.to === n.id).length === 1 ? '' : 'es'} come in here.</div>`;
+      break;
+  }
+  const outs = outletsOf(n);
+  return `<div><div class="eye" style="color:${k.k}">${k.label}</div><h3>${esc(n.name)}</h3></div>
+    <div class="fld"><label>Name</label><input class="inp" data-nfield="name" value="${esc(n.name)}"></div>
+    ${body}
+    <div class="sect"><div class="t">Goes to</div>${outs.map(o => { const e = w.edges.find(x => x.from === n.id && x.outlet === o); return `<div class="listrow"><span class="mono" style="color:${NEG.includes(o) ? '#f2a7a7' : 'var(--ce-soft)'};min-width:80px">${esc(o)}</span><span class="arrow">→</span>${e ? `<span class="lnk" data-act="sel" data-type="node" data-id="${e.to}">${esc(w.nodes.find(x => x.id === e.to)?.name)}</span><button class="ibtn" data-act="del-edge" data-from="${n.id}" data-outlet="${esc(o)}" title="Disconnect">${ic('x')}</button>` : `<span style="color:var(--ce-muted)">${NEG.includes(o) ? 'the run fails' : 'the branch ends'}</span>`}</div>`; }).join('')}</div>
+    <button class="tb" data-act="del-sel" style="align-self:flex-start">${ic('trash')} Remove step</button>`;
+}
+
+/* ---------- simulate: state machine ---------- */
+function renderSim() { if (E.kind === 'sm') renderSMSim(); else renderWFSim(); }
+function renderSMSim() {
+  const m = cur(); const el = $('#simPanel'); if (!el) return;
+  const r = run(m, E.sim.events, E.sim.guards);
+  const curS = m.states.find(s => s.id === r.state);
+  const evs = [...new Set([...m.transitions.map(t => t.event)])];
+  const moves = new Set(evs.filter(ev => step(m, r.state, ev, E.sim.guards).outcome === 'moved'));
+  const guarded = m.transitions.filter(t => t.guard);
+  const items = [`<div class="ti moved"><span class="d">${ic('check')}</span><div>Starts in <b>${esc(stateName(m.id, m.initial))}</b><div class="w">A new ${esc(m.model.toLowerCase())}</div></div></div>`];
+  r.steps.forEach(s => {
+    const target = m.states.find(x => x.id === s.to);
+    if (s.outcome === 'moved') items.push(`<div class="ti moved"><span class="d">${ic('arrowR')}</span><div><span class="chip ev">${esc(s.event)}</span> → <b>${esc(target.name)}</b>
+      ${s.implicit ? `<div class="w" style="color:#f3d38d">Not drawn from ${esc(stateName(m.id, s.from))}, but ${esc(stateName(m.id, s.from))} allows ${esc(target.name)}.</div>` : ''}
+      ${target.onEnter.map(x => `<div class="r2">↳ ${esc(reactionText(x))}</div>`).join('')}</div></div>`);
+    else if (s.outcome === 'guard') items.push(`<div class="ti ignored"><span class="d">${ic('minus')}</span><div><span class="chip ev">${esc(s.event)}</span> ignored<div class="w">The guard “${esc(guardText(m, s.def.guard))}” does not hold.</div></div></div>`);
+    else items.push(`<div class="ti ignored"><span class="d">${ic('minus')}</span><div><span class="chip ev">${esc(s.event)}</span> ignored<div class="w">${esc(stateName(m.id, s.from))} has no way out on it, so it stays ${esc(stateName(m.id, s.from))}.</div></div></div>`);
+  });
+  el.innerHTML = `<div class="top"><div class="eye" style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ce-muted)">The ${esc(m.model.toLowerCase())} is</div>
+      <div class="now"><span class="big">${esc(curS?.name)}</span>${curS?.final ? '<span class="pillst ok">final</span>' : '<span class="pillst running">following</span>'}</div>
+      <div style="font-size:12px;color:var(--ce-muted)">Send events as they would happen to one ${esc(m.model.toLowerCase())}. The machine moves exactly as the generated grain would.</div></div>
+    <div class="send"><div class="t">Send an event</div>
+      <div class="evbtns">${evs.map(ev => `<button class="evbtn ${moves.has(ev) ? '' : 'dim'}" data-act="sim-send" data-event="${esc(ev)}" title="${moves.has(ev) ? 'Moves the machine' : 'Ignored in the current state'}">${esc(ev)}</button>`).join('')}</div>
+      ${guarded.length ? `<div class="t" style="margin-top:4px">The ${esc(m.model)} says</div>${guarded.map(t => `<label class="check"><input type="checkbox" data-act="sim-guard" data-id="${t.id}" ${E.sim.guards[t.id] ? 'checked' : ''}><span class="mono" style="font-size:12px">${esc(guardText(m, t.guard))}</span></label>`).join('')}` : ''}</div>
+    <div class="timeline">${items.join('')}</div>
+    <div class="foot">
+      <button class="tb sm" data-act="sim-undo" ${E.sim.events.length ? '' : 'disabled'}>${ic('undo')} Undo</button>
+      <button class="tb sm" data-act="sim-reset" ${E.sim.events.length ? '' : 'disabled'}>${ic('reset')} Start over</button>
+      <input class="inp" id="specName" placeholder="Name this story…" value="${esc(E.sim.name || '')}">
+      <button class="tb sm primary" data-act="sim-save" ${E.sim.events.length ? '' : 'disabled'}>${ic('save')} Save as specification</button></div>`;
+  scrollTimeline(el);
+}
+function scrollTimeline(el) { const tl = el.querySelector('.timeline'); if (tl) tl.scrollTop = tl.scrollHeight; }
+function loadSpec(id) {
+  const m = cur(); const sp = m.specs.find(s => s.id === id); if (!sp) return;
+  E.sim = { events: [...sp.given], guards: { ...sp.guards }, name: sp.name };
+  E.sel = null; E.tab = 'simulate'; renderTabs(); renderWork(); renderSide();
+}
+
+/* ---------- simulate: workflow run ---------- */
+function newRun(w) { return { status: 'idle', pending: [], state: {}, attempts: {}, mult: {}, taken: [], log: [], failed: false }; }
+function startRun() {
+  const w = cur(); const ws = E.wsim = newRun(w);
+  const t = w.nodes.find(n => n.kind === 'trigger');
+  if (!t) return;
+  ws.status = 'running'; ws.pending = [t.id];
+  ws.log.push({ cls: 'moved', text: `Run started for ${w.subject} <b>${w.subject === 'Order' ? '10482' : w.subject === 'Refund' ? 'R-2207' : 'nightly'}</b>`, w: nodeSummary(t) });
+}
+function choicesFor(n) {
+  const c = n.cfg;
+  switch (n.kind) {
+    case 'trigger': return [{ label: 'Fire the trigger', outlet: 'next', auto: true }];
+    case 'action': return [{ label: `${c.command} is accepted`, outlet: 'next', auto: true }, { label: 'This attempt fails', fail: true }];
+    case 'decision': return c.outlets.map(o => ({ label: o, outlet: o }));
+    case 'wait': return c.for === 'timer' ? [{ label: `${c.after || 'The time'} passes`, outlet: 'resumed' }] : [{ label: `${c.event} arrives`, outlet: 'resumed' }, ...(c.expires ? [{ label: `${c.expires} pass with nothing`, outlet: 'expired' }] : [])];
+    case 'approval': return [{ label: 'Approve', outlet: 'approved' }, { label: 'Reject', outlet: 'rejected' }, ...(c.expires ? [{ label: `Nobody answers for ${c.expires}`, outlet: 'expired' }] : [])];
+    case 'foreach': return [{ label: 'Found 3 items', outlet: 'each', auto: true, n: 3 }, { label: 'Found nothing', outlet: 'completed' }];
+    case 'join': return [{ label: 'Branches arrive', outlet: 'next', auto: true }];
+  }
+  return [];
+}
+function take(nid, ch) {
+  const w = cur(), ws = E.wsim, n = w.nodes.find(x => x.id === nid);
+  if (ch.fail) {
+    ws.attempts[nid] = (ws.attempts[nid] || 0) + 1;
+    if (ws.attempts[nid] < n.cfg.attempts) { ws.log.push({ cls: 'failed', text: `${esc(n.name)} — attempt ${ws.attempts[nid]} of ${n.cfg.attempts} failed`, w: `Retried after ${n.cfg.delay}` }); return; }
+    ws.log.push({ cls: 'failed', text: `${esc(n.name)} failed ${n.cfg.attempts} times`, w: 'Takes “failed”' });
+    ch = { outlet: 'failed' };
+  }
+  ws.pending.shift();
+  ws.state[nid] = NEG.includes(ch.outlet) ? 'failed' : ch.outlet;
+  const verb = { trigger: 'fired', action: `sent ${n.cfg.command}`, decision: `chose “${ch.outlet}”`, wait: ch.outlet === 'expired' ? 'gave up waiting' : 'resumed', approval: ch.outlet, foreach: ch.n ? `fanned out to ${ch.n} items` : 'had nothing to go through', join: 'joined its branches' }[n.kind];
+  if (n.kind !== 'trigger' && !(n.kind === 'action' && ch.outlet === 'failed')) ws.log.push({ cls: NEG.includes(ch.outlet) ? 'failed' : 'done', text: `${esc(n.name)} ${esc(verb)}`, w: n.kind === 'wait' && ch.outlet === 'resumed' && n.cfg.for === 'event' ? `${n.cfg.event} for this ${w.subject}` : '' });
+  const edges = w.edges.filter(e => e.from === nid && e.outlet === ch.outlet);
+  if (!edges.length) {
+    if (NEG.includes(ch.outlet)) { ws.failed = true; ws.log.push({ cls: 'failed', text: `Nothing handles “${esc(ch.outlet)}” — the run fails` }); }
+    else if (n.kind === 'foreach' && ch.outlet === 'each') {}
+  }
+  for (const e of edges) {
+    ws.taken.push(e);
+    if (ch.n) ws.mult[e.to] = ch.n;
+    if (!ws.pending.includes(e.to) && !ws.state[e.to]) ws.pending.push(e.to);
+  }
+  // a for-each's "completed" continues once the items are through - the prototype releases it after the "each" branch reaches the join
+  if (n.kind === 'foreach' && ch.n) {
+    const comp = w.edges.find(e => e.from === nid && e.outlet === 'completed');
+    if (comp) ws.deferred = { edge: comp };
+  }
+  if (n.kind === 'join' && ws.deferred && ws.deferred.edge.to === nid) { ws.taken.push(ws.deferred.edge); ws.deferred = null; }
+  if (!ws.pending.length) {
+    ws.status = ws.failed ? 'failed' : 'succeeded';
+    ws.log.push({ cls: ws.failed ? 'failed' : 'done', text: ws.failed ? '<b>Run failed</b>' : '<b>Run succeeded</b>', w: ws.failed ? 'Someone can look at it, fix it and resume it from the failed step.' : 'Every branch reached its end.' });
+  }
+}
+function autoRun() {
+  const w = cur(), ws = E.wsim;
+  let guard = 0;
+  while (ws.status === 'running' && guard++ < 50) {
+    const n = w.nodes.find(x => x.id === ws.pending[0]);
+    const auto = choicesFor(n).find(c => c.auto);
+    if (!auto) break;
+    take(n.id, auto);
+  }
+}
+function renderWFSim() {
+  const w = cur(); const el = $('#simPanel'); if (!el) return;
+  if (!E.wsim) E.wsim = newRun(w);
+  const ws = E.wsim;
+  const n = ws.status === 'running' ? w.nodes.find(x => x.id === ws.pending[0]) : null;
+  const stat = { idle: ['idle', 'Not started'], running: ['running', 'Running'], succeeded: ['ok', 'Succeeded'], failed: ['bad', 'Failed'] }[ws.status];
+  el.innerHTML = `<div class="top"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ce-muted)">A run of ${esc(w.name)}</div>
+      <div class="now"><span class="big">${n ? esc(n.name) : stat[1]}</span><span class="pillst ${stat[0]}">${stat[1]}</span></div>
+      <div style="font-size:12px;color:var(--ce-muted)">You play the world: answer each step the way it could really go, and watch the run take its path.</div></div>
+    <div class="send">${ws.status === 'idle' ? `<button class="tb primary" data-act="run-start">${ic('play')} Start a run</button>`
+      : n ? `<div class="choice"><div class="q"><b>${esc(n.name)}</b> · ${esc(KINDS[n.kind].label.toLowerCase())}${ws.pending.length > 1 ? ` <span style="color:var(--ce-muted)">(${ws.pending.length - 1} more waiting)</span>` : ''}</div>
+          <div class="opts">${choicesFor(n).map((c, i) => `<button class="tb sm ${i === 0 ? 'primary' : ''}" data-act="run-take" data-i="${i}">${esc(c.label)}</button>`).join('')}</div></div>
+          <button class="tb sm ghost" data-act="run-auto" style="align-self:flex-start">${ic('skip')} Run to the next real choice</button>`
+      : `<button class="tb" data-act="run-start">${ic('reset')} Start another run</button>`}</div>
+    <div class="timeline">${ws.log.map(l => `<div class="ti ${l.cls}"><span class="d">${ic(l.cls === 'failed' ? 'x' : l.cls === 'done' ? 'check' : 'arrowR')}</span><div>${l.text}${l.w ? `<div class="w">${esc(l.w)}</div>` : ''}</div></div>`).join('') || '<div style="color:var(--ce-muted);font-size:12.5px">Nothing has happened yet.</div>'}</div>
+    <div class="foot"><span style="font-size:11.5px;color:var(--ce-muted)">Each line is a fact the run records. After a restart it carries on from the last one.</span></div>`;
+  scrollTimeline(el);
+}
+
+/* ---------- C# ---------- */
+function hl(code) {
+  return esc(code)
+    .replace(/(\/\/[^\n]*)/g, '<span class="cm">$1</span>')
+    .replace(/\b(public|class|interface|protected|override|using|namespace|return|new|async|await|Task|typeof|var|void|static|record|private|readonly|switch|when|this|null|true|false)\b(?![^<]*<\/span>)/g, '<span class="kw">$1</span>');
+}
+function codeSM(m) {
+  const T = s => pascal(s.name);
+  const st = m.states.map(s => {
+    const al = allowed(m, s.id).map(x => `typeof(${pascal(stateName(m.id, x))})`).join(', ');
+    let body = `    protected override IImmutableList<Type> AllowedTransitions => [${al}];`;
+    if (s.onEnter.length) body += `\n\n    // Runs again if Chronicle redelivers - keep it safe to repeat.\n    public override async Task<${m.model}> OnEnter(${m.model} state)\n    {\n${s.onEnter.map(r => r.kind === 'command' ? `        await Commands.Execute(new ${r.ref}(state.Id));` : `        await Workflows.Start<${pascal(workflow(r.ref)?.name || 'Workflow')}>(state.Id);`).join('\n')}\n        return state;\n    }`;
+    return `public class ${T(s)} : State<${m.model}>\n{\n${body}\n}`;
+  }).join('\n\n');
+  const defs = definitions(m).map(d => `        .On<${d.event}>()${d.guard ? `.When(${m.model.toLowerCase()} => ${guardCode(m, d.guard)})` : ''}.TransitionTo<${pascal(stateName(m.id, d.to))}>()`).join('\n');
+  const name = pascal(m.name);
+  return `// Generated by Studio from the "${m.name}" state machine in Storefront.
+// Built on Cratis.Orleans.Chronicle - EventSourcedStateMachine.
+using System.Collections.Immutable;
+using Cratis.Orleans.Chronicle.StateMachines;
+using Cratis.Orleans.StateMachines;
+
+namespace Storefront.${name};
+
+public interface I${name} : IEventSourcedStateMachine;
+
+public class ${name} : EventSourcedStateMachine<${m.model}>, I${name}
+{
+    protected override Type InitialState => typeof(${pascal(stateName(m.id, m.initial))});
+
+    public override IImmutableList<IState<${m.model}>> CreateStates() =>
+        [${m.states.map(s => `new ${T(s)}()`).join(', ')}];
+
+    protected override void DefineTransitions(IStateMachineTransitions<${m.model}> transitions) => transitions
+${defs};
+
+    // Nothing about the current state is stored: after a restart the ${m.model} decides it.
+    protected override Type ResolveState(${m.model}? model) => model?.Status switch
+    {
+${m.states.map(s => `        ${m.model}Status.${T(s)} => typeof(${T(s)}),`).join('\n')}
+        _ => InitialState
+    };
+}
+
+${st}
+`;
+}
+function guardCode(m, g) {
+  const p = `${m.model.toLowerCase()}.${g.prop}`;
+  if (g.op === 'is set') return `${p} is not null`;
+  if (g.op === 'is not set') return `${p} is null`;
+  return `${p} ${g.op === '=' ? '==' : g.op} ${isNaN(+g.value) ? `"${g.value}"` : g.value}`;
+}
+function codeWF(w) {
+  const name = pascal(w.name);
+  const line = n => {
+    const c = n.cfg, id = `"${kebab(n.name)}"`;
+    switch (n.kind) {
+      case 'trigger':
+        if (c.on === 'state') return `        .Trigger(${id}, t => t.WhenStateMachine<I${pascal(machineName(c.machine))}>().Enters<${pascal(stateName(c.machine, c.state))}>())`;
+        if (c.on === 'schedule') return `        .Trigger(${id}, t => t.OnSchedule("${c.schedule}"))`;
+        if (c.on === 'manual') return `        .Trigger(${id}, t => t.Manually())`;
+        return `        .Trigger(${id}, t => t.On<${c.event}>())`;
+      case 'action': return `        .Action(${id}, a => a.Sends<${c.command}>().Attempts(${c.attempts}).AttemptTimeout("${c.timeout}").RetryAfter("${c.delay}"))`;
+      case 'decision': return `        .Decision(${id}, d => d.When(${w.subject.toLowerCase()} => ${c.condition.replace(w.subject + '.', w.subject.toLowerCase() + '.')}).Outlets(${c.outlets.map(o => `"${o}"`).join(', ')}))`;
+      case 'wait': return c.for === 'timer' ? `        .Wait(${id}, w => w.For("${c.after}"))` : `        .Wait(${id}, w => w.For<${c.event}>()${c.expires ? `.ExpiresAfter("${c.expires}")` : ''})`;
+      case 'approval': return `        .Approval(${id}, a => a.By("${c.role}")${c.expires ? `.ExpiresAfter("${c.expires}")` : ''})`;
+      case 'foreach': return `        .ForEach(${id}, f => f.Items(${w.subject.toLowerCase()} => ${w.subject.toLowerCase()}.${pascal(c.items)}).MaxParallelism(${c.parallel}))`;
+      case 'join': return `        .Join(${id}, j => j.${c.mode === 'all' ? 'All()' : c.mode === 'any' ? 'Any()' : `AtLeast(${c.atLeast})`})`;
+    }
+  };
+  const nd = id => w.nodes.find(n => n.id === id);
+  const edges = w.edges.filter(e => nd(e.from) && nd(e.to)).map(e => `        .Connect("${kebab(nd(e.from).name)}"${e.outlet === 'next' ? '' : `, "${e.outlet}"`}).To("${kebab(nd(e.to).name)}")`).join('\n');
+  return `// Generated by Studio from the "${w.name}" workflow in Storefront.
+// PROPOSED API - the workflow engine is being extracted into Cratis.Orleans.
+// Runs are event sourced; each action is a job step with its own retries.
+using Cratis.Orleans.Workflows;
+
+namespace Storefront.${name};
+
+public class ${name} : Workflow<${w.subject}>
+{
+    protected override void Define(IWorkflowBuilder<${w.subject}> workflow) => workflow
+${topo(w).map(line).join('\n')}
+${edges};
+}
+`;
+}
+function codeView() {
+  const it = cur(); const sm = E.kind === 'sm';
+  return `<div class="codewrap"><div class="codehead">${ic('code')}<span>${sm ? 'What Studio generates on render. It uses <b style="color:var(--ce-soft)">Cratis.Orleans.Chronicle</b> as it ships today.' : '<b style="color:#f3d38d">Proposed.</b> The workflow engine is to be extracted into Cratis.Orleans; this is the shape Studio would generate against.'}</span></div>
+    <pre class="code">${hl(sm ? codeSM(it) : codeWF(it))}</pre></div>`;
+}
+
+/* ---------- used in ---------- */
+function usedView() {
+  const it = cur();
+  if (E.kind === 'sm') {
+    const wfs = S.workflows.filter(w => w.nodes.some(n => n.kind === 'trigger' && n.cfg.on === 'state' && n.cfg.machine === it.id));
+    return `<div class="usedin">
+      <div><div class="eye" style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ce-muted)">In event models</div>
+        <p style="color:var(--ce-muted);margin:6px 0 0;font-size:13px">An automation slice can say it is driven by a state machine: the slice fires when the machine enters a state, instead of on one raw event.</p></div>
+      ${it.usedIn.length ? it.usedIn.map(u => `<div><div style="font-size:13px;margin-bottom:8px"><b>${esc(u.model)}</b> <span style="color:var(--ce-muted)">› ${esc(u.slice)} · automation</span></div>
+        <div class="strip"><div class="emc ev"><small>Event</small>${esc(u.event)}</div><span class="arr">→</span>
+          <div class="emc auto"><small style="opacity:.6">Automation</small>${esc(u.slice)}<div><span class="chip sm">${esc(it.name)} enters ${esc(stateName(it.id, u.state))}</span></div><div><span class="chip wf">runs ${esc(workflow(u.workflow)?.name)}</span></div></div>
+          <span class="arr">→</span><div class="emc cmd"><small>Command</small>${esc(u.command)}</div></div></div>`).join('')
+        : `<div class="callout info">No event model uses ${esc(it.name)} yet. On an automation slice, choose “Driven by a state machine”.</div>`}
+      <div><div class="eye" style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ce-muted)">Workflows it starts</div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">${wfs.map(w => `<span class="chip wf link" data-act="goto-wf-open" data-id="${w.id}">${esc(w.name)}</span>`).join('') || '<span style="color:var(--ce-muted)">None</span>'}</div></div>
+    </div>`;
+  }
+  const trig = it.nodes.find(n => n.kind === 'trigger');
+  return `<div class="usedin">
+    <div><div class="eye" style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ce-muted)">Started by</div>
+      <div style="margin-top:8px">${trig && trig.cfg.on === 'state' ? `<span class="chip sm link" data-act="goto-sm-open" data-id="${trig.cfg.machine}">${esc(machineName(trig.cfg.machine))}</span> entering ${esc(stateName(trig.cfg.machine, trig.cfg.state))}` : esc(trig ? nodeSummary(trig) : 'Nothing')}</div></div>
+    <div><div class="eye" style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ce-muted)">In event models</div>
+      <p style="color:var(--ce-muted);margin:6px 0 10px;font-size:13px">An automation slice's “then” can be a workflow, instead of a single command. The slice shows the workflow's card; clicking it opens this editor.</p>
+      <div class="strip"><div class="emc ev"><small>Event</small>${esc(trig?.cfg.event || 'PaymentCaptured')}</div><span class="arr">→</span>
+        <div class="emc auto"><small style="opacity:.6">Automation</small>${esc(it.name)}<div><span class="chip wf">workflow · ${it.nodes.length} steps</span></div></div><span class="arr">→</span>
+        ${[...new Set(it.nodes.filter(n => n.kind === 'action').map(n => n.cfg.command))].slice(0, 3).map(c => `<div class="emc cmd" style="margin-right:8px"><small>Command</small>${esc(c)}</div>`).join('')}</div></div>
+  </div>`;
+}
+
+/* =========================================================================================
+   Actions
+   ========================================================================================= */
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act, id = a.dataset.id;
+  const it = E ? cur() : null;
+  switch (act) {
+    case 'noop': toast('Not part of this prototype'); break;
+    case 'drawer': $('#app').classList.toggle('drawer-closed'); break;
+    case 'board-sm': case 'board-wf': S.board = act.slice(6); S.selCard = null; renderAll(); requestAnimationFrame(fitBoard); break;
+    case 'hint': S.hint = !S.hint; renderChrome(); break;
+    case 'zoom-in': zoomBy(1.2); break;
+    case 'zoom-out': zoomBy(1 / 1.2); break;
+    case 'fit': fitBoard(); break;
+    case 'arrange': arrange(); break;
+    case 'chat': toast('Agents are not part of this prototype'); break;
+    case 'undo': if (toast.undo) { toast.undo(); toast.undo = null; $('#toast').classList.remove('on'); } break;
+    case 'open': if (e.target.closest('[data-act="goto-wf"],[data-act="goto-sm"]')) break; openEditor(id, a.closest('.card')); break;
+    case 'edit': openEditor(id, a.closest('.card')); break;
+    case 'goto-wf': case 'goto-sm': e.stopPropagation(); S.board = act === 'goto-wf' ? 'wf' : 'sm'; S.selCard = id; renderAll(); fitBoard(); setTimeout(() => openEditor(id), 60); break;
+    case 'goto-wf-open': case 'goto-sm-open': { const target = id; closeEditor(); setTimeout(() => { S.board = act === 'goto-wf-open' ? 'wf' : 'sm'; S.selCard = target; renderAll(); fitBoard(); setTimeout(() => openEditor(target), 60); }, 320); break; }
+    case 'add-sm': {
+      const v = S.view.sm; const r = $('#canvas').getBoundingClientRect();
+      const m = { id: uid('sm'), name: 'New state machine', about: 'Describe what it follows.', model: 'Order', x: Math.round((r.width / 2 - v.x) / v.k - 170), y: Math.round((r.height / 2 - v.y) / v.k - 160), initial: 's1',
+        states: [{ id: 's1', name: 'Started', x: 60, y: 160, final: false, about: '', onEnter: [] }, { id: 's2', name: 'Done', x: 340, y: 160, final: true, about: '', onEnter: [] }],
+        transitions: [{ id: uid('t'), from: 's1', to: 's2', event: 'OrderPlaced', guard: null }], specs: [], usedIn: [] };
+      S.machines.push(m); S.selCard = m.id; renderBoard(); setTimeout(() => openEditor(m.id), 30); break;
+    }
+    case 'add-wf': {
+      const v = S.view.wf; const r = $('#canvas').getBoundingClientRect();
+      const w = { id: uid('wf'), name: 'New workflow', about: 'Describe what it does.', subject: 'Order', x: Math.round((r.width / 2 - v.x) / v.k - 180), y: Math.round((r.height / 2 - v.y) / v.k - 160),
+        nodes: [WN('t', 'trigger', 'When it starts', 40, 20, { on: 'event', event: 'OrderPlaced', machine: 'sm-order', state: 'paid' }), WN('a', 'action', 'Do something', 40, 150, { command: 'NotifyCustomer', attempts: 3, timeout: '1 min', delay: '30 s' })],
+        edges: [{ from: 't', outlet: 'next', to: 'a' }] };
+      S.workflows.push(w); S.selCard = w.id; renderBoard(); setTimeout(() => openEditor(w.id), 30); break;
+    }
+    case 'add-note': { const v = S.view[S.board]; const n = { id: uid('n'), x: Math.round((300 - v.x) / v.k), y: Math.round((300 - v.y) / v.k), colour: 'blue', text: '[ASSUMPTION] …' }; S.notes[S.board].push(n); renderBoard(); break; }
+    case 'del-card': {
+      e.stopPropagation();
+      const list = S.board === 'sm' ? S.machines : S.workflows; const i = list.findIndex(x => x.id === id); const [gone] = list.splice(i, 1);
+      renderBoard(); toast(`Removed ${gone.name}`, () => { list.splice(i, 0, gone); renderBoard(); }); break;
+    }
+    case 'close': closeEditor(); break;
+    case 'tab': E.tab = a.dataset.tab; if (E.tab === 'simulate' && E.kind === 'wf' && !E.wsim) E.wsim = newRun(it); renderTabs(); renderWork(); if (E.tab === 'design' || E.tab === 'simulate') fitGraph(); break;
+    case 'gfit': fitGraph(); break;
+    case 'gzoom-in': gZoom(1.2); break;
+    case 'gzoom-out': gZoom(1 / 1.2); break;
+    case 'probs': E.probs = !E.probs; renderChecks(); break;
+    case 'sel': select({ type: a.dataset.type, id }); break;
+    case 'load-spec': loadSpec(id); break;
+    case 'add-state': {
+      const n = it.states.length; const s = { id: uid('s'), name: `State ${n + 1}`, x: 60 + (n % 5) * 250, y: 480, final: false, about: '', onEnter: [] };
+      if (E.tab !== 'design') { E.tab = 'design'; renderTabs(); renderWork(); }
+      it.states.push(s); E.sel = { type: 'state', id: s.id }; refresh(true); break;
+    }
+    case 'add-node': {
+      const k = a.dataset.kind;
+      const cfg = { trigger: { on: 'event', event: 'OrderPlaced', machine: 'sm-order', state: 'paid', schedule: '02:00 every day' }, action: { command: 'NotifyCustomer', attempts: 3, timeout: '1 min', delay: '30 s' },
+        decision: { condition: `${it.subject}.Total > 1000`, outlets: ['yes', 'no'] }, wait: { for: 'event', event: 'ShipmentDispatched', expires: '', after: '1 hour' }, approval: { role: 'Store manager', expires: '' },
+        foreach: { items: 'items', parallel: 4 }, join: { mode: 'all', atLeast: 1 } }[k];
+      const gc = $('#gc').getBoundingClientRect();
+      const n = WN(uid('n'), k, KINDS[k].label, Math.round((gc.width / 2 - E.view.x) / E.view.k - 95), Math.round((gc.height / 2 - E.view.y) / E.view.k - 40), cfg);
+      it.nodes.push(n); E.sel = { type: 'node', id: n.id }; refresh(true); break;
+    }
+    case 'del-sel': deleteSelection(); break;
+    case 'toggle-final': { const s = it.states.find(x => x.id === E.sel.id); s.final = !s.final; if (s.final) it.transitions = it.transitions.filter(t => t.from !== s.id); refresh(true); break; }
+    case 'toggle-initial': it.initial = E.sel.id; refresh(true); break;
+    case 'mark-final': { const s = it.states.find(x => x.id === id); s.final = true; refresh(true); toast(`${s.name} is final`); break; }
+    case 'draw-implicit': { it.transitions.push({ id: uid('t'), from: a.dataset.from, to: a.dataset.to, event: a.dataset.event, guard: null }); refresh(true); break; }
+    case 'set-expiry': { const n = it.nodes.find(x => x.id === id); n.cfg.expires = '1 day'; refresh(true); break; }
+    case 'add-reaction': it.states.find(x => x.id === E.sel.id).onEnter.push({ kind: 'command', ref: DOMAIN.commands[0] }); refresh(true); break;
+    case 'del-reaction': it.states.find(x => x.id === E.sel.id).onEnter.splice(+a.dataset.i, 1); refresh(true); break;
+    case 'add-guard': { const t = it.transitions.find(x => x.id === E.sel.id); t.guard = { prop: DOMAIN.readModels[it.model][0], op: 'is set', value: '' }; refresh(true); break; }
+    case 'del-guard': it.transitions.find(x => x.id === E.sel.id).guard = null; refresh(true); break;
+    case 'cfg-set': { const n = it.nodes.find(x => x.id === E.sel.id); n.cfg[a.dataset.key] = a.dataset.val; if (a.dataset.key === 'on' && a.dataset.val === 'state') { n.cfg.machine ||= 'sm-order'; n.cfg.state ||= 'paid'; } cleanEdges(it); refresh(true); break; }
+    case 'add-outlet': { const n = it.nodes.find(x => x.id === E.sel.id); n.cfg.outlets.push(`path ${n.cfg.outlets.length + 1}`); refresh(true); break; }
+    case 'del-outlet': { const n = it.nodes.find(x => x.id === E.sel.id); const [o] = n.cfg.outlets.splice(+a.dataset.i, 1); it.edges = it.edges.filter(x => !(x.from === n.id && x.outlet === o)); refresh(true); break; }
+    case 'del-edge': it.edges = it.edges.filter(x => !(x.from === a.dataset.from && x.outlet === a.dataset.outlet)); refresh(true); break;
+    case 'sim-send': E.sim.events.push(a.dataset.event); renderGraph(); renderSMSim(); break;
+    case 'sim-undo': E.sim.events.pop(); renderGraph(); renderSMSim(); break;
+    case 'sim-reset': E.sim = { events: [], guards: E.sim.guards }; renderGraph(); renderSMSim(); break;
+    case 'sim-save': {
+      const r = run(it, E.sim.events, E.sim.guards);
+      const name = ($('#specName').value || '').trim() || `${E.sim.events.join(', ')} ends in ${stateName(it.id, r.state)}`;
+      const existing = it.specs.find(s => s.name === name);
+      if (existing) Object.assign(existing, { given: [...E.sim.events], guards: { ...E.sim.guards }, then: r.state });
+      else it.specs.push({ id: uid('sp'), name, given: [...E.sim.events], guards: { ...E.sim.guards }, then: r.state });
+      E.sim.name = name; renderSide(); renderSMSim(); renderChecks(); toast(`Saved “${name}”. It re-runs every time the machine changes.`); break;
+    }
+    case 'run-start': startRun(); renderGraph(); renderWFSim(); break;
+    case 'run-take': { const n = it.nodes.find(x => x.id === E.wsim.pending[0]); take(n.id, choicesFor(n)[+a.dataset.i]); renderGraph(); renderWFSim(); break; }
+    case 'run-auto': autoRun(); renderGraph(); renderWFSim(); break;
+  }
+});
+document.addEventListener('change', e => {
+  if (!E) return;
+  const t = e.target, it = cur();
+  if (t.dataset.act === 'sim-guard') { E.sim.guards[t.dataset.id] = t.checked; renderGraph(); renderSMSim(); return; }
+  if (t.dataset.field) { it[t.dataset.field] = t.value; refresh(true); return; }
+  if (t.dataset.tfield) { const tr = it.transitions.find(x => x.id === E.sel.id); tr[t.dataset.tfield] = t.value; refresh(true); return; }
+  if (t.dataset.gfield) { const tr = it.transitions.find(x => x.id === E.sel.id); tr.guard[t.dataset.gfield] = t.value; refresh(true); return; }
+  if (t.dataset.ract) { const s = it.states.find(x => x.id === E.sel.id); const r = s.onEnter[+t.dataset.i]; r[t.dataset.ract] = t.value; if (t.dataset.ract === 'kind') r.ref = t.value === 'command' ? DOMAIN.commands[0] : S.workflows[0].id; refresh(true); return; }
+  if (t.dataset.cfg) { const n = it.nodes.find(x => x.id === E.sel.id); n.cfg[t.dataset.cfg] = t.type === 'number' ? +t.value : t.value; if (t.dataset.cfg === 'machine') n.cfg.state = machine(t.value)?.initial; cleanEdges(it); refresh(true); return; }
+});
+document.addEventListener('input', e => {
+  if (!E) return;
+  const t = e.target, it = cur();
+  if (t.dataset.field === 'name' || t.dataset.field === 'about') { it[t.dataset.field] = t.value; $('#phTitle').textContent = it.name; renderSide(); return; }
+  if (t.dataset.sfield) { const s = it.states.find(x => x.id === E.sel.id); s[t.dataset.sfield] = t.value; renderGraph(); renderSide(); renderChecks(); return; }
+  if (t.dataset.nfield) { const n = it.nodes.find(x => x.id === E.sel.id); n.name = t.value; renderGraph(); renderSide(); return; }
+  if (t.dataset.outlet != null && t.dataset.outlet !== '') { const n = it.nodes.find(x => x.id === E.sel.id); const i = +t.dataset.outlet; const old = n.cfg.outlets[i]; n.cfg.outlets[i] = t.value; it.edges.forEach(x => { if (x.from === n.id && x.outlet === old) x.outlet = t.value; }); renderGraph(); renderChecks(); return; }
+  if (t.dataset.cfg && t.tagName === 'INPUT' && t.type !== 'number') { const n = it.nodes.find(x => x.id === E.sel.id); n.cfg[t.dataset.cfg] = t.value; cleanEdges(it); renderGraph(); renderChecks(); return; }
+});
+function cleanEdges(w) { w.edges = w.edges.filter(e => { const n = w.nodes.find(x => x.id === e.from); return n && outletsOf(n).includes(e.outlet) && w.nodes.some(x => x.id === e.to); }); }
+function deleteSelection() {
+  if (!E?.sel) return;
+  const it = cur(), sel = E.sel;
+  if (sel.type === 'state') {
+    if (it.initial === sel.id) { toast('The state it starts in cannot be removed. Start somewhere else first.'); return; }
+    it.states = it.states.filter(s => s.id !== sel.id); it.transitions = it.transitions.filter(t => t.from !== sel.id && t.to !== sel.id);
+    it.specs.forEach(sp => { if (sp.then === sel.id) sp.then = it.initial; });
+  } else if (sel.type === 'transition') it.transitions = it.transitions.filter(t => t.id !== sel.id);
+  else if (sel.type === 'node') { it.nodes = it.nodes.filter(n => n.id !== sel.id); it.edges = it.edges.filter(e => e.from !== sel.id && e.to !== sel.id); }
+  E.sel = null; refresh(true);
+}
+document.addEventListener('keydown', e => {
+  if (!E) return;
+  const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName);
+  if (e.key === 'Escape') { if (E.probs) { E.probs = false; renderChecks(); } else if (E.sel && !typing) select(null); else if (!typing) closeEditor(); else document.activeElement.blur(); }
+  if ((e.key === 'Delete' || e.key === 'Backspace') && !typing && E.tab === 'design') { e.preventDefault(); deleteSelection(); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'chatInput') toast('Agents are not part of this prototype'); });
+window.addEventListener('resize', () => { if (E && (E.tab === 'design' || E.tab === 'simulate')) applyGView(); });
+
+renderAll();
+requestAnimationFrame(fitBoard);
+if (location.hash.startsWith('#open=')) { const id = location.hash.slice(6); S.board = S.workflows.some(w => w.id === id) ? 'wf' : 'sm'; renderAll(); requestAnimationFrame(() => { fitBoard(); openEditor(id); }); }
+</script>
+</body>
+</html>
