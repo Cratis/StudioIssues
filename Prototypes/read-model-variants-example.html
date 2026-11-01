@@ -1,0 +1,894 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio Read Model Variants — example</title>
+<!-- Prototype: the Command dialog in Cratis Studio, designed visually like the Query editor.
+     Standalone: open this file in a browser. Everything is local state; nothing is saved. -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0b131b}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.kick{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8b9aa7}
+.help{font-size:12px;color:#8b9aa7;line-height:1.45;margin:4px 0 0}
+.f{background:#0f1a24;border:1px solid #2b3d4b;color:#e6edf3;border-radius:6px;padding:0 8px;height:30px;font:13px 'Nunito Sans',system-ui,sans-serif;min-width:0}
+.f:focus{outline:none;border-color:#4fc3b8}
+.f.sm{height:26px;font-size:12px;padding:0 6px}
+.x{background:transparent;border:0;color:#8b9aa7;width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex:none}
+.x:hover{background:#1f2e3a;color:#ffb4b4}
+.add{background:transparent;border:0;color:#5aa0f0;font-weight:700;font-size:13px;padding:6px 0;text-align:left}
+.seg{display:flex;border:1px solid #2b3d4b;border-radius:8px;padding:3px;gap:2px;background:#0f1a24}
+.seg button{border:0;border-radius:6px;padding:7px 14px;font-size:13.5px;font-weight:700}
+.step{display:flex;align-items:center;gap:8px;width:100%;background:transparent;border:1px solid transparent;border-radius:8px;padding:8px 10px;font-size:14px;color:#dbe4ea;text-align:left}
+.step:hover{background:#17242f}
+.dot{width:7px;height:7px;border-radius:50%;flex:none}
+.glyph{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:17px;padding:0 4px;border-radius:4px;color:#fff;font:700 9px system-ui,sans-serif;flex:none}
+.concept{background:#b4a5ff;color:#1c1040;font-weight:700;padding:1px 6px;border-radius:4px;font-size:11px}
+.pdot{position:absolute;width:10px;height:10px;border-radius:50%}
+.ln{display:flex;white-space:pre;font-size:12px;line-height:1.7}
+.lnno{width:30px;color:#4b5e6c;text-align:right;padding-right:10px;flex:none;user-select:none}
+.scroll::-webkit-scrollbar{width:10px;height:10px}.scroll::-webkit-scrollbar-thumb{background:#2b3d4b;border-radius:10px}
+.vnode{position:relative;display:flex;flex-direction:column;gap:3px;text-align:left;border:1px solid;border-radius:9px;padding:8px 11px;min-width:150px;max-width:230px}
+.role{font:800 9px 'JetBrains Mono',monospace;border-radius:3px;padding:2px 5px;letter-spacing:.04em;border:0}
+</style>
+
+<style>body{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px}</style>
+</head>
+<body>
+<div id="app"></div>
+<template id="tpl">
+
+
+<div style="width: 1520px; height: 1000px; display: flex; flex-direction: column; background: #15212b; color: #e6edf3; font-family: 'Nunito Sans', system-ui, sans-serif; border: 1px solid #2d3e4c; border-radius: 14px; overflow: hidden">
+
+  <div style="height: 54px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 18px; background: #0f1a24; border-bottom: 1px solid #22323f">
+    <span style="background: #a8c62a; color: #1c2408; font-size: 11px; font-weight: 800; letter-spacing: .06em; padding: 6px 9px; border-radius: 5px">READ MODEL</span>
+    <span style="font-size: 17px; font-weight: 800">{{name}}</span>
+    <sc-if value="{{vOn}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 700; color: #c6e03a; border: 1px solid #4a5a20; border-radius: 999px; padding: 2px 9px">{{variantCount}} variants</span></sc-if>
+    <span style="flex: 1"></span>
+    <button aria-label="Close" style="background: transparent; border: 0; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9d4dd" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+  </div>
+
+  <div style="flex: 1; display: flex; min-height: 0">
+
+    <!-- Sidebar -->
+    <div class="scroll" style="width: 226px; flex: none; background: #111c26; border-right: 1px solid #22323f; display: flex; flex-direction: column; padding: 16px 12px 12px; overflow-y: auto">
+      <div class="kick" style="margin: 0 6px 8px">Read model</div>
+      <button class="step" onClick="{{selDefinition}}" style="background: #16302f; border-color: #2f6e68">
+        <span class="dot" style="background: #c6e03a"></span><span style="line-height: 1.3">Definition &amp; projection</span>
+        <span style="margin-left: auto; font-size: 10px; font-weight: 800; color: #c6e03a; background: #2a3314; border-radius: 5px; padding: 2px 6px; white-space: nowrap">{{defBadge}}</span>
+      </button>
+      <sc-if value="{{vOn}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; flex-direction: column; gap: 1px; margin: 4px 0 0 18px; border-left: 1px solid #2b3d4b; padding-left: 6px">
+          <sc-for list="{{sideVariants}}" as="v" hint-placeholder-count="3">
+            <button class="step" onClick="{{v.pick}}" style="padding: 5px 8px; font-size: 13px; background: {{v.bg}}">
+              <span class="dot" style="background: {{v.dot}}"></span><span>{{v.name}}</span>
+              <sc-if value="{{v.hasErr}}" hint-placeholder-val="{{ false }}"><span style="margin-left: auto; font-size: 10px; font-weight: 800; color: #ff9b9b">{{v.err}}</span></sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div class="kick" style="margin: 22px 6px 8px">Queries</div>
+      <sc-for list="{{queries}}" as="q" hint-placeholder-count="2">
+        <div style="padding: 6px 10px; display: flex; flex-direction: column; gap: 4px">
+          <span style="display: flex; align-items: center; gap: 8px; font-size: 14px"><span class="dot" style="background: #4fc3b8"></span>{{q.name}}</span>
+          <sc-if value="{{q.showTarget}}" hint-placeholder-val="{{ false }}">
+            <select class="f sm mono" value="{{q.target}}" onChange="{{q.set}}" aria-label="Reads" style="margin-left: 15px; border-color: {{q.bd}}; color: {{q.fg}}"><option data-for="q.options" data-as="o" value="{{o}}">{{o}}</option></select>
+          </sc-if>
+        </div>
+      </sc-for>
+      <button class="add" style="color: #c9d4dd; font-weight: 600; padding: 8px 10px">+ Add query</button>
+      <span style="flex: 1"></span>
+      <div style="border-top: 1px solid #22323f; padding: 12px 6px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11.5px; color: #8b9aa7">
+        <span style="display: flex; align-items: center; gap: 5px"><span class="dot" style="background: #c6e03a"></span>Read model</span>
+        <span style="display: flex; align-items: center; gap: 5px"><span class="dot" style="background: #f0913a"></span>Event</span>
+        <span style="display: flex; align-items: center; gap: 5px"><span class="dot" style="background: #4fc3b8"></span>Query</span>
+        <span style="display: flex; align-items: center; gap: 5px"><span class="dot" style="background: #a78bfa"></span>C#</span>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+
+      <div style="flex: none; display: flex; align-items: flex-start; gap: 24px; padding: 16px 22px 12px">
+        <div style="flex: 1; min-width: 0">
+          <div style="font-size: 22px; font-weight: 800">{{name}}</div>
+          <div style="font-size: 13px; color: #8b9aa7; margin-top: 4px">{{builtFrom}}</div>
+        </div>
+        <div>
+          <div class="kick" style="margin-bottom: 6px">Variants</div>
+          <div class="seg" title="{{offTitle}}">
+            <button onClick="{{variantsOff}}" style="background: {{segOff.bg}}; color: {{segOff.fg}}; opacity: {{segOff.op}}">Off</button>
+            <button onClick="{{variantsOn}}" style="background: {{segOn.bg}}; color: {{segOn.fg}}">On</button>
+          </div>
+        </div>
+        <div>
+          <div class="kick" style="margin-bottom: 6px">Kept</div>
+          <div class="seg">
+            <button onClick="{{keptM}}" style="background: {{segM.bg}}; color: {{segM.fg}}">Materialized</button>
+            <button onClick="{{keptP}}" style="background: {{segP.bg}}; color: {{segP.fg}}">Passive</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Variant strip -->
+      <sc-if value="{{vOn}}" hint-placeholder-val="{{ false }}">
+        <div style="flex: none; margin: 0 22px 10px; border: 1px solid #2b3d4b; border-radius: 10px; background: #111c26; padding: 10px 12px">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px">
+            <span class="kick">Variants of {{name}} · one at a time</span>
+            <span style="font-size: 12px; color: #8b9aa7; flex: 1">An instance is in exactly one variant. Entering one moves it out of the others.</span>
+            <button onClick="{{fillExample}}" style="background: transparent; border: 0; color: #8b9aa7; font-size: 11.5px; text-decoration: underline">prototype: fill in the adoption example</button>
+          </div>
+          <div style="display: flex; align-items: stretch; gap: 8px; overflow-x: auto" class="scroll">
+            <button class="vnode" onClick="{{selShared}}" style="border-color: {{shNode.bd}}; background: {{shNode.bg}}; min-width: 128px; border-style: dashed">
+              <span style="font-size: 13px; font-weight: 800; color: #dbe4ea">Shared</span>
+              <span style="font-size: 11px; color: #8b9aa7">applies to every variant</span>
+              <span class="mono" style="font-size: 10.5px; color: #f0a060">{{shNode.events}}</span>
+            </button>
+            <span style="align-self: center; color: #3a4b58; font-size: 16px">│</span>
+            <sc-for list="{{vnodes}}" as="v" hint-placeholder-count="3">
+              <button class="vnode" onClick="{{v.pick}}" onDragOver="{{v.over}}" onDrop="{{v.drop}}" style="border-color: {{v.bd}}; background: {{v.bg}}; box-shadow: {{v.sh}}">
+                <span style="display: flex; align-items: center; gap: 6px"><span class="dot" style="background: #c6e03a"></span><span style="font-size: 13px; font-weight: 800; color: #eef5d0">{{v.name}}</span><sc-if value="{{v.isLive}}" hint-placeholder-val="{{ false }}"><span style="font-size: 9.5px; font-weight: 800; background: #c6e03a; color: #1c2408; border-radius: 3px; padding: 1px 5px">PREVIEW IS HERE</span></sc-if></span>
+                <span style="font-size: 11px; color: {{v.enFg}}">{{v.enters}}</span>
+                <span style="font-size: 10.5px; color: #8b9aa7">{{v.props}}</span>
+              </button>
+            </sc-for>
+            <button onClick="{{addVariant}}" style="border: 1px dashed #4a5a20; border-radius: 9px; background: transparent; color: #c6e03a; font-size: 12.5px; font-weight: 700; padding: 0 14px; min-width: 110px">+ Variant</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{msg.has}}" hint-placeholder-val="{{ false }}">
+        <div style="flex: none; margin: 0 22px 10px; display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: #8fe3d9; background: #12302d; border: 1px solid #2f6e68; border-radius: 8px; padding: 8px 12px">
+          <span style="flex: 1">{{msg.text}}</span>
+          <sc-if value="{{msg.hasAction}}" hint-placeholder-val="{{ false }}"><button onClick="{{msg.act}}" style="background: #4dc0b5; color: #0d1a20; border: 0; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 800; white-space: nowrap">{{msg.actLabel}}</button></sc-if>
+          <button class="x" onClick="{{clearMsg}}" aria-label="Dismiss"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+        </div>
+      </sc-if>
+
+      <div style="flex: 1; min-height: 0; display: flex; border-top: 1px solid #22323f">
+
+        <!-- canvas -->
+        <div class="scroll" style="flex: 1; min-width: 0; overflow: auto; padding: 14px 18px 24px">
+          <div style="display: flex; width: 900px; margin-bottom: 10px">
+            <span class="kick" style="width: 520px">{{cv.srcTitle}}</span>
+            <span class="kick">{{cv.tgtTitle}}</span>
+          </div>
+          <div style="position: relative; width: 900px; height: {{cv.h}}px">
+            <sc-for list="{{cv.lines}}" as="l" hint-placeholder-count="8">
+              <svg width="900" height="{{cv.h}}" style="position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none" aria-hidden="true">
+                <path d="{{l.d}}" fill="none" stroke="{{l.c}}" stroke-width="{{l.w}}" stroke-dasharray="{{l.dash}}" opacity="{{l.o}}" stroke-linecap="round"></path>
+                <path d="{{l.d}}" fill="none" stroke="transparent" stroke-width="12" style="pointer-events: stroke; cursor: pointer" onClick="{{l.pick}}"></path>
+              </svg>
+            </sc-for>
+            <sc-for list="{{cv.labels}}" as="t" hint-placeholder-count="2">
+              <button onClick="{{t.pick}}" style="position: absolute; left: {{t.x}}px; top: {{t.y}}px; transform: translate(-50%, -50%); background: {{t.bg}}; color: {{t.fg}}; border: 1px solid {{t.bd}}; border-radius: 4px; padding: 1px 6px; font: 800 9.5px 'JetBrains Mono', monospace; white-space: nowrap; z-index: 3">{{t.text}}</button>
+            </sc-for>
+
+            <sc-for list="{{cv.sources}}" as="f" hint-placeholder-count="3">
+              <div style="position: absolute; left: 0; top: {{f.y}}px; width: 360px; opacity: {{f.op}}">
+                <div draggable="{{f.draggable}}" onDragStart="{{f.drag}}" onDragEnd="{{dragEnd}}" style="height: 30px; display: flex; align-items: center; gap: 6px; background: {{f.hbg}}; color: #2a1405; border-radius: 5px; padding: 0 6px 0 4px; font-size: 12.5px; font-weight: 800; cursor: grab; position: relative; border-left: 4px solid {{f.edge}}">
+                  <button onClick="{{f.toggle}}" aria-label="Show or hide properties" style="background: transparent; border: 0; width: 18px; height: 18px; color: #2a1405; font-size: 10px">{{f.caret}}</button>
+                  <sc-if value="{{f.hasRole}}" hint-placeholder-val="{{ true }}"><button class="role" onClick="{{f.flipRole}}" title="{{f.roleTitle}}" style="background: {{f.roleBg}}; color: {{f.roleFg}}">{{f.role}}</button></sc-if>
+                  <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{f.event}}</span>
+                  <sc-if value="{{f.noAuto}}" hint-placeholder-val="{{ false }}"><span style="font-size: 9.5px; background: rgba(0,0,0,.18); padding: 1px 5px; border-radius: 3px">NO AUTOMAP</span></sc-if>
+                  <sc-if value="{{f.canRemove}}" hint-placeholder-val="{{ true }}"><button onClick="{{f.remove}}" aria-label="Remove source" style="background: transparent; border: 0; color: #2a1405; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; margin-right: 6px"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></sc-if>
+                  <span class="pdot" style="right: -5px; top: 10px; background: #f99a32; border: 2px solid #2a1405"></span>
+                </div>
+                <sc-if value="{{f.isShared}}" hint-placeholder-val="{{ false }}"><button onClick="{{selShared}}" style="background: transparent; border: 0; color: #8b9aa7; font-size: 11px; padding: 2px 0 0 18px">shared with every variant · edit under Shared</button></sc-if>
+                <sc-for list="{{f.fields}}" as="x" hint-placeholder-count="2">
+                  <div draggable="true" onDragStart="{{x.drag}}" onDragEnd="{{dragEnd}}" style="height: 24px; display: flex; align-items: center; gap: 7px; margin-left: 14px; padding: 0 12px 0 10px; border-left: 2px solid #8a5a2a; font-size: 12px; color: #e9d6c3; cursor: grab; position: relative">
+                    <span class="mono" style="flex: 1">{{x.name}}</span>
+                    <span class="glyph" style="background: {{x.gc}}">{{x.glyph}}</span>
+                    <span style="font-size: 10.5px; color: #8b9aa7; width: 74px; text-align: right">{{x.type}}</span>
+                    <span class="pdot" style="right: -5px; top: 7px; background: {{x.dot}}; border: 2px solid #f99a32"></span>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+
+            <div style="position: absolute; left: 0; top: {{cv.palY}}px; width: 360px">
+              <div class="kick" style="margin-bottom: 4px">Other events</div>
+              <p class="help" style="margin: 0 0 8px">{{cv.palHelp}}</p>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px">
+                <sc-for list="{{cv.palette}}" as="e" hint-placeholder-count="3">
+                  <span draggable="true" onDragStart="{{e.drag}}" onDragEnd="{{dragEnd}}" style="border: 1px dashed #f99a32; color: #f8b878; border-radius: 5px; padding: 4px 9px; font-size: 11.5px; font-weight: 700; cursor: grab">{{e.name}}</span>
+                </sc-for>
+              </div>
+            </div>
+
+            <!-- target -->
+            <div style="position: absolute; left: 520px; top: 0; width: 380px">
+              <div onDragOver="{{cv.headOver}}" onDrop="{{cv.headDrop}}" style="height: 36px; display: flex; align-items: center; gap: 8px; background: {{cv.hbg}}; color: #1c2408; border-radius: 6px 6px 0 0; padding: 0 8px 0 12px; outline: {{cv.headOutline}}; outline-offset: 2px">
+                <span class="pdot" style="position: static; width: 8px; height: 8px; background: #1c2408"></span>
+                <sc-if value="{{cv.renamable}}" hint-placeholder-val="{{ true }}"><input value="{{cv.tname}}" onChange="{{cv.rename}}" aria-label="Read model name" style="background: transparent; border: 0; font: 800 13.5px 'Nunito Sans', system-ui, sans-serif; color: #1c2408; outline: none; width: 170px"></sc-if>
+                <sc-if value="{{cv.fixedName}}" hint-placeholder-val="{{ false }}"><span style="font-size: 13.5px; font-weight: 800">{{cv.tname}}</span></sc-if>
+                <span style="flex: 1; text-align: right; font-size: 10.5px; font-weight: 700; opacity: .7">{{cv.headHint}}</span>
+                <sc-if value="{{cv.canDelete}}" hint-placeholder-val="{{ false }}"><button onClick="{{cv.del}}" aria-label="Remove variant" title="Remove this variant" style="background: transparent; border: 0; color: #1c2408; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></sc-if>
+              </div>
+              <div style="border: 1px solid {{cv.tbd}}; border-top: 0; border-radius: 0 0 6px 6px; padding: 8px 6px; display: flex; flex-direction: column; gap: 4px; background: #1b2431">
+                <sc-for list="{{cv.rows}}" as="p" hint-placeholder-count="5">
+                  <div onDragOver="{{p.over}}" onDrop="{{p.drop}}" style="min-height: 30px; display: flex; align-items: center; gap: 7px; border: 1px solid {{p.bd}}; background: {{p.bg}}; border-radius: 5px; padding: 3px 6px 3px 14px; position: relative">
+                    <span class="pdot" style="left: -12px; top: 9px; background: {{p.dot}}; border: 2px solid #4f8ef7"></span>
+                    <span class="mono" style="flex: 1; font-size: 12.5px; color: #e6edf3; min-width: 0; overflow: hidden; text-overflow: ellipsis">{{p.name}}</span>
+                    <sc-if value="{{p.hasNote}}" hint-placeholder-val="{{ false }}"><span style="font-size: 10px; font-weight: 700; color: {{p.noteC}}; white-space: nowrap">{{p.note}}</span></sc-if>
+                    <sc-if value="{{p.canFix}}" hint-placeholder-val="{{ false }}"><button onClick="{{p.fix}}" style="background: #2a1719; border: 1px solid #8a3a3e; color: #ffb4b4; border-radius: 4px; font-size: 10px; font-weight: 800; padding: 1px 6px">Add to all</button></sc-if>
+                    <span class="glyph" style="background: {{p.gc}}">{{p.glyph}}</span>
+                    <sc-if value="{{p.isConcept}}" hint-placeholder-val="{{ true }}"><span class="concept">{{p.type}}</span></sc-if>
+                    <sc-if value="{{p.isPlain}}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; color: #c9d4dd">{{p.type}}</span></sc-if>
+                    <sc-if value="{{p.editable}}" hint-placeholder-val="{{ true }}">
+                      <button onClick="{{p.tKey}}" aria-label="Toggle key" title="Key" style="background: transparent; border: 0; width: 20px; height: 20px; color: {{p.keyC}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="15" cy="9" r="4.5"></circle><path d="M11.8 12.2L4 20M7 17l2.5 2.5M9.5 14.5l2 2"></path></svg></button>
+                      <button onClick="{{p.remove}}" aria-label="Remove property" class="x" style="width: 18px; height: 18px"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+                    </sc-if>
+                  </div>
+                </sc-for>
+                <sc-if value="{{cv.canAddProp}}" hint-placeholder-val="{{ true }}">
+                  <div style="display: flex; gap: 6px; align-items: center; padding: 2px 4px">
+                    <input class="f sm mono" value="{{newProp}}" onChange="{{setNewProp}}" placeholder="+ Add Property" aria-label="New property name" style="flex: 1; background: transparent; border-color: transparent">
+                    <select class="f sm" value="{{newType}}" onChange="{{setNewType}}" aria-label="Type" style="width: 110px"><option data-for="types" data-as="o" value="{{o}}">{{o}}</option></select>
+                    <button onClick="{{addProp}}" style="background: #2a3314; border: 1px solid #4a5a20; color: #c6e03a; border-radius: 5px; padding: 3px 9px; font-size: 12px; font-weight: 800">Add</button>
+                  </div>
+                </sc-if>
+              </div>
+              <sc-if value="{{showCta}}" hint-placeholder-val="{{ true }}">
+                <div style="margin-top: 14px; border: 1.5px dashed #6d8222; border-radius: 10px; padding: 14px; background: #161f19">
+                  <div style="font-size: 13.5px; font-weight: 800; color: #e6f59a">Does a {{name}} come in kinds?</div>
+                  <p class="help" style="margin: 6px 0 10px; color: #a9b7c2">When an entity moves between genuinely different shapes — available, reserved, adopted — split the read model into variants. Each variant is its own read model; an entity is in exactly one at a time. You model them one at a time, here.</p>
+                  <button onClick="{{variantsOn}}" style="background: #c6e03a; color: #1c2408; border: 0; border-radius: 7px; padding: 7px 14px; font-size: 13px; font-weight: 800">Split into variants…</button>
+                  <span style="font-size: 11.5px; color: #6b7d8b; margin-left: 10px">Not needed for most read models.</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{cv.hasEmpty}}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top: 12px; border: 1.5px dashed #6d8222; border-radius: 8px; padding: 12px; font-size: 12.5px; color: #c6e03a; line-height: 1.45">{{cv.empty}}</div>
+              </sc-if>
+              <sc-if value="{{link.has}}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top: 12px; border: 1px solid {{link.bd}}; border-radius: 10px; background: #0f1a24; padding: 12px">
+                  <div style="display: flex; justify-content: space-between"><span class="kick" style="color: {{link.c}}">{{link.kind}}</span><button class="x" onClick="{{link.close}}" aria-label="Close"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+                  <div class="mono" style="font-size: 12px; margin: 4px 0 8px"><span style="color: #f8b878">{{link.from}}</span> <span style="color: #6b7d8b">→</span> <span style="color: #c6e03a">{{link.to}}</span></div>
+                  <p class="help" style="margin: 0 0 8px">{{link.text}}</p>
+                  <sc-if value="{{link.isKey}}" hint-placeholder-val="{{ false }}"><select class="f" value="{{link.keyVal}}" onChange="{{link.setKey}}" aria-label="Key" style="width: 100%"><option data-for="link.keyOptions" data-as="o" value="{{o}}">{{o}}</option></select></sc-if>
+                  <sc-if value="{{link.isAuto}}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                      <button onClick="{{link.pin}}" style="background: #172633; border: 1px solid #2b3d4b; border-radius: 6px; padding: 6px 10px; font-size: 12px; color: #8cc0ff">Pin as explicit mapping</button>
+                      <button onClick="{{link.autoOff}}" style="background: #172633; border: 1px solid #2b3d4b; border-radius: 6px; padding: 6px 10px; font-size: 12px; color: #f8b878">Turn AutoMap off for {{link.event}}</button>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{link.isMap}}" hint-placeholder-val="{{ false }}">
+                    <div style="display: flex; gap: 6px; align-items: center">
+                      <span style="color: #8b9aa7; font-size: 12px">=</span>
+                      <select class="f sm mono" value="{{link.sel}}" onChange="{{link.setSrc}}" aria-label="Source" style="flex: 1"><option data-for="link.sources" data-as="o" value="{{o}}">{{o}}</option></select>
+                    </div>
+                    <sc-if value="{{link.isConst}}" hint-placeholder-val="{{ false }}"><input class="f sm mono" value="{{link.src}}" onChange="{{link.setConst}}" aria-label="Constant" style="width: 100%; margin-top: 6px"></sc-if>
+                    <button class="add" onClick="{{link.remove}}" style="color: #ef7a7a; font-size: 12px">Remove mapping</button>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview / Structure -->
+        <div class="scroll" style="width: 372px; flex: none; border-left: 1px solid #22323f; overflow-y: auto; padding: 14px 16px 24px">
+          <div class="seg" style="width: max-content; margin-bottom: 12px">
+            <button onClick="{{rPreview}}" style="background: {{segPv.bg}}; color: {{segPv.fg}}">Preview</button>
+            <button onClick="{{rStructure}}" style="background: {{segSt.bg}}; color: {{segSt.fg}}">Structure</button>
+          </div>
+
+          <sc-if value="{{isPreview}}" hint-placeholder-val="{{ true }}">
+            <p class="help" style="margin: 0 0 10px">{{pv.help}}</p>
+            <div style="display: flex; flex-direction: column">
+              <sc-for list="{{pv.steps}}" as="t" hint-placeholder-count="4">
+                <div style="display: flex; gap: 9px">
+                  <div style="display: flex; flex-direction: column; align-items: center; width: 14px"><span style="width: 10px; height: 10px; border-radius: 50%; margin-top: 6px; background: {{t.dot}}"></span><span style="flex: 1; width: 2px; background: #2b3d4b"></span></div>
+                  <div style="padding-bottom: 9px; flex: 1; min-width: 0">
+                    <div style="display: flex; align-items: center; gap: 6px">
+                      <span style="font-size: 12.5px; font-weight: 800; color: #f6e7d8">{{t.event}}</span>
+                      <span style="flex: 1"></span>
+                      <button class="x" onClick="{{t.remove}}" aria-label="Remove event" style="width: 18px; height: 18px"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+                    </div>
+                    <div class="mono" style="font-size: 10.5px; color: #8b9aa7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{t.values}}</div>
+                    <sc-for list="{{t.effects}}" as="e" hint-placeholder-count="1">
+                      <div style="font-size: 11.5px; color: {{e.c}}; margin-top: 2px; display: flex; gap: 5px"><span style="width: 12px; flex: none; font-weight: 800">{{e.m}}</span><span>{{e.t}}</span></div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <select class="f" value="" onChange="{{addStep}}" aria-label="Add an event" style="width: 100%; color: #f0a060; margin-bottom: 14px"><option value="">+ Add an event for this {{pv.entity}}…</option><option data-for="eventNames" data-as="o" value="{{o}}">{{o}}</option></select>
+
+            <sc-for list="{{pv.instances}}" as="i" hint-placeholder-count="1">
+              <div style="border: 1px solid {{i.bd}}; border-radius: 8px; background: #1b2431; overflow: hidden; margin-bottom: 8px; opacity: {{i.op}}">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: {{i.hbg}}; color: #1c2408; font-size: 12.5px; font-weight: 800; padding: 6px 10px; text-decoration: {{i.strike}}"><span>{{i.name}}</span><span style="font-size: 10.5px">{{i.tag}}</span></div>
+                <div style="padding: 6px 10px 8px">
+                  <sc-for list="{{i.rows}}" as="r" hint-placeholder-count="4">
+                    <div class="mono" style="display: flex; gap: 6px; font-size: 11.5px; margin-top: 3px"><span style="color: #a9b7c2">{{r.k}}:</span><span style="color: {{r.c}}">{{r.v}}</span></div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+            <sc-for list="{{pv.notes}}" as="n" hint-placeholder-count="1"><div style="font-size: 12px; color: #f0c46a; line-height: 1.45; margin-top: 6px; display: flex; gap: 6px"><span>⚠</span><span>{{n}}</span></div></sc-for>
+          </sc-if>
+
+          <sc-if value="{{isStructure}}" hint-placeholder-val="{{ false }}">
+            <div class="mono" style="background: #0f1a24; border: 1px solid #22323f; border-radius: 8px; padding: 10px 0">
+              <sc-for list="{{playLines}}" as="l" hint-placeholder-count="16">
+                <div class="ln"><span class="lnno">{{l.n}}</span><span>{{l.ind}}</span><span style="color: {{l.kc}}">{{l.kw}}</span><span style="color: #dbe4ea">{{l.rest}}</span></div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <!-- checks -->
+      <div style="flex: none; padding: 10px 18px 12px; border-top: 1px solid #22323f; position: relative">
+        <sc-if value="{{showDiags}}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; left: 18px; right: 18px; bottom: 58px; z-index: 50; background: #0f1a24; border: 1px solid #2b3d4b; border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 12px 30px rgba(0,0,0,.45); max-height: 300px; overflow-y: auto">
+            <sc-for list="{{diagRows}}" as="d" hint-placeholder-count="2">
+              <button onClick="{{d.go}}" style="display: flex; gap: 10px; align-items: baseline; text-align: left; background: transparent; border: 0; border-radius: 6px; padding: 7px 8px; font-size: 13px; color: #dbe4ea">
+                <span style="width: 80px; flex: none; font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: {{d.c}}">{{d.sev}}</span>
+                <span style="flex: 1">{{d.msg}}</span>
+                <span class="mono" style="font-size: 11px; color: #6b7d8b">{{d.code}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <button onClick="{{toggleDiags}}" style="width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: {{bar.bg}}; border: 1px solid {{bar.bd}}; border-radius: 8px; padding: 9px 12px">
+          <span style="font-size: 11px; font-weight: 800; letter-spacing: .08em; color: {{bar.fg}}; white-space: nowrap">{{bar.label}}</span>
+          <span style="font-size: 13.5px; color: {{bar.fg}}; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{bar.msg}}</span>
+          <sc-if value="{{bar.more}}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; color: {{bar.fg}}; font-weight: 700; white-space: nowrap">{{bar.moreText}}</span></sc-if>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+<script>
+/* Minimal template runtime for this standalone prototype.
+   Interprets {{holes}}, <sc-if>, <sc-for> and option[data-for] from #tpl,
+   and patches the live DOM in place so inputs keep focus while typing. */
+(function () {
+  class DCLogic {
+    constructor(props) { this.props = props || {}; this.state = {}; }
+    setState(patch) { Object.assign(this.state, typeof patch === 'function' ? patch(this.state) : patch); schedule(); }
+    forceUpdate() { schedule(); }
+  }
+  window.DCLogic = DCLogic;
+
+  var HOLE = /\{\{\s*([^}]+?)\s*\}\}/g, WHOLE = /^\{\{\s*([^}]+?)\s*\}\}$/;
+  function lookup(path, scope) {
+    if (path === 'true') return true; if (path === 'false') return false;
+    if (/^-?\d+(\.\d+)?$/.test(path)) return parseFloat(path);
+    var parts = path.split('.'), v = scope;
+    for (var i = 0; i < parts.length; i++) { if (v == null) return undefined; v = v[parts[i]]; }
+    return v;
+  }
+  function interp(s, scope) { return s.replace(HOLE, function (_, p) { var v = lookup(p, scope); return v == null ? '' : String(v); }); }
+  function attrVal(s, scope) { var m = s.match(WHOLE); return m ? lookup(m[1], scope) : interp(s, scope); }
+
+  function buildChildren(node, scope, out) {
+    for (var c = node.firstChild; c; c = c.nextSibling) build(c, scope, out);
+    return out;
+  }
+  function build(node, scope, out) {
+    if (node.nodeType === 3) { var t = interp(node.data, scope); if (t !== '') out.push(t); return; }
+    if (node.nodeType !== 1) return;
+    var tag = node.tagName.toLowerCase();
+    if (tag === 'sc-if') { if (attrVal(node.getAttribute('value') || '', scope)) buildChildren(node, scope, out); return; }
+    if (tag === 'sc-for' || node.hasAttribute('data-for')) {
+      var listExpr = tag === 'sc-for' ? node.getAttribute('list') : '{{' + node.getAttribute('data-for') + '}}';
+      var as = node.getAttribute(tag === 'sc-for' ? 'as' : 'data-as') || 'item';
+      var list = attrVal(listExpr, scope) || [];
+      list.forEach(function (it, i) {
+        var s = Object.create(scope); s[as] = it; s.$index = i;
+        if (tag === 'sc-for') buildChildren(node, s, out); else out.push(element(node, tag, s));
+      });
+      return;
+    }
+    out.push(element(node, tag, scope));
+  }
+  function element(node, tag, scope) {
+    var props = {};
+    for (var i = 0; i < node.attributes.length; i++) {
+      var a = node.attributes[i], n = a.name;
+      if (n.indexOf('hint-') === 0 || n === 'data-for' || n === 'data-as') continue;
+      props[n] = attrVal(a.value, scope);
+    }
+    return { t: tag, p: props, c: buildChildren(node, scope, []), node: node };
+  }
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function evType(el, name) {
+    var ev = name.slice(2);
+    if (ev === 'doubleclick') return 'dblclick';
+    if (ev === 'change') {
+      var tg = el.tagName.toLowerCase(), ty = (el.getAttribute('type') || '').toLowerCase();
+      if (tg === 'textarea' || (tg === 'input' && ty !== 'checkbox' && ty !== 'radio')) return 'input';
+    }
+    return ev;
+  }
+  function listen(el, type, fn) {
+    el.__h = el.__h || {};
+    if (!(type in el.__h)) el.addEventListener(type, function (e) { var h = el.__h[type]; if (typeof h === 'function') h(e); });
+    el.__h[type] = fn;
+  }
+  function setProps(el, p) {
+    var old = el.__p || {};
+    Object.keys(old).forEach(function (k) { if (!(k in p) && k.indexOf('on') !== 0) el.removeAttribute(k); });
+    Object.keys(p).forEach(function (k) {
+      var v = p[k];
+      if (k.indexOf('on') === 0) { listen(el, evType(el, k), v); return; }
+      if (k === 'value' && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) {
+        el.__value = v == null ? '' : String(v);
+        if (el.value !== el.__value) el.value = el.__value;
+        return;
+      }
+      if (k === 'checked') { el.checked = !!v; return; }
+      if (old[k] === v && el.hasAttribute(k)) return;
+      if (v === false || v == null) el.removeAttribute(k); else el.setAttribute(k, v === true ? '' : v);
+    });
+    el.__p = p;
+  }
+  function create(v, svg) {
+    if (typeof v === 'string') return document.createTextNode(v);
+    svg = svg || v.t === 'svg';
+    var el = svg ? document.createElementNS(SVGNS, v.node.tagName) : document.createElement(v.t);
+    el.__tag = v.t;
+    patchChildren(el, v.c, svg);
+    setProps(el, v.p);
+    return el;
+  }
+  function patch(parent, el, v, svg) {
+    if (!el) { parent.appendChild(create(v, svg)); return; }
+    if (typeof v === 'string') {
+      if (el.nodeType === 3) { if (el.data !== v) el.data = v; } else parent.replaceChild(document.createTextNode(v), el);
+      return;
+    }
+    if (el.nodeType !== 1 || el.__tag !== v.t) { parent.replaceChild(create(v, svg), el); return; }
+    svg = svg || v.t === 'svg';
+    patchChildren(el, v.c, svg);
+    setProps(el, v.p);
+  }
+  function patchChildren(el, kids, svg) {
+    var nodes = Array.prototype.slice.call(el.childNodes);
+    kids.forEach(function (k, i) { patch(el, nodes[i], k, svg); });
+    for (var j = el.childNodes.length - 1; j >= kids.length; j--) el.removeChild(el.childNodes[j]);
+    // selects: re-apply value after options exist
+    if (el.tagName === 'SELECT' && el.__value != null && el.value !== el.__value) el.value = el.__value;
+  }
+
+  var root, tpl, comp, queued = false;
+  function render() { queued = false; patchChildren(root, buildChildren(tpl, comp.renderVals(), []), false); if (comp.componentDidUpdate) comp.componentDidUpdate(); }
+  function schedule() { if (!queued && root) { queued = true; Promise.resolve().then(render); } }
+  window.__mountDC = function (Component) {
+    root = document.getElementById('app'); tpl = document.getElementById('tpl').content;
+    comp = new Component({}); render();
+  };
+})();
+
+</script>
+<script>
+
+var BASE = { String: { g: 'Aa', c: '#0e7490' }, Decimal: { g: '123', c: '#b91c1c' }, Int: { g: '123', c: '#b91c1c' }, Bool: { g: 'T/F', c: '#15803d' }, Date: { g: '31', c: '#c2410c' }, Uuid: { g: '#', c: '#0f766e' } };
+var CONCEPTS = { PetId: 'Uuid', OwnerId: 'Uuid', CustomerId: 'Uuid', PetName: 'String', PetType: 'String' };
+var TYPES = ['PetId', 'OwnerId', 'CustomerId', 'PetName', 'PetType', 'String', 'Int', 'Decimal', 'Bool', 'Date'];
+var EVENTS = {
+  PetAdded: { ownerId: 'OwnerId', name: 'PetName', birthDate: 'Date', petType: 'PetType' },
+  PetDetailsChanged: { name: 'PetName', birthDate: 'Date', petType: 'PetType' },
+  PetReserved: { reservedBy: 'CustomerId', reservedUntil: 'Date' },
+  ReservationCancelled: { reason: 'String' },
+  PetAdopted: { adopterId: 'CustomerId', adoptedOn: 'Date' },
+  PetReturned: { reason: 'String', returnedOn: 'Date' }
+};
+var ECTX = ['$eventContext.occurred', '$eventContext.eventSourceId'];
+var CONST = 'constant…';
+var OWN = '(its event source)';
+var KW = ['readmodel', 'projection', 'from', 'variant', 'enters', 'no', 'key'];
+var uid = 100, DRAG = null;
+function nid(p) { uid += 1; return (p || 'x') + uid; }
+function base(t) { return CONCEPTS[t] || t; }
+function gl(t) { return BASE[base(t)] || BASE.String; }
+function clone(x) { return JSON.parse(JSON.stringify(x)); }
+function F(event, key, maps, automap) { return { id: nid('f'), event: event, key: key || '', automap: automap !== false, maps: maps || [] }; }
+function P(name, type, key) { return { name: name, type: type, key: !!key }; }
+var PET = '7f3c2a90';
+var START_DEFAULT = 'example';
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      name: 'PetSummary', kept: 'materialized', on: false, cur: 'shared', rtab: 'preview', msg: '', msgAct: '', drop: '', link: '', collapsed: {}, newProp: '', newType: 'String',
+      single: { props: [P('petId', 'PetId', true), P('ownerId', 'OwnerId'), P('name', 'PetName'), P('birthDate', 'Date'), P('petType', 'PetType')], froms: [F('PetAdded', '', [{ prop: 'petId', src: '$eventContext.eventSourceId' }]), F('PetDetailsChanged')] },
+      variants: [], shared: [],
+      queries: [{ name: 'PetById', target: 'PetSummary' }, { name: 'ListPets', target: 'PetSummary' }],
+      steps: [
+        { id: 's1', event: 'PetAdded', values: { ownerId: 'o-12', name: 'Bella', birthDate: '2024-03-02', petType: 'Dog' } },
+        { id: 's2', event: 'PetDetailsChanged', values: { name: 'Bella Rose', birthDate: '2024-03-02', petType: 'Dog' } },
+        { id: 's3', event: 'PetReserved', values: { reservedBy: 'c-77', reservedUntil: '2026-11-01' } },
+        { id: 's4', event: 'ReservationCancelled', values: { reason: 'Changed their mind' } },
+        { id: 's5', event: 'PetReserved', values: { reservedBy: 'c-81', reservedUntil: '2026-11-03' } },
+        { id: 's6', event: 'PetAdopted', values: { adopterId: 'c-81', adoptedOn: '2026-10-30' } }
+      ]
+    };
+    if (((props && props.start) || START_DEFAULT) === 'example') Object.assign(this.state, this.examplePatch());
+  }
+
+  /* ---------- helpers ---------- */
+  vById(id) { return this.state.variants.find(function (v) { return v.id === id; }); }
+  curV() { return this.state.on && this.state.cur !== 'shared' ? this.vById(this.state.cur) : null; }
+  setV(id, fn) { this.setState({ variants: this.state.variants.map(function (v) { return v.id === id ? fn(clone(v)) : v; }) }); }
+  enterOwner(event) { var o = this.state.variants.filter(function (v) { return v.enters.some(function (f) { return f.event === event; }); }); return o; }
+  allProps() { var seen = {}, out = []; this.state.variants.forEach(function (v) { v.props.forEach(function (p) { if (!seen[p.name]) { seen[p.name] = 1; out.push(p); } }); }); return out; }
+
+  /* apply a from-block to an instance; returns list of "prop = value" */
+  applyFrom(f, step, props, inst) {
+    var hits = [], fields = EVENTS[f.event] || {};
+    if (f.automap !== false) Object.keys(fields).forEach(function (k) { var p = props.find(function (x) { return x.name === k; }); if (!p || p.key || f.maps.some(function (m) { return m.prop === k; })) return; if (step.values[k] === undefined || step.values[k] === '') return; inst[k] = step.values[k]; hits.push(k + ' = ' + step.values[k]); });
+    f.maps.forEach(function (m) {
+      if (!props.some(function (x) { return x.name === m.prop; })) return;
+      var v = m.src === '$eventContext.eventSourceId' ? PET : (m.src === '$eventContext.occurred' ? '2026-10-24T10:00:00Z' : (fields[m.src] !== undefined ? step.values[m.src] : String(m.src).replace(/^"(.*)"$/, '$1')));
+      inst[m.prop] = v; hits.push(m.prop + ' = ' + v);
+    });
+    return hits;
+  }
+  simulate() {
+    var S = this.state, me = this, steps = [];
+    if (!S.on) {
+      var inst = null;
+      S.steps.forEach(function (st) {
+        var f = S.single.froms.find(function (x) { return x.event === st.event; });
+        if (!f) { steps.push({ st: st, effects: [{ m: '·', t: 'not a source — no change', c: '#6b7d8b' }] }); return; }
+        var created = !inst; if (!inst) { inst = {}; S.single.props.forEach(function (p) { if (p.key) inst[p.name] = PET; }); }
+        var hits = me.applyFrom(f, st, S.single.props, inst);
+        steps.push({ st: st, effects: [{ m: created ? '+' : '✎', t: (created ? 'creates ' : 'updates ') + S.name + (hits.length ? ': ' + hits.join(', ') : ''), c: '#c6e03a' }] });
+      });
+      return { steps: steps, live: null, instances: inst ? [{ name: S.name, inst: inst, props: S.single.props, live: true }] : [], left: [] };
+    }
+    var active = null, inst2 = null, history = [];
+    S.steps.forEach(function (st) {
+      var eff = [], entering = me.enterOwner(st.event);
+      if (entering.length) {
+        var V = entering[0], ef = V.enters.find(function (f) { return f.event === st.event; });
+        if (entering.length > 1) eff.push({ m: '!', t: 'claimed by ' + entering.map(function (v) { return v.name; }).join(' and ') + ' — only ' + V.name + ' is used here', c: '#ff9b9b' });
+        if (active && active.id !== V.id) { history.push({ v: active, inst: inst2 }); eff.push({ m: '−', t: 'leaves ' + active.name + ' (removed)', c: '#ff9b9b' }); inst2 = null; }
+        var created = !inst2; if (!inst2) { inst2 = {}; V.props.forEach(function (p) { if (p.key) inst2[p.name] = PET; }); }
+        var hits = me.applyFrom(ef, st, V.props, inst2);
+        eff.push({ m: created ? '→' : '✎', t: (created ? 'enters ' : 'updates ') + V.name + (hits.length ? ': ' + hits.join(', ') : ''), c: '#c6e03a' });
+        active = V;
+      } else {
+        var sh = S.shared.find(function (f) { return f.event === st.event; }), vf = active ? active.froms.find(function (f) { return f.event === st.event; }) : null;
+        var other = S.variants.filter(function (v) { return v.froms.some(function (f) { return f.event === st.event; }); });
+        if (!active) eff.push({ m: '·', t: 'ignored — the ' + me.entityWord() + ' isn’t in any variant yet', c: '#6b7d8b' });
+        else if (!sh && !vf) eff.push({ m: '·', t: other.length ? 'ignored — only updates ' + other.map(function (v) { return v.name; }).join(', ') + ', and the ' + me.entityWord() + ' is in ' + active.name : 'not a source — no change', c: '#6b7d8b' });
+        else {
+          var hits2 = [];
+          if (sh) hits2 = hits2.concat(me.applyFrom(sh, st, active.props, inst2));
+          if (vf) hits2 = hits2.concat(me.applyFrom(vf, st, active.props, inst2));
+          eff.push({ m: '✎', t: 'updates ' + active.name + (sh ? ' (shared)' : '') + (hits2.length ? ': ' + hits2.join(', ') : ': nothing it has'), c: '#8cc0ff' });
+        }
+      }
+      steps.push({ st: st, effects: eff });
+    });
+    var instances = [];
+    if (active) instances.push({ name: active.name, inst: inst2, props: active.props, live: true });
+    history.slice().reverse().forEach(function (h) { instances.push({ name: h.v.name, inst: h.inst, props: h.v.props, live: false }); });
+    return { steps: steps, live: active, instances: instances };
+  }
+  entityWord() { return 'pet'; }
+
+  /* ---------- diagnostics ---------- */
+  diags() {
+    var S = this.state, me = this, D = [];
+    var checkFroms = function (list, props, t, label) {
+      list.forEach(function (f) { f.maps.forEach(function (m) { if (!props.some(function (p) { return p.name === m.prop; })) D.push({ sev: 'error', code: '', msg: label + ': ' + f.event + ' sets ' + m.prop + ', which ' + (label) + ' doesn’t have.', t: t }); }); });
+    };
+    if (!S.on) {
+      checkFroms(S.single.froms, S.single.props, 'def', S.name);
+      if (!S.single.froms.length) D.push({ sev: 'error', code: '', msg: 'Nothing builds ' + S.name + ' — drag an event onto it.', t: 'def' });
+      return D;
+    }
+    var names = {};
+    S.variants.forEach(function (v) {
+      var t = v.id;
+      if (!/^[A-Z][A-Za-z0-9]*$/.test(v.name)) D.push({ sev: 'error', code: '', msg: 'Variant names are PascalCase read model names — “' + v.name + '” isn’t one.', t: t });
+      if (names[v.name]) D.push({ sev: 'error', code: 'PLAY0384', msg: 'Two variants are called ' + v.name + '.', t: t }); names[v.name] = 1;
+      if (v.name === S.name) D.push({ sev: 'error', code: '', msg: v.name + ' has the same name as the projection; the group isn’t a read model, so give the variant its own name.', t: t });
+      if (!v.enters.length) D.push({ sev: 'error', code: 'PLAY0382', msg: v.name + ' has no entering event — drag the event that puts an entity into it onto its header.', t: t });
+      if (!v.props.some(function (p) { return p.key; })) D.push({ sev: 'warning', code: '', msg: v.name + ' has no key property; its identity is inferred.', t: t });
+      checkFroms(v.enters.concat(v.froms), v.props, t, v.name);
+      v.enters.forEach(function (f) { if (f.key) D.push({ sev: 'information', code: '', msg: v.name + ' enters on ' + f.event + ' by ' + f.key + '; the reference model honors that key, Chronicle uses the event source (Chronicle#4165).', t: t }); });
+      v.froms.forEach(function (f) { if (v.enters.some(function (e) { return e.event === f.event; })) D.push({ sev: 'warning', code: '', msg: f.event + ' both enters and updates ' + v.name + ' — keep one.', t: t }); });
+    });
+    var claimed = {};
+    S.variants.forEach(function (v) { v.enters.forEach(function (f) { (claimed[f.event] = claimed[f.event] || []).push(v.name); }); });
+    Object.keys(claimed).forEach(function (e) { if (claimed[e].length > 1) D.push({ sev: 'error', code: 'PLAY0385', msg: e + ' enters both ' + claimed[e].join(' and ') + '; an entering event belongs to one variant.', t: S.variants.find(function (v) { return v.name === claimed[e][1]; }).id }); });
+    S.shared.forEach(function (f) {
+      if (claimed[f.event]) D.push({ sev: 'warning', code: '', msg: f.event + ' is shared and also enters ' + claimed[f.event].join(', ') + '.', t: 'shared' });
+      f.maps.forEach(function (m) { var miss = S.variants.filter(function (v) { return !v.props.some(function (p) { return p.name === m.prop; }); }); if (miss.length) D.push({ sev: 'error', code: 'PLAY0383', msg: 'Shared ' + f.event + ' sets ' + m.prop + ', which ' + miss.map(function (v) { return v.name; }).join(' and ') + (miss.length === 1 ? ' doesn’t' : ' don’t') + ' have.', t: 'shared' }); });
+    });
+    S.queries.forEach(function (q) { if (!S.variants.some(function (v) { return v.name === q.target; })) D.push({ sev: 'error', code: '', msg: 'Query ' + q.name + ' reads ' + q.target + ', which is now a group of variants, not a read model — choose which variant it returns.', t: 'q' }); });
+    D.push({ sev: 'information', code: '', msg: 'Chronicle’s declaration language doesn’t lower variants yet (Chronicle#4109); the client SDK and the reference model do.', t: 'shared' });
+    return D;
+  }
+
+  /* ---------- Screenplay ---------- */
+  fromLines(f, ind, kw) {
+    var L = [ind + kw + ' ' + f.event + (f.key ? ' key ' + f.key : '')];
+    if (f.automap === false) L.push(ind + '  no automap');
+    f.maps.forEach(function (m) { L.push(ind + '  ' + m.prop + ' = ' + m.src); });
+    return L;
+  }
+  playText() {
+    var S = this.state, me = this, L = [];
+    var rm = function (name, props) { L.push('readmodel ' + name); props.forEach(function (p) { L.push('  ' + p.name + ' ' + p.type + (p.key ? ' key' : '')); }); L.push(''); };
+    if (!S.on) {
+      rm(S.name, S.single.props);
+      L.push('projection ' + S.name + ' => ' + S.name);
+      S.single.froms.forEach(function (f) { me.fromLines(f, '  ', 'from').forEach(function (l) { L.push(l); }); });
+      return L;
+    }
+    S.variants.forEach(function (v) { rm(v.name, v.props); });
+    L.push('projection ' + S.name);
+    S.shared.forEach(function (f) { me.fromLines(f, '  ', 'from').forEach(function (l) { L.push(l); }); });
+    S.variants.forEach(function (v) {
+      L.push('  variant ' + v.name);
+      v.enters.forEach(function (f) { me.fromLines(f, '    ', 'enters on').forEach(function (l) { L.push(l); }); });
+      v.froms.forEach(function (f) { me.fromLines(f, '    ', 'from').forEach(function (l) { L.push(l); }); });
+    });
+    return L;
+  }
+  tokenize(lines) {
+    return lines.map(function (l, i) {
+      var m = l.match(/^(\s*)(.*)$/), ind = m[1], body = m[2], kw = '', rest = body;
+      if (/^enters on /.test(body)) { kw = 'enters on'; rest = body.slice(9); }
+      else if (/^no automap/.test(body)) { kw = 'no automap'; rest = body.slice(10); }
+      else { var w = body.split(' ')[0]; if (KW.indexOf(w) >= 0) { kw = w; rest = body.slice(w.length); } }
+      var kc = kw === 'readmodel' || kw === 'projection' ? '#c6e03a' : (kw === 'variant' ? '#e6f59a' : (kw === 'enters on' ? '#7ee2a6' : (kw === 'from' ? '#f0a060' : '#8b9aa7')));
+      return { n: String(i + 1), ind: ind, kw: kw, rest: rest, kc: kc };
+    });
+  }
+
+  /* ---------- enable / disable ---------- */
+  enable() {
+    var S = this.state; if (S.on) return;
+    var props = clone(S.single.props), froms = clone(S.single.froms);
+    var first = froms[0] ? [froms[0]] : [], rest = froms.slice(1);
+    var v1 = { id: nid('v'), name: 'AvailablePet', props: props, enters: first, froms: [] };
+    var v2 = { id: nid('v'), name: 'ReservedPet', props: props.filter(function (p) { return p.key; }).map(clone), enters: [], froms: [] };
+    this.setState({ on: true, variants: [v1, v2], shared: rest, cur: v2.id, link: '',
+      queries: S.queries.map(function (q) { return Object.assign({}, q, { target: v1.name }); }),
+      msg: S.name + ' is now a group of variants. Its definition became AvailablePet, which ' + (first[0] ? first[0].event + ' enters' : 'nothing enters yet') + (rest.length ? '; ' + rest.map(function (f) { return f.event; }).join(', ') + ' moved to Shared, so it updates whichever variant a pet is in' : '') + '. Next: drag the event that reserves a pet onto ReservedPet.',
+      msgAct: 'example' });
+  }
+  disable() {
+    var S = this.state; if (!S.on) return;
+    if (S.variants.length > 1) { this.setState({ msg: 'Remove variants until one is left to turn variants off — it then becomes ' + S.name + ' again.', msgAct: '' }); return; }
+    var v = S.variants[0] || { props: S.single.props, enters: [], froms: [] };
+    this.setState({ on: false, single: { props: v.props, froms: v.enters.concat(S.shared).concat(v.froms).map(function (f) { return Object.assign({}, f, { key: f.key }); }) }, variants: [], shared: [], cur: 'shared', link: '',
+      queries: S.queries.map(function (q) { return Object.assign({}, q, { target: S.name }); }), msg: 'Variants are off. ' + S.name + ' is a single read model again, built from every event the variant and the shared handlers used.', msgAct: '' });
+  }
+  fillExample() { this.setState(this.examplePatch()); }
+  componentDidUpdate(prev) { if (prev && this.props && prev.start !== this.props.start && this.props.start === 'example') this.setState(this.examplePatch()); }
+  examplePatch() {
+    var S = this.state, keyP = P('petId', 'PetId', true), ent = { prop: 'petId', src: '$eventContext.eventSourceId' };
+    var avail = { id: nid('v'), name: 'AvailablePet', props: [keyP, P('ownerId', 'OwnerId'), P('name', 'PetName'), P('birthDate', 'Date'), P('petType', 'PetType')], enters: [F('PetAdded', '', [clone(ent)]), F('ReservationCancelled', '', [clone(ent)]), F('PetReturned', '', [clone(ent)])], froms: [] };
+    var res = { id: nid('v'), name: 'ReservedPet', props: [clone(keyP), P('name', 'PetName'), P('petType', 'PetType'), P('reservedBy', 'CustomerId'), P('reservedUntil', 'Date')], enters: [F('PetReserved', '', [clone(ent)])], froms: [] };
+    var ad = { id: nid('v'), name: 'AdoptedPet', props: [clone(keyP), P('name', 'PetName'), P('adopterId', 'CustomerId'), P('adoptedOn', 'Date')], enters: [F('PetAdopted', '', [clone(ent)])], froms: [] };
+    return { on: true, variants: [avail, res, ad], shared: [F('PetDetailsChanged')], cur: res.id, link: '',
+      queries: [{ name: 'PetById', target: 'AvailablePet' }, { name: 'ListPets', target: 'AvailablePet' }],
+      msg: 'Filled in available → reserved → adopted. Follow the pet in Preview: when the reservation is cancelled it is back in AvailablePet — and see what it no longer knows.', msgAct: '' };
+  }
+
+  /* ---------- drop handling ---------- */
+  drop(target, d) {
+    if (!d) return; var S = this.state, me = this;
+    var V = this.curV();
+    var ensure = function (list, event, asEnter) { var f = list.find(function (x) { return x.event === event; }); if (f) return { list: list, f: f, added: false }; f = F(event, '', asEnter ? [{ prop: (V && (V.props.find(function (p) { return p.key; }) || {}).name) || 'petId', src: '$eventContext.eventSourceId' }] : []); return { list: list.concat([f]), f: f, added: true }; };
+    if (!S.on) {
+      var r = ensure(S.single.froms, d.event, false), msg = '';
+      if (target.kind === 'head') { var addP = Object.keys(EVENTS[d.event]).filter(function (k) { return !S.single.props.some(function (p) { return p.name === k; }); }).map(function (k) { return P(k, EVENTS[d.event][k]); }); msg = (r.added ? 'Added ' + d.event + ' — ' : '') + 'AutoMap fills every property with a matching name' + (addP.length ? '; new: ' + addP.map(function (p) { return p.name; }).join(', ') : ''); this.setState({ single: Object.assign({}, S.single, { froms: r.list, props: S.single.props.concat(addP) }), drop: '', msg: msg, msgAct: '' }); return; }
+      var maps = r.f.maps.filter(function (m) { return m.prop !== target.prop; }); maps.push({ prop: target.prop, src: d.field || '"value"' });
+      var nf = Object.assign({}, r.f, { maps: maps });
+      this.setState({ single: Object.assign({}, S.single, { froms: r.list.map(function (x) { return x.id === nf.id ? nf : x; }) }), drop: '', link: nf.id + '|' + target.prop + '|map', msg: d.event + (d.field ? '.' + d.field : '') + ' → ' + target.prop, msgAct: '' });
+      return;
+    }
+    if (S.cur === 'shared') {
+      var r2 = ensure(S.shared, d.event, false);
+      if (target.kind === 'head') { this.setState({ shared: r2.list, drop: '', msg: (r2.added ? d.event + ' now updates every variant' : d.event + ' is already shared') + ' — by convention, each variant takes the properties it has.', msgAct: '' }); return; }
+      var maps2 = r2.f.maps.filter(function (m) { return m.prop !== target.prop; }); maps2.push({ prop: target.prop, src: d.field || '"value"' });
+      var nf2 = Object.assign({}, r2.f, { maps: maps2 });
+      this.setState({ shared: r2.list.map(function (x) { return x.id === nf2.id ? nf2 : x; }), drop: '', link: nf2.id + '|' + target.prop + '|map', msg: 'Shared ' + d.event + (d.field ? '.' + d.field : '') + ' → ' + target.prop, msgAct: '' });
+      return;
+    }
+    if (!V) return;
+    var owner = this.enterOwner(d.event).filter(function (v) { return v.id !== V.id; });
+    var inV = V.enters.find(function (f) { return f.event === d.event; }) ? 'enters' : (V.froms.find(function (f) { return f.event === d.event; }) ? 'froms' : '');
+    var asEnter = inV === 'enters' || (!inV && !V.enters.length);
+    var list = asEnter ? V.enters : V.froms, r3 = ensure(list, d.event, asEnter);
+    if (target.kind === 'head' || target.kind === 'node') {
+      var addP3 = Object.keys(EVENTS[d.event]).filter(function (k) { return !V.props.some(function (p) { return p.name === k; }); }).map(function (k) { return P(k, EVENTS[d.event][k]); });
+      var m3 = Object.keys(EVENTS[d.event]);
+      var text = r3.added ? (asEnter ? d.event + ' now enters ' + V.name + ' — an entity moves here from any other variant when it happens.' : d.event + ' now updates ' + V.name + ' while an entity is in it; it never moves one here.') : d.event + ' is already in ' + V.name + '.';
+      if (owner.length && asEnter) text += ' It also enters ' + owner[0].name + ' — an entering event belongs to one variant.';
+      text += ' AutoMap fills ' + (m3.join(', ') || 'nothing') + (addP3.length ? ' — added to ' + V.name + ' as new properties' : '') + '.';
+      var upd = {}; upd[asEnter ? 'enters' : 'froms'] = r3.list; upd.props = V.props.concat(addP3);
+      this.setV(V.id, function (v) { return Object.assign(v, upd); });
+      this.setState({ drop: '', msg: text, msgAct: '' });
+      return;
+    }
+    var maps3 = r3.f.maps.filter(function (m) { return m.prop !== target.prop; });
+    var prop = V.props.find(function (p) { return p.name === target.prop; });
+    if (prop && prop.key) { var nk = Object.assign({}, r3.f, { key: d.field || '' }); var u = {}; u[asEnter ? 'enters' : 'froms'] = r3.list.map(function (x) { return x.id === nk.id ? nk : x; }); this.setV(V.id, function (v) { return Object.assign(v, u); }); this.setState({ drop: '', msg: d.event + ' now finds its ' + V.name + ' by ' + (d.field || 'its event source'), msgAct: '' }); return; }
+    maps3.push({ prop: target.prop, src: d.field || '"value"' });
+    var nf3 = Object.assign({}, r3.f, { maps: maps3 }), u3 = {};
+    u3[asEnter ? 'enters' : 'froms'] = r3.list.map(function (x) { return x.id === nf3.id ? nf3 : x; });
+    this.setV(V.id, function (v) { return Object.assign(v, u3); });
+    this.setState({ drop: '', link: nf3.id + '|' + target.prop + '|map', msg: d.event + (d.field ? '.' + d.field : '') + ' → ' + V.name + '.' + target.prop, msgAct: '' });
+  }
+
+  renderVals() {
+    var me = this, S = this.state, D = this.diags(), V = this.curV();
+    var segOnS = { bg: '#2c5a58', fg: '#ffffff', op: '1' }, segOffS = { bg: 'transparent', fg: '#c9d4dd', op: '1' };
+    var dragOver = function (k) { return function (e) { e.preventDefault(); try { e.dataTransfer.dropEffect = 'copy'; } catch (x) { } if (me.state.drop !== k) me.setState({ drop: k }); }; };
+    var startDrag = function (p) { return function (e) { if (e && e.stopPropagation) e.stopPropagation(); DRAG = p; try { e.dataTransfer.setData('text/plain', JSON.stringify(p)); e.dataTransfer.effectAllowed = 'copy'; } catch (x) { } }; };
+    var take = function (e) { e.preventDefault(); if (e.stopPropagation) e.stopPropagation(); var d = DRAG; DRAG = null; return d; };
+    var sim = this.simulate();
+
+    /* ---------- canvas data ---------- */
+    var SW = 360, TX = 520, TH = 36, RH = 30, RG = 4;
+    var view = !S.on ? 'single' : (S.cur === 'shared' ? 'shared' : 'variant');
+    var props, srcBlocks = [];
+    if (view === 'single') { props = S.single.props; S.single.froms.forEach(function (f) { srcBlocks.push({ f: f, role: '', own: 'single' }); }); }
+    else if (view === 'shared') { props = this.allProps(); S.shared.forEach(function (f) { srcBlocks.push({ f: f, role: '', own: 'shared' }); }); }
+    else { props = V.props; V.enters.forEach(function (f) { srcBlocks.push({ f: f, role: 'enters', own: 'variant' }); }); V.froms.forEach(function (f) { srcBlocks.push({ f: f, role: 'updates', own: 'variant' }); }); S.shared.forEach(function (f) { srcBlocks.push({ f: f, role: 'shared', own: 'sharedRO' }); }); }
+    var rowY = function (i) { return TH + 8 + i * (RH + RG) + RH / 2; };
+    var curve = function (sy, ty) { return 'M ' + SW + ' ' + sy + ' C ' + (SW + 70) + ' ' + sy + ', ' + (TX - 70) + ' ' + ty + ', ' + (TX - 7) + ' ' + ty; };
+    var pIdx = function (n) { return props.findIndex(function (p) { return p.name === n; }); };
+    var lines = [], labels = [], sources = [], incoming = {}, used = {}, y = 0, linkKey = S.link;
+    var pick = function (id) { return function (e) { if (e && e.stopPropagation) e.stopPropagation(); me.setState({ link: id }); }; };
+    var keyIdx = props.findIndex(function (p) { return p.key; });
+    srcBlocks.forEach(function (b) {
+      var f = b.f, fields = Object.keys(EVENTS[f.event] || {}), collapsed = !!S.collapsed[f.id] || b.own === 'sharedRO', shown = collapsed ? [] : fields;
+      var hy = y + 15, fy = {}; shown.forEach(function (k, j) { fy[k] = y + 30 + j * 24 + 12; });
+      var ro = b.own === 'sharedRO', base = ro ? 0.32 : 1;
+      var add = function (id, sy, ty, kind, label) {
+        var on = linkKey === id && !ro, col = kind === 'auto' ? '#6f93d8' : (kind === 'key' ? '#c6e03a' : (kind === 'const' ? '#c6e03a' : '#4f8ef7'));
+        lines.push({ d: curve(sy, ty), c: on ? '#4fc3b8' : col, w: on ? '3' : (kind === 'auto' || kind === 'key' ? '1.4' : '2'), dash: kind === 'auto' ? '5 4' : '', o: String(on ? 1 : (kind === 'key' ? 0.5 : 0.85) * base), pick: ro ? function () { me.setState({ cur: 'shared', link: '' }); } : pick(id) });
+        if (label) labels.push({ text: label, x: SW + (kind === 'key' ? 22 : 60 + label.length * 3), y: sy, bg: kind === 'key' ? '#c6e03a' : '#202a12', fg: kind === 'key' ? '#1c2408' : '#c6e03a', bd: on ? '#4fc3b8' : (kind === 'key' ? '#c6e03a' : '#4a5a20'), pick: ro ? function () { } : pick(id) });
+      };
+      var anchor = function (k) { if (fy[k] !== undefined) { used[f.id + k] = 1; return fy[k]; } return hy; };
+      if (keyIdx >= 0 && view !== 'shared' && (b.role === 'enters' || view === 'single')) { add(f.id + '|' + props[keyIdx].name + '|key', f.key ? anchor(f.key) : hy, rowY(keyIdx), 'key', f.key ? 'KEY' : 'ID'); incoming[keyIdx] = 1; }
+      f.maps.forEach(function (m) { var i = pIdx(m.prop); if (i < 0 || (props[i].key && m.src === '$eventContext.eventSourceId')) return; incoming[i] = 1; var ff = fy[m.src] !== undefined || fields.indexOf(m.src) >= 0; add(f.id + '|' + m.prop + '|map', ff ? anchor(m.src) : hy, rowY(i), ff ? 'map' : 'const', ff ? '' : '= ' + m.src.replace('$eventContext.', '$')); });
+      if (f.automap !== false) fields.forEach(function (k) { var i = pIdx(k); if (i < 0 || props[i].key || f.maps.some(function (m) { return m.prop === k; })) return; incoming[i] = 1; add(f.id + '|' + k + '|auto', anchor(k), rowY(i), 'auto', ''); });
+      var role = b.role === 'enters' ? 'ENTERS' : (b.role === 'updates' ? 'UPDATES' : (b.role === 'shared' ? 'SHARED' : ''));
+      sources.push({ y: String(y), event: f.event, op: ro ? '0.55' : '1', hbg: '#f99a32', edge: b.role === 'enters' ? '#3fb871' : (b.role === 'updates' ? '#4f8ef7' : '#f99a32'),
+        caret: collapsed ? '▸' : '▾', hasRole: !!role, role: role, roleBg: b.role === 'enters' ? '#12291d' : (b.role === 'updates' ? '#13243f' : 'rgba(0,0,0,.2)'), roleFg: b.role === 'enters' ? '#7ee2a6' : (b.role === 'updates' ? '#8cc0ff' : '#2a1405'),
+        roleTitle: b.role === 'enters' ? 'Enters this variant — click to make it update-only' : (b.role === 'updates' ? 'Updates only — click to make it enter this variant' : 'Shared'),
+        flipRole: function (e) { if (e && e.stopPropagation) e.stopPropagation(); if (b.role === 'shared') { me.setState({ cur: 'shared' }); return; } me.setV(V.id, function (v) { if (b.role === 'enters') { v.enters = v.enters.filter(function (x) { return x.id !== f.id; }); v.froms.push(f); } else { v.froms = v.froms.filter(function (x) { return x.id !== f.id; }); v.enters.push(f); } return v; }); me.setState({ msg: f.event + (b.role === 'enters' ? ' now only updates ' + V.name + '.' : ' now enters ' + V.name + '.'), msgAct: '' }); },
+        noAuto: f.automap === false, isShared: ro, canRemove: !ro, draggable: ro ? 'false' : 'true',
+        toggle: function (e) { if (e && e.stopPropagation) e.stopPropagation(); if (ro) return; var c = Object.assign({}, S.collapsed); c[f.id] = !c[f.id]; me.setState({ collapsed: c }); },
+        remove: function (e) { if (e && e.stopPropagation) e.stopPropagation(); if (view === 'single') me.setState({ single: Object.assign({}, S.single, { froms: S.single.froms.filter(function (x) { return x.id !== f.id; }) }) }); else if (view === 'shared') me.setState({ shared: S.shared.filter(function (x) { return x.id !== f.id; }) }); else me.setV(V.id, function (v) { v.enters = v.enters.filter(function (x) { return x.id !== f.id; }); v.froms = v.froms.filter(function (x) { return x.id !== f.id; }); return v; }); me.setState({ link: '' }); },
+        drag: startDrag({ event: f.event }),
+        fields: shown.map(function (k) { var t = EVENTS[f.event][k], g = gl(t); return { name: k, type: t, glyph: g.g, gc: g.c, dot: '#1b2431', drag: startDrag({ event: f.event, field: k }) }; }) });
+      y += 30 + (ro ? 18 : shown.length * 24) + 16;
+    });
+    sources.forEach(function (s, si) { var f = srcBlocks[si].f; s.fields.forEach(function (x) { x.dot = used[f.id + x.name] ? '#4f8ef7' : '#1b2431'; }); });
+    var usedEv = srcBlocks.map(function (b) { return b.f.event; });
+    if (view === 'variant') S.variants.forEach(function (v) { v.enters.forEach(function (f) { if (v.id !== V.id) usedEv.push('§' + f.event); }); });
+    var palette = Object.keys(EVENTS).filter(function (e) { return usedEv.indexOf(e) < 0; }).map(function (e) { var owner = view === 'variant' ? me.enterOwner(e).filter(function (v) { return v.id !== V.id; }) : []; return { name: e + (owner.length ? ' · enters ' + owner[0].name : ''), drag: startDrag({ event: e }) }; });
+
+    var rows = props.map(function (p, i) {
+      var g = gl(p.type), isC = !!CONCEPTS[p.type], hot = S.drop === 'row:' + i;
+      var note = '', noteC = '#8b9aa7', canFix = false, fix = null;
+      if (view === 'shared') {
+        var have = S.variants.filter(function (v) { return v.props.some(function (x) { return x.name === p.name; }); });
+        var targeted = S.shared.some(function (f) { return f.maps.some(function (m) { return m.prop === p.name; }); });
+        if (have.length < S.variants.length) { note = 'in ' + have.map(function (v) { return v.name; }).join(', '); noteC = targeted ? '#ff9b9b' : '#8b9aa7'; if (targeted) { canFix = true; fix = function () { me.setState({ variants: S.variants.map(function (v) { return v.props.some(function (x) { return x.name === p.name; }) ? v : Object.assign({}, v, { props: v.props.concat([clone(p)]) }); }) }); }; } }
+        else note = 'every variant';
+      } else if (view === 'variant') {
+        var sharedSets = S.shared.some(function (f) { return f.maps.some(function (m) { return m.prop === p.name; }) || (f.automap !== false && EVENTS[f.event][p.name] !== undefined); });
+        if (sharedSets && !p.key) note = 'also set by shared';
+      }
+      return { name: p.name, type: p.type, glyph: g.g, gc: g.c, isConcept: isC, isPlain: !isC, keyC: p.key ? '#c6e03a' : '#6b7d8b', editable: view !== 'shared', hasNote: !!note, note: note, noteC: noteC, canFix: canFix, fix: fix,
+        dot: incoming[i] ? '#4f8ef7' : '#1b2431', bd: hot ? '#4fc3b8' : (String(linkKey).split('|')[1] === p.name ? '#4f8ef7' : '#2f3b4c'), bg: hot ? '#173033' : '#202a38',
+        over: dragOver('row:' + i), drop: function (e) { me.drop({ kind: 'row', prop: p.name }, take(e)); },
+        tKey: function () { var upd = function (list) { return list.map(function (x) { return x.name === p.name ? Object.assign({}, x, { key: !x.key }) : x; }); }; if (view === 'single') me.setState({ single: Object.assign({}, S.single, { props: upd(S.single.props) }) }); else me.setV(V.id, function (v) { v.props = upd(v.props); return v; }); },
+        remove: function () { if (view === 'single') me.setState({ single: Object.assign({}, S.single, { props: S.single.props.filter(function (x) { return x.name !== p.name; }) }) }); else me.setV(V.id, function (v) { v.props = v.props.filter(function (x) { return x.name !== p.name; }); return v; }); } };
+    });
+    var tname = view === 'single' ? S.name : (view === 'shared' ? 'Every variant' : V.name);
+    var emptyText = view === 'variant' && !V.enters.length ? 'Nothing puts a ' + me.entityWord() + ' into ' + V.name + ' yet. Drag the event that does — PetReserved, say — onto its header. That event becomes “enters on”; events you add after it only update.' : (view === 'shared' && !S.shared.length ? 'Nothing is shared yet. Drop an event here when it should update an entity whatever variant it is in — like a name change.' : '');
+    var cv = {
+      srcTitle: view === 'variant' ? 'Sources · what puts a pet here, and what updates it while here' : (view === 'shared' ? 'Shared sources · update whichever variant an entity is in' : 'Sources'),
+      tgtTitle: view === 'variant' ? 'Target · variant ' + (S.variants.indexOf(V) + 1) + ' of ' + S.variants.length : (view === 'shared' ? 'Target · properties across the variants' : 'Target'),
+      h: String(Math.max(y + 140, TH + 8 + props.length * (RH + RG) + 300)), lines: lines, labels: labels, sources: sources, palette: palette, palY: String(y + 6),
+      palHelp: view === 'variant' ? 'Drag one onto ' + V.name + '’s header: the first becomes “enters on”, later ones update. Drop on a property to map just that.' : (view === 'shared' ? 'Drop one on the header to make it update every variant.' : 'Drag one onto the read model header to map it by convention, or onto a property to map just that.'),
+      hbg: view === 'shared' ? '#8fa33a' : '#c6e03a', tbd: view === 'shared' ? '#5a6b2a' : '#8ea52a', tname: tname, renamable: view === 'variant', fixedName: view !== 'variant',
+      rename: function (e) { var nv = e.target.value.replace(/[^A-Za-z0-9]/g, ''), old = V.name; me.setV(V.id, function (v) { v.name = nv; return v; }); me.setState({ queries: S.queries.map(function (q) { return q.target === old ? Object.assign({}, q, { target: nv }) : q; }) }); },
+      headHint: S.drop === 'head' ? 'Drop to map by convention' : (view === 'variant' ? (V.enters.length ? 'drop an event to update it' : 'drop the entering event here') : 'drop an event here'),
+      headOver: dragOver('head'), headDrop: function (e) { me.drop({ kind: 'head' }, take(e)); }, headOutline: S.drop === 'head' ? '2px dashed #4fc3b8' : 'none',
+      canDelete: view === 'variant', del: function () { var rest = S.variants.filter(function (v) { return v.id !== V.id; }); me.setState({ variants: rest, cur: rest[0] ? rest[0].id : 'shared', link: '', queries: S.queries.map(function (q) { return q.target === V.name && rest[0] ? Object.assign({}, q, { target: rest[0].name }) : q; }), msg: 'Removed ' + V.name + (rest.length === 1 ? '. One variant left — you can turn variants off now.' : '.'), msgAct: '' }); },
+      rows: rows, canAddProp: view !== 'shared', hasEmpty: !!emptyText, empty: emptyText
+    };
+    /* link inspector */
+    var link = { has: false, kind: '', c: '', bd: '', from: '', to: '', text: '', isKey: false, isAuto: false, isMap: false, isConst: false, keyOptions: [], keyVal: '', sources: [], sel: '', src: '', event: '' };
+    if (linkKey) {
+      var lp = linkKey.split('|'), blk = srcBlocks.find(function (b) { return b.f.id === lp[0] && b.own !== 'sharedRO'; });
+      if (blk) {
+        var lf = blk.f, lfields = Object.keys(EVENTS[lf.event]);
+        var setF = function (fn) { var nf = fn(clone(lf)); var rep = function (list) { return list.map(function (x) { return x.id === nf.id ? nf : x; }); }; if (view === 'single') me.setState({ single: Object.assign({}, S.single, { froms: rep(S.single.froms) }) }); else if (view === 'shared') me.setState({ shared: rep(S.shared) }); else me.setV(V.id, function (v) { v.enters = rep(v.enters); v.froms = rep(v.froms); return v; }); };
+        link = Object.assign(link, { has: true, event: lf.event, to: tname + '.' + lp[1], close: function () { me.setState({ link: '' }); } });
+        if (lp[2] === 'key') link = Object.assign(link, { kind: 'Key', c: '#c6e03a', bd: '#5a6b2a', from: lf.event + (lf.key ? '.' + lf.key : ' (event source)'), isKey: true, keyOptions: [OWN].concat(lfields), keyVal: lf.key || OWN, text: 'Which instance this event ' + (blk.role === 'enters' ? 'creates or moves' : 'updates') + '. By default its own event source.', setKey: function (e) { var v = e.target.value; setF(function (x) { x.key = v === OWN ? '' : v; return x; }); } });
+        else if (lp[2] === 'auto') link = Object.assign(link, { kind: 'By convention · AutoMap', c: '#8cc0ff', bd: '#2f5f88', from: lf.event + '.' + lp[1], isAuto: true, text: 'Copied because the names match. Nothing about it is written in the model.', pin: function () { setF(function (x) { x.maps.push({ prop: lp[1], src: lp[1] }); return x; }); me.setState({ link: lf.id + '|' + lp[1] + '|map' }); }, autoOff: function () { setF(function (x) { x.automap = false; return x; }); me.setState({ link: '' }); } });
+        else { var mi = lf.maps.findIndex(function (m) { return m.prop === lp[1]; }), mm = lf.maps[mi]; if (mm) { var srcs = lfields.concat(ECTX).concat([CONST]), isC = srcs.indexOf(mm.src) < 0; link = Object.assign(link, { kind: 'Mapping', c: '#8cc0ff', bd: '#2f5f88', from: lf.event + (lfields.indexOf(mm.src) >= 0 ? '.' + mm.src : ''), isMap: true, text: 'Sets ' + lp[1] + ' whenever ' + lf.event + ' happens.', sources: srcs, sel: isC ? CONST : mm.src, src: mm.src, isConst: isC, setSrc: function (e) { var v = e.target.value; setF(function (x) { x.maps[mi].src = v === CONST ? '"value"' : v; return x; }); }, setConst: function (e) { var v = e.target.value; setF(function (x) { x.maps[mi].src = v; return x; }); }, remove: function () { setF(function (x) { x.maps.splice(mi, 1); return x; }); me.setState({ link: '' }); } }); } else link.has = false; }
+      }
+    }
+
+    /* variant strip */
+    var errFor = function (t) { return D.filter(function (d) { return d.sev === 'error' && d.t === t; }).length; };
+    var vnodes = S.variants.map(function (v) {
+      var on = S.cur === v.id, e = errFor(v.id), live = sim.live && sim.live.id === v.id;
+      return { name: v.name || '(unnamed)', enters: v.enters.length ? 'enters on ' + v.enters.map(function (f) { return f.event; }).join(', ') : 'nothing enters it yet', enFg: v.enters.length ? '#7ee2a6' : '#ff9b9b', props: v.props.length + ' properties' + (v.froms.length ? ' · ' + v.froms.length + ' update-only' : '') + (e ? ' · ' + e + (e === 1 ? ' problem' : ' problems') : ''), isLive: live,
+        bd: on ? '#c6e03a' : (e ? '#8a3a3e' : '#3a4a20'), bg: on ? '#232f12' : '#161f19', sh: on ? '0 0 0 2px rgba(198,224,58,.25)' : 'none',
+        pick: function () { me.setState({ cur: v.id, link: '' }); }, over: dragOver('node:' + v.id), drop: function (e2) { var d = take(e2); me.setState({ cur: v.id }); setTimeout(function () { me.drop({ kind: 'node' }, d); }, 0); } };
+    });
+    var shNode = { bd: S.cur === 'shared' ? '#c6e03a' : '#3a4b58', bg: S.cur === 'shared' ? '#1f2a2a' : 'transparent', events: S.shared.length ? S.shared.map(function (f) { return f.event; }).join(', ') : 'nothing yet' };
+    var sideVariants = S.variants.map(function (v) { var e = errFor(v.id); return { name: v.name, dot: '#c6e03a', bg: S.cur === v.id ? '#1a2a1c' : 'transparent', hasErr: !!e, err: e + '!', pick: function () { me.setState({ cur: v.id, link: '' }); } }; }).concat([{ name: 'Shared', dot: '#8b9aa7', bg: S.cur === 'shared' ? '#1a2a1c' : 'transparent', hasErr: !!errFor('shared'), err: errFor('shared') + '!', pick: function () { me.setState({ cur: 'shared', link: '' }); } }]);
+    var vnames = S.variants.map(function (v) { return v.name; });
+    var queries = S.queries.map(function (q, qi) { var bad = S.on && vnames.indexOf(q.target) < 0; return { name: q.name, showTarget: S.on, target: q.target, options: bad ? [q.target].concat(vnames) : vnames, bd: bad ? '#8a3a3e' : '#2b3d4b', fg: bad ? '#ff9b9b' : '#c6e03a', set: function (e) { var v = e.target.value; me.setState({ queries: S.queries.map(function (x, j) { return j === qi ? Object.assign({}, x, { target: v }) : x; }) }); } }; });
+
+    /* preview */
+    var pv = { entity: 'pet', help: S.on ? 'Follow one pet through its events. It lives in exactly one variant; entering another removes it from the one it was in.' : 'Follow one pet through its events, and see the instance they build.', steps: [], instances: [], notes: [] };
+    pv.steps = sim.steps.map(function (s, si) { return { event: s.st.event, values: Object.keys(s.st.values).map(function (k) { return k + ': ' + s.st.values[k]; }).join(', '), effects: s.effects, dot: s.effects.some(function (e) { return e.m === '→' || e.m === '+'; }) ? '#c6e03a' : (s.effects.some(function (e) { return e.m === '✎'; }) ? '#4f8ef7' : '#3a4b58'), remove: function () { me.setState({ steps: S.steps.filter(function (_, j) { return j !== si; }) }); } }; });
+    pv.instances = sim.instances.map(function (i) {
+      return { name: i.name + (i.live ? '' : ' · removed'), tag: i.live ? (S.on ? 'where the pet is now' : 'example') : 'left', bd: i.live ? '#c6e03a' : '#3a4352', hbg: i.live ? '#c6e03a' : '#5b6577', op: i.live ? '1' : '0.6', strike: 'none',
+        rows: i.props.map(function (p) { var v = i.inst[p.name]; return { k: p.name, v: v === undefined || v === '' ? '— never set' : String(v), c: v === undefined || v === '' ? '#f0c46a' : (p.key ? '#c6e03a' : '#e6edf3') }; }) };
+    });
+    if (S.on && sim.instances.length) {
+      var liveI = sim.instances[0], missing = liveI.props.filter(function (p) { return !p.key && (liveI.inst[p.name] === undefined || liveI.inst[p.name] === ''); });
+      if (missing.length) pv.notes.push(liveI.name + ' has never set ' + missing.map(function (p) { return p.name; }).join(', ') + '. Each variant is its own read model: nothing is copied from the variant the pet left, so the entering event — or a later update — has to bring it.');
+    }
+
+    /* checks bar */
+    var sevColor = { error: '#ff8f8f', warning: '#f0b84a', information: '#8cc0ff' };
+    var errs = D.filter(function (d) { return d.sev === 'error'; }), warns = D.filter(function (d) { return d.sev === 'warning'; });
+    var bar = errs.length ? { label: errs.length + (errs.length === 1 ? ' PROBLEM' : ' PROBLEMS'), msg: errs[0].msg, bg: '#2a1719', bd: '#5a2a2e', fg: '#ff9b9b' } : (warns.length ? { label: warns.length + (warns.length === 1 ? ' WARNING' : ' WARNINGS'), msg: warns[0].msg, bg: '#2a2313', bd: '#5a4a24', fg: '#f0c46a' } : { label: 'CHECKED', msg: 'No problems found.' + (D.length ? ' ' + D.length + (D.length === 1 ? ' note.' : ' notes.') : ''), bg: '#11301f', bd: '#1d4a30', fg: '#5fdc8f' });
+    bar.more = D.length > 0; bar.moreText = S.showDiags ? 'Hide' : 'Show all ' + D.length;
+    var diagRows = D.map(function (d) { return { sev: d.sev === 'information' ? 'note' : d.sev, msg: d.msg, code: d.code, c: sevColor[d.sev], go: function () { var t = d.t; me.setState({ showDiags: false, cur: t === 'shared' || t === 'q' || t === 'def' ? (t === 'shared' ? 'shared' : S.cur) : t }); } }; });
+
+    var srcEvents = S.on ? Array.from(new Set(S.shared.map(function (f) { return f.event; }).concat([].concat.apply([], S.variants.map(function (v) { return v.enters.concat(v.froms).map(function (f) { return f.event; }); }))))) : S.single.froms.map(function (f) { return f.event; });
+    return {
+      name: S.name, vOn: S.on, showCta: !S.on, variantCount: S.variants.length, defBadge: S.on ? S.variants.length + ' variants' : S.single.props.length + ' properties',
+      builtFrom: 'Built from ' + (srcEvents.join(', ') || 'nothing yet') + (S.on ? ' · each variant is its own read model' : ''),
+      selDefinition: function () { me.setState({ link: '' }); },
+      segOff: !S.on ? segOnS : { bg: 'transparent', fg: '#c9d4dd', op: S.variants.length > 1 ? '0.45' : '1' }, segOn: S.on ? segOnS : segOffS,
+      offTitle: S.on && S.variants.length > 1 ? 'Remove variants until one is left to turn variants off' : '',
+      variantsOn: function () { me.enable(); }, variantsOff: function () { me.disable(); },
+      segM: S.kept === 'materialized' ? segOnS : segOffS, segP: S.kept === 'passive' ? segOnS : segOffS, keptM: function () { me.setState({ kept: 'materialized' }); }, keptP: function () { me.setState({ kept: 'passive' }); },
+      vnodes: vnodes, shNode: shNode, sideVariants: sideVariants, queries: queries,
+      selShared: function () { me.setState({ cur: 'shared', link: '' }); },
+      addVariant: function () { var keyP = (V || S.variants[0] || { props: [] }).props.filter(function (p) { return p.key; }).map(clone); var nv = { id: nid('v'), name: 'NewVariant', props: keyP, enters: [], froms: [] }; me.setState({ variants: S.variants.concat([nv]), cur: nv.id, link: '', msg: 'Name the variant in its header, then drag the event that puts an entity into it onto it.', msgAct: '' }); },
+      fillExample: function () { me.fillExample(); },
+      msg: { has: !!S.msg, text: S.msg, hasAction: S.msgAct === 'example', actLabel: 'Fill in the adoption example', act: function () { me.fillExample(); } }, clearMsg: function () { me.setState({ msg: '', msgAct: '' }); },
+      dragEnd: function () { DRAG = null; if (me.state.drop) me.setState({ drop: '' }); },
+      cv: cv, link: link, types: TYPES, newProp: S.newProp, newType: S.newType,
+      setNewProp: function (e) { me.setState({ newProp: e.target.value.replace(/[^A-Za-z0-9_]/g, '') }); }, setNewType: function (e) { me.setState({ newType: e.target.value }); },
+      addProp: function () { var n = S.newProp || 'newProperty', p = P(n, S.newType); if (view === 'single') me.setState({ single: Object.assign({}, S.single, { props: S.single.props.concat([p]) }), newProp: '' }); else if (V) { me.setV(V.id, function (v) { v.props.push(p); return v; }); me.setState({ newProp: '' }); } },
+      rPreview: function () { me.setState({ rtab: 'preview' }); }, rStructure: function () { me.setState({ rtab: 'structure' }); },
+      segPv: S.rtab === 'preview' ? segOnS : segOffS, segSt: S.rtab !== 'preview' ? segOnS : segOffS, isPreview: S.rtab === 'preview', isStructure: S.rtab !== 'preview',
+      pv: pv, eventNames: Object.keys(EVENTS),
+      addStep: function (e) { var v = e.target.value; if (!v) return; var vals = {}; Object.keys(EVENTS[v]).forEach(function (k) { vals[k] = k === 'name' ? 'Bella' : (EVENTS[v][k] === 'Date' ? '2026-10-24' : (EVENTS[v][k] === 'CustomerId' ? 'c-90' : 'value')); }); me.setState({ steps: S.steps.concat([{ id: nid('s'), event: v, values: vals }]) }); e.target.value = ''; },
+      playLines: this.tokenize(this.playText()),
+      bar: bar, showDiags: S.showDiags && D.length > 0, diagRows: diagRows, toggleDiags: function () { if (D.length) me.setState({ showDiags: !S.showDiags }); }
+    };
+  }
+}
+
+window.__mountDC(Component);
+</script>
+</body>
+</html>
