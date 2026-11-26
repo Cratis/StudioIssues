@@ -5,6 +5,9 @@ on:
   push:
     branches: ["main"]
 
+permissions:
+  contents: read
+
 jobs:
   verify:
     uses: Cratis/Workflows/.github/workflows/verify-no-work-records.yml@main
